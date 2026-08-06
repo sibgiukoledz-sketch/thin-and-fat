@@ -260,11 +260,21 @@ layout_mode = 2
 mouse_filter = 2
 theme_override_constants/separation = 6
 
+[node name="FPSLabel" type="Label" parent="HUD/MarginContainer/VBoxContainer"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.2, 1.0, 0.5, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 6
+theme_override_font_sizes/font_size = 18
+text = "⚡ 60 FPS (16.6 ms)"
+
 [node name="AuthorityLabel" type="Label" parent="HUD/MarginContainer/VBoxContainer"]
 layout_mode = 2
 mouse_filter = 2
 theme_override_colors/font_color = Color(0.4, 0.8, 1, 1)
 text = "PEER ID: 1 (LOCAL)"
+
 
 [node name="CharInfoLabel" type="Label" parent="HUD/MarginContainer/VBoxContainer"]
 layout_mode = 2

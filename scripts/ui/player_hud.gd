@@ -3,8 +3,10 @@ extends CanvasLayer
 
 ## Component script for managing HUD UI displays, status bars, and circular ability cooldown icons ("Кругляшки").
 
+@onready var fps_label: Label = $MarginContainer/VBoxContainer/FPSLabel
 @onready var state_label: Label = $MarginContainer/VBoxContainer/StateLabel
 @onready var authority_label: Label = $MarginContainer/VBoxContainer/AuthorityLabel
+
 @onready var char_info_label: Label = $MarginContainer/VBoxContainer/CharInfoLabel
 @onready var health_bar: ProgressBar = $MarginContainer/VBoxContainer/HealthBar
 @onready var health_label: Label = $MarginContainer/VBoxContainer/HealthLabel
@@ -24,8 +26,19 @@ extends CanvasLayer
 @onready var slingshot_key_label: Label = $SlingshotAbilityWidget/KeyBadge/KeyLabel
 
 var player: Player
+var _fps_timer: float = 0.0
+
+func _process(delta: float) -> void:
+	_fps_timer += delta
+	if _fps_timer >= 0.25:
+		_fps_timer = 0.0
+		if fps_label:
+			var fps: int = Engine.get_frames_per_second()
+			var ms: float = (1.0 / maxf(float(fps), 1.0)) * 1000.0
+			fps_label.text = "⚡ %d FPS (%.1f ms)" % [fps, ms]
 
 func setup(player_node: Player) -> void:
+
 	player = player_node
 
 func update_display() -> void:

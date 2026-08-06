@@ -113,6 +113,15 @@ ambient_light_sky_contribution = 0.7
 reflected_light_source = 2
 tonemap_mode = 3
 tonemap_white = 6.0
+fog_enabled = true
+fog_light_color = Color(0.65, 0.75, 0.88, 1)
+fog_density = 0.0075
+fog_sky_affect = 0.4
+fog_aerial_perspective = 0.5
+volumetric_fog_enabled = true
+volumetric_fog_density = 0.006
+volumetric_fog_albedo = Color(0.7, 0.8, 0.9, 1)
+
 
 [sub_resource type="CameraAttributesPractical" id="CameraAttributesPractical_f17e3"]
 
