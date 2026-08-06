@@ -114,7 +114,7 @@ custom_minimum_size = Vector2(0, 54)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_styles/normal = SubResource("StyleBoxFlat_thin")
-text = "⚡ THIN (Быстрый)"
+text = "1. 🦒 Высокий (Худой)"
 
 [node name="BtnCharFat" type="Button" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/CharGrid"]
 unique_name_in_owner = true
@@ -122,7 +122,7 @@ custom_minimum_size = Vector2(0, 54)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_styles/normal = SubResource("StyleBoxFlat_fat")
-text = "🛡️ FAT (Тяжелый)"
+text = "2. 🦛 Жирный (Жирдяй)"
 
 [node name="CharDescLabel" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer"]
 unique_name_in_owner = true

@@ -35,12 +35,12 @@ func _select_character(id: String) -> void:
 
 	if id == "fat":
 		if char_desc_label:
-			char_desc_label.text = "Выбран: FAT (Тяжелый) — Высокая инерция, широкий хитбокс"
+			char_desc_label.text = "Выбран: 2. Жирный (Жирдяй) — Широкий хитбокс (0.75), низкий рост (1.5м), скорость 3.8"
 		btn_fat.modulate = Color(1.3, 1.3, 1.3)
 		btn_thin.modulate = Color(0.6, 0.6, 0.6)
 	else:
 		if char_desc_label:
-			char_desc_label.text = "Выбран: THIN (Быстрый) — Высокая скорость (6.5), узкий хитбокс"
+			char_desc_label.text = "Выбран: 1. Высокий (Худой) — Высокий рост (2.4м), узкий хитбокс (0.28), скорость 7.0"
 		btn_thin.modulate = Color(1.3, 1.3, 1.3)
 		btn_fat.modulate = Color(0.6, 0.6, 0.6)
 
