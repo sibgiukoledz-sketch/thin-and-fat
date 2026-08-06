@@ -41,8 +41,8 @@ func _ready() -> void:
 	if btn_switch_char:
 		btn_switch_char.pressed.connect(func() -> void:
 			hide_pause_menu()
-			if player and player.has_method("rpc_request_character_switch"):
-				player.rpc_request_character_switch.rpc()
+			if player and player.has_method("rpc_toggle_character"):
+				player.rpc_toggle_character.rpc()
 		)
 	if btn_respawn:
 		btn_respawn.pressed.connect(func() -> void:
@@ -53,6 +53,7 @@ func _ready() -> void:
 	if btn_quit:
 		btn_quit.pressed.connect(func() -> void:
 			hide_pause_menu()
+			Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 			get_tree().change_scene_to_file("res://scenes/main_menu.tscn")
 		)
 
@@ -114,7 +115,6 @@ func update_display() -> void:
 		var is_fp: bool = ("is_first_person" in player) and bool(player.is_first_person)
 		var view_str: String = "1ST PERSON" if is_fp else "3RD PERSON"
 		char_info_label.text = "CHAR: %s | VIEW: %s" % [char_name, view_str]
-
 
 	if stench_bar and stench_label:
 		if player.selected_character_id.to_lower() == "fat":

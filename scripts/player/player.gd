@@ -1,98 +1,55 @@
 class_name Player
 extends CharacterBody3D
 
-## Refactored FPS / TPS Player Controller with modular components (FSM, VomitComponent, PlayerHUD).
+## Core Player controller with FPS/TPS Roblox-style camera zoom, multiplayer RPC synchronization,
+## character FSM state machine, and dynamic Fat/Thin character mechanics.
 
-signal player_state_changed(state_name: String)
-signal health_changed(current_hp: float, max_hp: float)
-signal stamina_changed(current_stm: float, max_stm: float)
+signal health_changed(new_hp: float, max_hp: float)
+signal stamina_changed(new_stamina: float, max_stamina: float)
+signal character_switched(new_char_id: String)
 signal player_died
-signal player_landed(downward_velocity: float)
 
-# Preloaded Character Data Resources
-const CHAR_THIN := preload("res://resources/characters/thin_character.tres")
-const CHAR_FAT := preload("res://resources/characters/fat_character.tres")
+const MOUSE_SENSITIVITY_DEFAULT := 0.0025
+const ZOOM_STEP := 0.5
+const MIN_ZOOM := 0.0
+const MAX_ZOOM := 8.0
 
-# Camera Zoom Constants
-const MIN_ZOOM: float = 0.0
-const MAX_ZOOM: float = 6.0
-const ZOOM_STEP: float = 0.5
-const NORMAL_FOV: float = 75.0
-const SPRINT_FOV: float = 88.0
-
-# Dynamic Movement & Stamina Variables (populated from CharacterData)
-var WALK_SPEED: float = 5.0
-var SPRINT_SPEED: float = 8.5
-var CROUCH_SPEED: float = 2.5
-var JUMP_VELOCITY: float = 4.8
-var AIR_ACCEL_FACTOR: float = 0.4
-
-var stamina_drain_rate: float = 20.0
-var stamina_regen_rate: float = 20.0
-
-# Exported / Synced Variables for Networking
-@export var selected_character_id: String = "fat":
-	set(val):
-		selected_character_id = val
-		_apply_character_by_id(selected_character_id)
-
-@export var max_health: float = 100.0:
-	set(val):
-		max_health = maxf(val, 1.0)
-		current_health = clampf(current_health, 0.0, max_health)
-		health_changed.emit(current_health, max_health)
-
-@export var current_health: float = 100.0:
-	set(val):
-		current_health = clampf(val, 0.0, max_health)
-		health_changed.emit(current_health, max_health)
-
-@export var max_stamina: float = 100.0:
-	set(val):
-		max_stamina = maxf(val, 1.0)
-		current_stamina = clampf(current_stamina, 0.0, max_stamina)
-		stamina_changed.emit(current_stamina, max_stamina)
-
-@export var current_stamina: float = 100.0:
-	set(val):
-		current_stamina = clampf(val, 0.0, max_stamina)
-		stamina_changed.emit(current_stamina, max_stamina)
-
-@export var synced_state_name: String = "Idle"
-@export var is_crouching: bool = false
 @export var peer_id: int = 1
+@export var selected_character_id: String = "fat"
 
-# Node References
+# Attributes
+@export var max_health: float = 160.0
+@export var current_health: float = 160.0
+@export var max_stamina: float = 100.0
+@export var current_stamina: float = 100.0
+@export var stamina_regen_rate: float = 20.0
+@export var stamina_drain_rate: float = 35.0
+
+# Movement specs
+@export var walk_speed: float = 4.5
+@export var run_speed: float = 7.5
+@export var jump_velocity: float = 6.5
+@export var mouse_sensitivity: float = MOUSE_SENSITIVITY_DEFAULT
+
+# Physics state
+var gravity: float = 18.0
+var is_dead: bool = false
+var is_carrying_heavy_object: bool = false
+var is_stamina_exhausted: bool = false
+var shift_must_be_released: bool = false
+
+# Component & Node References
 @onready var head: Node3D = $Head
 @onready var spring_arm: SpringArm3D = $Head/SpringArm3D
 @onready var camera_3d: Camera3D = $Head/SpringArm3D/Camera3D
-@onready var state_machine: StateMachine = $StateMachine
 @onready var collision_shape: CollisionShape3D = $CollisionShape3D
 @onready var mesh_instance: MeshInstance3D = $MeshInstance3D
-@onready var uncrouch_ray: RayCast3D = $UncrouchRay
-@onready var hud: CanvasLayer = $HUD
+@onready var state_machine: PlayerStateMachine = $StateMachine
+@onready var active_mechanics: CharacterMechanicsBase = $CharacterMechanics
+@onready var vomit_component: VomitComponent = $VomitComponent
+@onready var hud: PlayerHUD = $HUD
 
-# HUD sub-element accessor for backwards compatibility with components
-var nausea_overlay: ColorRect:
-	get:
-		if hud and "nausea_overlay" in hud:
-			return hud.nausea_overlay
-		return null
-
-# Components
-var vomit_component: VomitComponent
-var active_character_data: CharacterData
-var active_mechanics: BaseCharacterMechanics
-
-# Runtime State
-var mouse_sensitivity: float = 0.002
-var gravity: float = 12.0
-var target_speed: float = WALK_SPEED
-var is_dead: bool = false
-var is_stamina_exhausted: bool = false
-var is_carrying_heavy_object: bool = false
-var shift_must_be_released: bool = false
-
+# Health & Status overlay tracking
 var nausea_intensity: float = 0.0
 var _respawn_timer: float = 0.0
 var _was_in_air: bool = false
@@ -102,7 +59,6 @@ var _last_air_velocity_y: float = 0.0
 var target_camera_zoom: float = 0.0
 var current_camera_zoom: float = 0.0
 var is_first_person: bool = true
-
 
 # Standing/Crouching height lerps
 var stand_height: float = 1.8
@@ -117,132 +73,121 @@ func _ready() -> void:
 	var id_from_name := name.to_int()
 	if id_from_name > 0:
 		peer_id = id_from_name
-		set_multiplayer_authority(peer_id)
-
-	# Initialize Vomit Component
-	vomit_component = VomitComponent.new()
-	vomit_component.name = "VomitComponent"
-	vomit_component.player = self
-	add_child(vomit_component)
-
-	# Fetch chosen character from NetworkManager if local authority
-	if is_multiplayer_authority() and NetworkManager:
-		selected_character_id = NetworkManager.local_character_id
 	else:
-		_apply_character_by_id(selected_character_id)
+		peer_id = multiplayer.get_unique_id()
+
+	set_multiplayer_authority(peer_id)
 
 	if is_multiplayer_authority():
-		camera_3d.make_current()
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+		if camera_3d:
+			camera_3d.make_current()
 		if hud:
-			hud.show()
+			hud.setup(self)
 	else:
-		camera_3d.current = false
+		if camera_3d:
+			camera_3d.current = false
 		if hud:
-			hud.hide()
+			hud.queue_free()
 
-	if hud and hud.has_method("setup"):
-		hud.setup(self)
+	set_character(selected_character_id)
 
-	if state_machine:
-		state_machine.state_changed.connect(_on_state_changed)
+func set_character(char_id: String) -> void:
+	selected_character_id = char_id.to_lower()
+	var is_fat := (selected_character_id == "fat")
 
-	if uncrouch_ray:
-		uncrouch_ray.add_exception(self)
+	if is_fat:
+		max_health = 160.0
+		max_stamina = 100.0
+		walk_speed = 4.2
+		run_speed = 7.0
+		jump_velocity = 6.2
+		stamina_drain_rate = 35.0
+		stamina_regen_rate = 22.0
+		stand_height = 1.5
+		stand_head_y = 1.25
 
-	update_hud_display()
+		if collision_shape and collision_shape.shape is CapsuleShape3D:
+			var cap := collision_shape.shape as CapsuleShape3D
+			cap.radius = 0.75
+			cap.height = 1.5
 
-# Character Data Application
-func apply_character_data(data: CharacterData) -> void:
-	if not data:
-		return
-	active_character_data = data
+		if mesh_instance and mesh_instance.mesh is CapsuleMesh:
+			var cm := mesh_instance.mesh as CapsuleMesh
+			cm.radius = 0.75
+			cm.height = 1.5
 
-	max_health = data.max_health
+		# Attach Fat Mechanics Component
+		_attach_mechanics_component("res://scripts/player/characters/fat_mechanics.gd")
+
+	else: # Thin
+		max_health = 80.0
+		max_stamina = 120.0
+		walk_speed = 6.5
+		run_speed = 10.5
+		jump_velocity = 8.5
+		stamina_drain_rate = 18.0
+		stamina_regen_rate = 30.0
+		stand_height = 2.4
+		stand_head_y = 2.05
+
+		if collision_shape and collision_shape.shape is CapsuleShape3D:
+			var cap := collision_shape.shape as CapsuleShape3D
+			cap.radius = 0.28
+			cap.height = 2.4
+
+		if mesh_instance and mesh_instance.mesh is CapsuleMesh:
+			var cm := mesh_instance.mesh as CapsuleMesh
+			cm.radius = 0.28
+			cm.height = 2.4
+
+		# Attach Thin Mechanics Component
+		_attach_mechanics_component("res://scripts/player/characters/thin_mechanics.gd")
+
 	current_health = max_health
-
-	max_stamina = data.max_stamina
 	current_stamina = max_stamina
-	stamina_drain_rate = data.stamina_drain_rate
-	stamina_regen_rate = data.stamina_regen_rate
 
-	WALK_SPEED = data.walk_speed
-	SPRINT_SPEED = data.sprint_speed
-	CROUCH_SPEED = data.crouch_speed
-	JUMP_VELOCITY = data.jump_velocity
-	AIR_ACCEL_FACTOR = data.air_accel_factor
-
-	stand_height = data.stand_height
-	crouch_height = data.crouch_height
-	stand_head_y = data.stand_head_y
-	crouch_head_y = data.crouch_head_y
-
-	if collision_shape and collision_shape.shape is CapsuleShape3D:
-		var caps := collision_shape.shape as CapsuleShape3D
-		caps.radius = data.capsule_radius
-		caps.height = data.stand_height
-		collision_shape.position.y = data.stand_height / 2.0
-
+	if collision_shape:
+		collision_shape.position.y = stand_height * 0.5
 	if mesh_instance:
-		mesh_instance.scale = data.mesh_scale
-		mesh_instance.position.y = data.stand_height / 2.0
-		var mat := StandardMaterial3D.new()
-		mat.albedo_color = data.body_color
-		mat.roughness = 0.4
-		mesh_instance.material_override = mat
-
+		mesh_instance.position.y = stand_height * 0.5
 	if head:
-		head.position.y = data.stand_head_y
+		head.position.y = stand_head_y
 
-	_setup_character_mechanics(data.character_id)
-	update_hud_display()
+	character_switched.emit(selected_character_id)
 
-func _apply_character_by_id(id: String) -> void:
-	match id.to_lower():
-		"thin":
-			apply_character_data(CHAR_THIN)
-		_:
-			apply_character_data(CHAR_FAT)
-
-func _setup_character_mechanics(id: String) -> void:
-	if active_mechanics and is_instance_valid(active_mechanics):
+func _attach_mechanics_component(script_path: String) -> void:
+	if active_mechanics:
 		active_mechanics.queue_free()
 		active_mechanics = null
 
-	if id.to_lower() == "thin":
-		active_mechanics = ThinMechanics.new()
-		active_mechanics.name = "ThinMechanics"
-	else:
-		active_mechanics = FatMechanics.new()
-		active_mechanics.name = "FatMechanics"
+	var scr := load(script_path) as Script
+	if scr:
+		var comp := Node.new()
+		comp.name = "CharacterMechanics"
+		comp.set_script(scr)
+		add_child(comp)
+		active_mechanics = comp as CharacterMechanicsBase
+		if active_mechanics and active_mechanics.has_method("setup"):
+			active_mechanics.setup(self)
 
-	active_mechanics.player = self
-	add_child(active_mechanics)
+func take_damage(amount: float) -> void:
+	if is_dead:
+		return
 
-# Health & Combat System Methods
-func take_damage(amount: float, _hit_pos: Vector3 = Vector3.ZERO) -> void:
-	rpc_take_damage.rpc(amount)
+	current_health = clampf(current_health - amount, 0.0, max_health)
+	health_changed.emit(current_health, max_health)
 
-@rpc("any_peer", "call_local", "reliable")
-func rpc_take_damage(amount: float) -> void:
-	current_health -= amount
-	trigger_nausea(0.6)
-	if current_health <= 0.0 and not is_dead:
+	if is_multiplayer_authority() and hud:
+		hud.update_display()
+
+	if current_health <= 0.0:
 		die()
-
-func heal(amount: float) -> void:
-	rpc_heal.rpc(amount)
-
-@rpc("any_peer", "call_local", "reliable")
-func rpc_heal(amount: float) -> void:
-	current_health += amount
-
-func is_alive() -> bool:
-	return current_health > 0.0 and not is_dead
 
 func die() -> void:
 	if is_dead:
 		return
+
 	is_dead = true
 	_respawn_timer = 3.0
 	player_died.emit()
@@ -282,6 +227,18 @@ func respawn() -> void:
 		global_position = Vector3(randf_range(-4.0, 4.0), 1.5, randf_range(-4.0, 4.0))
 
 	print("✨ PLAYER RESPAWNED: %s" % name)
+
+@rpc("any_peer", "call_local", "reliable")
+func rpc_respawn() -> void:
+	respawn()
+
+@rpc("any_peer", "call_local", "reliable")
+func rpc_toggle_character() -> void:
+	if selected_character_id.to_lower() == "fat":
+		set_character("thin")
+	else:
+		set_character("fat")
+	respawn()
 
 # Nausea & Vomit Delegation
 func trigger_vomit() -> void:
@@ -348,7 +305,6 @@ func _unhandled_input(event: InputEvent) -> void:
 		active_mechanics.handle_ability_input(event)
 
 func _perform_melee_attack() -> void:
-
 	if not is_multiplayer_authority() or not camera_3d:
 		return
 
@@ -365,65 +321,50 @@ func _perform_melee_attack() -> void:
 		var hit_collider: Object = result.collider
 		var hit_pos: Vector3 = result.position
 		if hit_collider and hit_collider.has_method("take_damage"):
-			var dmg: float = 35.0 if selected_character_id == "fat" else 20.0
-			hit_collider.take_damage(dmg, hit_pos)
-
-func _process(delta: float) -> void:
-	_update_camera_zoom(delta)
-	_update_crouch_geometry(delta)
-	_update_stamina_logic(delta)
-
-	if is_dead and is_multiplayer_authority():
-		_respawn_timer -= delta
-		if hud and hud.has_method("update_respawn_timer"):
-			hud.update_respawn_timer(_respawn_timer)
-		if _respawn_timer <= 0.0:
-			respawn()
-		return
-
-	if vomit_component:
-		vomit_component.update_nausea_effects(delta)
-		nausea_intensity = vomit_component.nausea_intensity
-
-	if active_mechanics:
-		active_mechanics.update_mechanics(delta)
-
-	update_hud_display()
+			var dmg: float = 35.0 if selected_character_id.to_lower() == "fat" else 20.0
+			hit_collider.take_damage(dmg)
+			print("🥊 MELEE HIT: %s dealt %.1f damage to %s" % [name, dmg, hit_collider.name])
 
 func _physics_process(delta: float) -> void:
-	if not is_on_floor():
-		_was_in_air = true
-		_last_air_velocity_y = velocity.y
-	elif _was_in_air:
-		_was_in_air = false
-		player_landed.emit(_last_air_velocity_y)
-
-	if active_mechanics:
-		active_mechanics.physics_update_mechanics(delta)
-
-func _update_stamina_logic(delta: float) -> void:
-	if not is_multiplayer_authority() or is_dead:
+	if is_dead:
+		if is_multiplayer_authority():
+			_respawn_timer -= delta
+			if hud:
+				hud.update_death_display(true, _respawn_timer)
+			if _respawn_timer <= 0.0:
+				respawn()
 		return
 
-	var is_currently_sprinting := (synced_state_name.to_lower() == "sprint")
-	var is_holding_sprint_key := Input.is_action_pressed("sprint") or Input.is_physical_key_pressed(KEY_SHIFT)
+	# Landing impact calculation
+	if is_on_floor() and _was_in_air:
+		var fall_impact: float = absf(_last_air_velocity_y)
+		if fall_impact > 12.0:
+			var fall_dmg: float = (fall_impact - 12.0) * 4.0
+			take_damage(fall_dmg)
 
-	if is_currently_sprinting:
-		current_stamina -= stamina_drain_rate * delta
-		if current_stamina <= 0.0:
-			current_stamina = 0.0
-			is_stamina_exhausted = true
-			shift_must_be_released = true
-			if state_machine:
-				state_machine.transition_to("Walk")
-	else:
-		current_stamina += stamina_regen_rate * delta
-		if not is_holding_sprint_key:
-			shift_must_be_released = false
+	_was_in_air = not is_on_floor()
+	if not is_on_floor():
+		_last_air_velocity_y = velocity.y
 
-		if is_stamina_exhausted:
-			if not is_holding_sprint_key and current_stamina >= (max_stamina * 0.20):
-				is_stamina_exhausted = false
+	_handle_stamina_regen(delta)
+	_update_camera_zoom(delta)
+
+	if is_multiplayer_authority() and hud:
+		hud.update_display()
+		if nausea_intensity > 0.0:
+			hud.set_nausea_intensity(nausea_intensity)
+
+func _handle_stamina_regen(delta: float) -> void:
+	if state_machine:
+		var cur_state: String = state_machine.current_state_name.to_lower()
+		if cur_state == "sprint":
+			current_stamina = clampf(current_stamina - stamina_drain_rate * delta, 0.0, max_stamina)
+			if current_stamina <= 0.001:
+				is_stamina_exhausted = true
+				shift_must_be_released = true
+		else:
+			if current_stamina < max_stamina:
+				current_stamina = clampf(current_stamina + stamina_regen_rate * delta, 0.0, max_stamina)
 			elif current_stamina >= max_stamina:
 				is_stamina_exhausted = false
 				shift_must_be_released = false
@@ -438,7 +379,6 @@ func _update_camera_zoom(delta: float) -> void:
 	is_first_person = (current_camera_zoom < 0.25)
 	var crosshair: Control = hud.crosshair if (hud and "crosshair" in hud) else null
 
-
 	if is_multiplayer_authority():
 		if mesh_instance:
 			mesh_instance.visible = not is_first_person
@@ -446,120 +386,4 @@ func _update_camera_zoom(delta: float) -> void:
 			crosshair.visible = is_first_person
 	else:
 		if mesh_instance:
-			mesh_instance.visible = true
-		if crosshair:
-			crosshair.visible = false
-
-# Movement Helpers
-func get_movement_input() -> Vector3:
-	if not is_multiplayer_authority() or is_dead:
-		return Vector3.ZERO
-
-	var input_vec := Vector2.ZERO
-	input_vec.x = Input.get_axis("move_left", "move_right")
-	input_vec.y = Input.get_axis("move_forward", "move_backward")
-
-	if input_vec == Vector2.ZERO:
-		if Input.is_physical_key_pressed(KEY_W) or Input.is_physical_key_pressed(KEY_UP):
-			input_vec.y -= 1.0
-		if Input.is_physical_key_pressed(KEY_S) or Input.is_physical_key_pressed(KEY_DOWN):
-			input_vec.y += 1.0
-		if Input.is_physical_key_pressed(KEY_A) or Input.is_physical_key_pressed(KEY_LEFT):
-			input_vec.x -= 1.0
-		if Input.is_physical_key_pressed(KEY_D) or Input.is_physical_key_pressed(KEY_RIGHT):
-			input_vec.x += 1.0
-
-	if nausea_intensity > 0.05 and input_vec != Vector2.ZERO:
-		var t := Time.get_ticks_msec() * 0.003
-		var drift_x := sin(t * 2.2) * 1.6 * nausea_intensity
-		var drift_y := cos(t * 1.6) * 1.0 * nausea_intensity
-		input_vec.x += drift_x
-		input_vec.y += drift_y
-
-	input_vec = input_vec.normalized()
-	var direction := (transform.basis * Vector3(input_vec.x, 0.0, input_vec.y)).normalized()
-	return direction
-
-func is_jump_requested() -> bool:
-	if not is_multiplayer_authority() or is_dead:
-		return false
-	return Input.is_action_just_pressed("jump") or Input.is_physical_key_pressed(KEY_SPACE)
-
-func is_sprint_requested() -> bool:
-	if not is_multiplayer_authority() or is_dead or is_carrying_heavy_object:
-		return false
-	if is_stamina_exhausted or shift_must_be_released or current_stamina <= 0.0:
-		return false
-	return Input.is_action_pressed("sprint") or Input.is_physical_key_pressed(KEY_SHIFT)
-
-func is_crouch_requested() -> bool:
-	if not is_multiplayer_authority() or is_dead:
-		return false
-	return Input.is_action_pressed("crouch") or Input.is_physical_key_pressed(KEY_CTRL) or Input.is_physical_key_pressed(KEY_C)
-
-func apply_movement(direction: Vector3, speed: float, delta: float, accel_factor: float = 1.0) -> void:
-	if not is_multiplayer_authority() or is_dead:
-		return
-
-	var actual_speed: float = speed
-	if is_carrying_heavy_object:
-		actual_speed = minf(speed * 0.45, 2.2)
-
-	var target_vel := direction * actual_speed
-	var rate: float
-
-	if direction.length_squared() > 0.01:
-		rate = 9.0 * accel_factor
-	else:
-		rate = 4.5 * accel_factor
-
-	velocity.x = lerpf(velocity.x, target_vel.x, rate * delta)
-	velocity.z = lerpf(velocity.z, target_vel.z, rate * delta)
-
-	move_and_slide()
-
-func apply_gravity(delta: float) -> void:
-	if not is_multiplayer_authority() or is_dead:
-		return
-	if not is_on_floor():
-		velocity.y -= gravity * delta
-
-func apply_jump_impulse() -> void:
-	if is_multiplayer_authority() and not is_dead:
-		velocity.y = JUMP_VELOCITY
-
-func set_target_fov(target_fov: float) -> void:
-	if is_multiplayer_authority() and camera_3d:
-		var tween := get_tree().create_tween()
-		tween.tween_property(camera_3d, "fov", target_fov, 0.2)
-
-func set_crouch_state(crouch: bool) -> void:
-	is_crouching = crouch
-
-func can_uncrouch() -> bool:
-	if uncrouch_ray:
-		return not uncrouch_ray.is_colliding()
-	return true
-
-func _update_crouch_geometry(delta: float) -> void:
-	var target_h := crouch_height if is_crouching else stand_height
-	var target_head := crouch_head_y if is_crouching else stand_head_y
-
-	head.position.y = lerpf(head.position.y, target_head, 14.0 * delta)
-
-	if collision_shape and collision_shape.shape is CapsuleShape3D:
-		var caps := collision_shape.shape as CapsuleShape3D
-		caps.height = lerpf(caps.height, target_h, 14.0 * delta)
-		collision_shape.position.y = caps.height / 2.0
-
-	if mesh_instance:
-		mesh_instance.position.y = collision_shape.position.y
-
-func _on_state_changed(_from: String, to_state: String) -> void:
-	synced_state_name = to_state
-	player_state_changed.emit(to_state)
-	update_hud_display()
-
-func update_hud_display() -> void:
-	if hud and hud.has_method("update_display"):
-		hud.update_display()
+			mesh_instance.show()
