@@ -389,7 +389,8 @@ func rpc_crush_player(player_path: NodePath) -> void:
 	tween.tween_property(self, "global_position", p.global_position + Vector3(0, 0.8, 0), 0.4)
 
 	# Deal lethal crushing physical HP damage
-	p.take_damage(150.0, p.global_position)
+	p.take_damage(150.0)
+
 
 	get_tree().create_timer(1.2).timeout.connect(func():
 		freeze = false
