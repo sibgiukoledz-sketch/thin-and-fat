@@ -1,0 +1,109 @@
+class_name DummyNPC
+extends CharacterBody3D
+
+## Interactive Training Dummy NPC with networked HP bar, hit reaction shake & particle burst.
+
+signal health_changed(current: float, max_hp: float)
+signal dummy_hit(damage: float, hit_position: Vector3)
+
+@export var max_health: float = 200.0
+@export var current_health: float = 200.0
+@export var auto_respawn_delay: float = 3.0
+
+@onready var mesh_instance: MeshInstance3D = $MeshInstance3D
+@onready var hp_viewport: SubViewport = $SubViewport
+@onready var hp_sprite_3d: Sprite3D = $HPSprite3D
+@onready var hp_bar: ProgressBar = $SubViewport/Panel/VBox/HPBar
+@onready var hp_label: Label = $SubViewport/Panel/VBox/HPLabel
+@onready var particles: GPUParticles3D = $HitParticles
+
+var _original_mesh_scale: Vector3 = Vector3.ONE
+var _original_mesh_pos: Vector3 = Vector3.ZERO
+var _auto_heal_timer: float = 0.0
+var _shake_tween: Tween
+
+func _ready() -> void:
+	current_health = max_health
+	if mesh_instance:
+		_original_mesh_scale = mesh_instance.scale
+		_original_mesh_pos = mesh_instance.position
+
+	update_hp_display()
+
+func _process(delta: float) -> void:
+	if current_health < max_health:
+		_auto_heal_timer += delta
+		if _auto_heal_timer >= auto_respawn_delay:
+			current_health = lerpf(current_health, max_health, 2.0 * delta)
+			if absf(current_health - max_health) < 0.5:
+				current_health = max_health
+			update_hp_display()
+
+func take_damage(amount: float, hit_pos: Vector3 = Vector3.ZERO) -> void:
+	rpc_take_damage.rpc(amount, hit_pos)
+
+@rpc("any_peer", "call_local", "reliable")
+func rpc_take_damage(amount: float, hit_pos: Vector3 = Vector3.ZERO) -> void:
+	current_health = maxf(current_health - amount, 0.0)
+	_auto_heal_timer = 0.0
+
+	health_changed.emit(current_health, max_health)
+	dummy_hit.emit(amount, hit_pos)
+
+	# Trigger visual reactions
+	_play_hit_shake()
+	_spawn_hit_particles(hit_pos)
+	_spawn_floating_damage_text(amount, hit_pos)
+	update_hp_display()
+
+func update_hp_display() -> void:
+	if hp_bar:
+		hp_bar.max_value = max_health
+		hp_bar.value = current_health
+	if hp_label:
+		hp_label.text = "MANNEQUIN: %d / %d HP" % [int(current_health), int(max_health)]
+
+func _play_hit_shake() -> void:
+	if not mesh_instance:
+		return
+
+	if _shake_tween and _shake_tween.is_running():
+		_shake_tween.kill()
+
+	mesh_instance.scale = _original_mesh_scale
+	mesh_instance.position = _original_mesh_pos
+
+	_shake_tween = create_tween()
+	# Squish and wobble effect
+	var shake_offset := Vector3(randf_range(-0.15, 0.15), randf_range(-0.08, 0.08), randf_range(-0.15, 0.15))
+	var squish_scale := Vector3(_original_mesh_scale.x * 1.15, _original_mesh_scale.y * 0.85, _original_mesh_scale.z * 1.15)
+
+	_shake_tween.tween_property(mesh_instance, "scale", squish_scale, 0.06)
+	_shake_tween.parallel().tween_property(mesh_instance, "position", _original_mesh_pos + shake_offset, 0.06)
+
+	_shake_tween.tween_property(mesh_instance, "scale", _original_mesh_scale, 0.12).set_trans(Tween.TRANS_SPRING)
+	_shake_tween.parallel().tween_property(mesh_instance, "position", _original_mesh_pos, 0.12)
+
+func _spawn_hit_particles(hit_pos: Vector3) -> void:
+	if particles:
+		if hit_pos != Vector3.ZERO:
+			particles.global_position = hit_pos
+		particles.restart()
+		particles.emitting = true
+
+func _spawn_floating_damage_text(amount: float, hit_pos: Vector3) -> void:
+	var text_pos := hit_pos if hit_pos != Vector3.ZERO else global_position + Vector3(0, 2.0, 0)
+
+	var label_3d := Label3D.new()
+	label_3d.text = "-%d" % int(amount)
+	label_3d.font_size = 32
+	label_3d.modulate = Color(1.0, 0.2, 0.2, 1.0)
+	label_3d.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	label_3d.global_position = text_pos + Vector3(randf_range(-0.2, 0.2), randf_range(0.2, 0.5), randf_range(-0.2, 0.2))
+
+	get_tree().root.add_child(label_3d)
+
+	var tween := get_tree().create_tween()
+	tween.tween_property(label_3d, "global_position:y", label_3d.global_position.y + 0.8, 0.6)
+	tween.parallel().tween_property(label_3d, "modulate:a", 0.0, 0.6)
+	tween.tween_callback(label_3d.queue_free)
