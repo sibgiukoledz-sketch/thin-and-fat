@@ -83,6 +83,7 @@ const SPRINT_FOV: float = 88.0
 @onready var stench_bar: ProgressBar = $HUD/MarginContainer/VBoxContainer/StenchBar
 @onready var stench_label: Label = $HUD/MarginContainer/VBoxContainer/StenchLabel
 @onready var crosshair: Control = $HUD/Crosshair
+@onready var nausea_overlay: ColorRect = $HUD/NauseaOverlay
 
 # Runtime state
 var active_character_data: CharacterData
@@ -92,6 +93,7 @@ var gravity: float = 12.0
 var target_speed: float = WALK_SPEED
 var is_dead: bool = false
 var is_stamina_exhausted: bool = false
+var nausea_intensity: float = 0.0
 
 # Roblox-style Camera Zoom
 var target_camera_zoom: float = 0.0
@@ -215,6 +217,7 @@ func take_damage(amount: float) -> void:
 @rpc("any_peer", "call_local", "reliable")
 func rpc_take_damage(amount: float) -> void:
 	current_health -= amount
+	trigger_nausea(0.6)
 	if current_health <= 0.0 and not is_dead:
 		die()
 
@@ -293,10 +296,38 @@ func _perform_melee_attack() -> void:
 			var dmg: float = 35.0 if selected_character_id == "fat" else 20.0
 			hit_collider.take_damage(dmg, hit_pos)
 
+func trigger_nausea(amount: float) -> void:
+	nausea_intensity = clampf(nausea_intensity + amount, 0.0, 1.0)
+
+func _update_nausea_effects(delta: float) -> void:
+	if not is_multiplayer_authority():
+		return
+
+	# Gradually decay nausea when away from stench
+	nausea_intensity = maxf(nausea_intensity - 0.25 * delta, 0.0)
+
+	# Update 1st Person Nausea Screen Overlay
+	if nausea_overlay:
+		if nausea_intensity > 0.001:
+			var pulse := sin(Time.get_ticks_msec() * 0.005) * 0.12
+			var alpha := clampf(nausea_intensity * 0.45 + pulse * nausea_intensity, 0.0, 0.65)
+			nausea_overlay.color = Color(0.2, 0.85, 0.15, alpha)
+		else:
+			nausea_overlay.color.a = 0.0
+
+	# 1st Person Camera Sway & Roll Wobble
+	if camera_3d:
+		if nausea_intensity > 0.01:
+			var sway_z := sin(Time.get_ticks_msec() * 0.004) * deg_to_rad(6.5) * nausea_intensity
+			camera_3d.rotation.z = sway_z
+		else:
+			camera_3d.rotation.z = lerpf(camera_3d.rotation.z, 0.0, 10.0 * delta)
+
 func _process(delta: float) -> void:
 	_update_camera_zoom(delta)
 	_update_crouch_geometry(delta)
 	_update_stamina_logic(delta)
+	_update_nausea_effects(delta)
 
 	if active_mechanics:
 		active_mechanics.update_mechanics(delta)

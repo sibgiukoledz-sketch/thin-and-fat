@@ -300,12 +300,15 @@ func _damage_nodes_recursive(node: Node, center: Vector3) -> void:
 	if not node:
 		return
 
-	if node is Node3D and node != player and node.has_method("take_damage"):
+	if node is Node3D and node != player:
 		var n3d := node as Node3D
 		var dist := center.distance_to(n3d.global_position)
 		if dist <= stench_aura_radius:
-			node.take_damage(stench_damage_per_sec, n3d.global_position)
-			print("🤢 STENCH AURA: Dealt %f damage to %s (dist: %.1fm)" % [stench_damage_per_sec, node.name, dist])
+			if node.has_method("trigger_nausea"):
+				node.trigger_nausea(0.5)
+			if node.has_method("take_damage"):
+				node.take_damage(stench_damage_per_sec, n3d.global_position)
+				print("🤢 STENCH AURA: Dealt %f damage to %s (dist: %.1fm)" % [stench_damage_per_sec, node.name, dist])
 
 	for child in node.get_children():
 		_damage_nodes_recursive(child, center)
