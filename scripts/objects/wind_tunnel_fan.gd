@@ -5,9 +5,10 @@ extends Node3D
 ## Hurricane Wind Turbine Mechanic ("Ураган / Сильный вентилятор"):
 ## - Blows a powerful hurricane wind stream down a corridor/zone.
 ## - Light characters ("Худой") and DummyNPCs are blown backward by the wind.
-## - Heavy character ("Жирдяй") acts as a solid Wind Shield / Wind Shadow.
-##   When Thin walks directly BEHIND Fat, Fat blocks the raycast wind stream,
-##   allowing Thin to safely advance forward through the hurricane!
+## - Heavy character ("Жирдяй") acts as a solid Wind Shield / Wind Shadow:
+##   - Experiences heavy resistance when walking against the wind.
+##   - Experiences subtle minor drift backward when standing completely still.
+##   - Protects Thin character walking directly BEHIND him from the wind!
 
 @export var is_active: bool = true
 @export var wind_force: float = 32.0 # Push force magnitude
@@ -58,6 +59,14 @@ func _apply_wind_physics(delta: float) -> void:
 					is_fat = true
 
 			if is_fat:
+				var p_fat: Player = body as Player
+				var dot_fat: float = p_fat.velocity.dot(wind_dir)
+				# 1. Subtle minor drift backward when Fat stands still or moves slowly
+				if dot_fat < 0.5:
+					p_fat.velocity += wind_dir * (wind_force * 0.18) * delta
+				# 2. Heavy resistance when Fat pushes forward against the wind
+				if dot_fat < 0.0:
+					p_fat.velocity -= wind_dir * (dot_fat * 0.35)
 				continue
 
 			var is_shielded: bool = _check_is_shielded_by_fat(fan_origin, body.global_position)
