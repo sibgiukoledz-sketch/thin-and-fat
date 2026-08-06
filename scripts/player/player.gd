@@ -240,6 +240,11 @@ func _unhandled_input(event: InputEvent) -> void:
 	if not is_multiplayer_authority() or is_dead:
 		return
 
+	# Re-capture mouse on left click if uncaptured
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		if Input.mouse_mode != Input.MOUSE_MODE_CAPTURED:
+			Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+
 	# Handle mouse look
 	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 		rotate_y(-event.relative.x * mouse_sensitivity)
