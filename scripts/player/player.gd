@@ -287,13 +287,12 @@ func _update_stamina_logic(delta: float) -> void:
 		if current_stamina <= 0.0:
 			current_stamina = 0.0
 			is_stamina_exhausted = true
-			# Force state transition out of Sprint if exhausted
 			if state_machine:
 				state_machine.transition_to("Walk")
 	else:
 		current_stamina += stamina_regen_rate * delta
-		# Recover from exhaustion when stamina reaches 25%
-		if is_stamina_exhausted and current_stamina >= (max_stamina * 0.25):
+		# Recover from exhaustion only after reaching 35% threshold
+		if is_stamina_exhausted and current_stamina >= (max_stamina * 0.35):
 			is_stamina_exhausted = false
 
 func _update_camera_zoom(delta: float) -> void:
@@ -337,7 +336,9 @@ func is_jump_requested() -> bool:
 	return Input.is_action_just_pressed("jump") or Input.is_physical_key_pressed(KEY_SPACE)
 
 func is_sprint_requested() -> bool:
-	if not is_multiplayer_authority() or is_dead or is_stamina_exhausted or current_stamina <= 1.0:
+	if not is_multiplayer_authority() or is_dead:
+		return false
+	if is_stamina_exhausted or current_stamina < 5.0:
 		return false
 	return Input.is_action_pressed("sprint") or Input.is_physical_key_pressed(KEY_SHIFT)
 
