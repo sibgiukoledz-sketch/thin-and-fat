@@ -1,8 +1,8 @@
 class_name VomitPuddle
 extends Area3D
 
-## AAA Quality Organic Vomit Puddle with dynamic spreading expansion,
-## procedural irregular noise shape, chunky food lumps, rising noxious steam, and buzzing flies.
+## Universal Surface Vomit Puddle / Splatter using Godot 4 Decals.
+## Projects seamlessly onto any surface: floors, walls, sloped obstacles, boxes, and player character meshes!
 
 @export var lifetime: float = 25.0
 @export var extra_nausea: float = 0.4
@@ -11,41 +11,57 @@ var _life_timer: float = 0.0
 var _target_scale: Vector3 = Vector3.ONE
 var _steam_particles: GPUParticles3D
 var _fly_particles: GPUParticles3D
+var _decal: Decal
 var _puddle_mesh: MeshInstance3D
 var _chunks_node: Node3D
 
 func _ready() -> void:
 	body_entered.connect(_on_body_entered)
+	_decal = get_node_or_null("Decal") as Decal
 	_puddle_mesh = get_node_or_null("PuddleMesh") as MeshInstance3D
 
-	# 1. Setup Procedural Irregular Noise Shape Material for organic liquid look
-	_setup_procedural_puddle_material()
+	# 1. Setup Procedural Irregular Noise Decal for organic liquid splatter on ANY surface
+	_setup_procedural_decal()
 
-	# 2. Scatter chunky food lumps inside puddle
+	# 2. Scatter 3D chunky food lumps
 	_scatter_food_chunks()
 
 	# 3. Create noxious steam & buzzing flies
 	_create_steam_particles()
 	_create_fly_particles()
 
-	# 4. Animated spreading expansion: Start small and expand smoothly
+	# 4. Animated spreading expansion
 	var rand_radius := randf_range(0.9, 1.4)
-	_target_scale = Vector3(rand_radius, 1.0, rand_radius * randf_range(0.85, 1.15))
-	scale = Vector3(0.1, 1.0, 0.1)
-	rotation.y = randf() * TAU
+	_target_scale = Vector3(rand_radius, rand_radius, rand_radius)
+	scale = Vector3(0.1, 0.1, 0.1)
 
-	# Smoothly expand over 1.2 seconds
 	var tween := create_tween().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 	tween.tween_property(self, "scale", _target_scale, 1.2)
 
-func _setup_procedural_puddle_material() -> void:
-	if not _puddle_mesh:
-		return
+func align_to_surface(hit_point: Vector3, normal: Vector3, parent_body: Node3D = null) -> void:
+	global_position = hit_point
 
-	# Create procedural noise for organic puddle edges
+	# Orient basis to align with hit normal
+	if normal.length_squared() > 0.001:
+		var up := Vector3.UP
+		if absf(normal.dot(up)) > 0.99:
+			up = Vector3.FORWARD
+		var x_axis := normal.cross(up).normalized()
+		var z_axis := x_axis.cross(normal).normalized()
+		global_transform.basis = Basis(x_axis, normal, z_axis)
+
+	# If hit another player or moving object, attach directly to them!
+	if parent_body and parent_body != get_parent():
+		var global_trans := global_transform
+		get_parent().remove_child(self)
+		parent_body.add_child(self)
+		global_transform = global_trans
+		print("🤮 VOMIT SPLATTER: Attached onto %s!" % parent_body.name)
+
+func _setup_procedural_decal() -> void:
 	var noise := FastNoiseLite.new()
 	noise.seed = randi()
-	noise.frequency = 0.08
+	noise.frequency = 0.09
 	noise.fractal_octaves = 3
 
 	var noise_tex := NoiseTexture2D.new()
@@ -53,15 +69,20 @@ func _setup_procedural_puddle_material() -> void:
 	noise_tex.seamless = true
 	await noise_tex.changed
 
-	var mat := StandardMaterial3D.new()
-	mat.albedo_color = Color(0.42, 0.52, 0.08, 0.92)
-	mat.roughness = 0.04 # Glossy wet liquid reflection
-	mat.metallic = 0.12
-	mat.metallic_specular = 0.75
-	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	mat.albedo_texture = noise_tex
+	if _decal:
+		_decal.texture_albedo = noise_tex
+		_decal.modulate = Color(0.48, 0.58, 0.08, 0.95)
+		_decal.cull_mask = 0xFFFFFFFF # Project onto EVERYTHING (World + Players)
 
-	_puddle_mesh.material_override = mat
+	if _puddle_mesh:
+		var mat := StandardMaterial3D.new()
+		mat.albedo_color = Color(0.42, 0.52, 0.08, 0.92)
+		mat.roughness = 0.04
+		mat.metallic = 0.12
+		mat.metallic_specular = 0.75
+		mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		mat.albedo_texture = noise_tex
+		_puddle_mesh.material_override = mat
 
 func _scatter_food_chunks() -> void:
 	_chunks_node = Node3D.new()
@@ -82,9 +103,9 @@ func _scatter_food_chunks() -> void:
 
 		chunk.mesh = box
 		chunk.position = Vector3(
-			randf_range(-0.6, 0.6),
+			randf_range(-0.5, 0.5),
 			0.02,
-			randf_range(-0.6, 0.6)
+			randf_range(-0.5, 0.5)
 		)
 		chunk.rotation.y = randf() * TAU
 		_chunks_node.add_child(chunk)
@@ -159,6 +180,8 @@ func _process(delta: float) -> void:
 	var fade_start := lifetime - 5.0
 	if _life_timer >= fade_start:
 		var fade_alpha := clampf(1.0 - (_life_timer - fade_start) / 5.0, 0.0, 1.0)
+		if _decal:
+			_decal.modulate.a = fade_alpha * 0.95
 		if _puddle_mesh and _puddle_mesh.material_override:
 			var mat := _puddle_mesh.material_override as StandardMaterial3D
 			if mat:

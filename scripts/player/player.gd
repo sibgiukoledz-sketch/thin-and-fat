@@ -477,20 +477,46 @@ func trigger_vomit() -> void:
 	if nausea_overlay and nausea_overlay.material:
 		nausea_overlay.material.set_shader_parameter("intensity", 1.0)
 
-	# Spawn Vomit Puddle on floor in front of player
+	# Raycast forward & down from mouth to project vomit onto ANY surface (floors, walls, boxes, or OTHER PLAYERS!)
 	if is_multiplayer_authority():
+		var mouth_pos := head.global_position if head else global_position + Vector3(0, 1.5, 0)
 		var forward := -global_transform.basis.z
-		rpc_spawn_vomit_puddle.rpc(global_position + forward * 1.3)
+		var ray_end := mouth_pos + forward * 3.5 + Vector3(0, -2.5, 0)
+
+		var space_state := get_world_3d().direct_space_state
+		var query := PhysicsRayQueryParameters3D.create(mouth_pos, ray_end)
+		query.exclude = [self]
+
+		var hit := space_state.intersect_ray(query)
+		var hit_pos: Vector3
+		var hit_normal: Vector3 = Vector3.UP
+		var hit_node_path: NodePath = NodePath()
+
+		if hit:
+			hit_pos = hit.position
+			hit_normal = hit.normal
+			if hit.collider is Node:
+				hit_node_path = hit.collider.get_path()
+		else:
+			hit_pos = global_position + forward * 1.5
+
+		rpc_spawn_vomit_puddle.rpc(hit_pos, hit_normal, hit_node_path)
 
 	print("🤮 AAA VOMIT BURST: %s vomited!" % name)
 
 @rpc("any_peer", "call_local", "reliable")
-func rpc_spawn_vomit_puddle(spawn_pos: Vector3) -> void:
+func rpc_spawn_vomit_puddle(spawn_pos: Vector3, normal: Vector3, target_path: NodePath) -> void:
 	var puddle_scene := load("res://scenes/vomit_puddle.tscn") as PackedScene
 	if puddle_scene:
-		var puddle := puddle_scene.instantiate() as Node3D
-		puddle.global_position = Vector3(spawn_pos.x, 0.05, spawn_pos.z)
+		var puddle := puddle_scene.instantiate() as VomitPuddle
 		get_tree().root.add_child(puddle)
+
+		var target_node: Node3D = null
+		if not target_path.is_empty() and has_node(target_path):
+			target_node = get_node_or_null(target_path) as Node3D
+
+		if puddle.has_method("align_to_surface"):
+			puddle.align_to_surface(spawn_pos, normal, target_node)
 
 func trigger_nausea(amount: float) -> void:
 	if not is_dead:
