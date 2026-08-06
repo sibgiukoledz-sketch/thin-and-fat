@@ -8,7 +8,7 @@ extends Node3D
 
 signal catapult_launched(launched_body: Node, launch_velocity: float)
 
-@export var max_tilt_angle: float = 20.0 # Max tilt in degrees (deg_to_rad(20.0) ~ 0.35 rad)
+@export var max_tilt_angle: float = 11.5 # Max tilt in degrees (11.5 deg stops right on ground bumpers without floor clipping!)
 @export var base_launch_force: float = 30.0 # Base skyward velocity (m/s)
 @export var max_launch_force: float = 46.0 # Max skyward launch velocity for heavy falls
 
@@ -59,14 +59,18 @@ func _on_side_impact(body: Node, side: int) -> void:
 @rpc("any_peer", "call_local", "reliable")
 func rpc_trigger_catapult_slam(slam_side: int, launch_force: float) -> void:
 	_current_side = slam_side
-	# Correct physical tilt: slam_side == -1 (Left) tilts +20 deg (Left down, Right up)
 	var target_angle_rad: float = deg_to_rad(max_tilt_angle if slam_side == -1 else -max_tilt_angle)
 
-
-	# 1. Animate Plank Tilt
+	# 1. Smooth Mechanical Tilt Animation (Cubic ease out, soft bounce, and auto horizontal leveling)
 	if plank_pivot:
 		var tween: Tween = create_tween()
-		tween.tween_property(plank_pivot, "rotation:z", target_angle_rad, 0.07).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		tween.tween_property(plank_pivot, "rotation:z", target_angle_rad, 0.22).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+		tween.tween_property(plank_pivot, "rotation:z", target_angle_rad * 0.88, 0.12).set_trans(Tween.TRANS_SINE)
+		tween.tween_property(plank_pivot, "rotation:z", target_angle_rad, 0.10)
+
+		# Slowly level back to horizontal balance after 2.2 seconds
+		tween.tween_interval(2.2)
+		tween.tween_property(plank_pivot, "rotation:z", 0.0, 1.2).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 
 	# 2. Spawn Launch FX on Slammed Side
 	var target_particles: GPUParticles3D = particles_left if slam_side == -1 else particles_right
