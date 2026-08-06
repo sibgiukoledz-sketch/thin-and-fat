@@ -1,7 +1,7 @@
 class_name FatMechanics
 extends BaseCharacterMechanics
 
-## Controller for "Fat / Жирдяй" character mechanics: High-Quality Stench VFX & Buzzing Flies System.
+## Controller for "Fat / Жирдяй" character mechanics: AAA Realistic Volumetric Stench VFX & Buzzing Flies System.
 
 signal stench_changed(current: float, max_stench: float)
 
@@ -36,110 +36,122 @@ func _setup_visual_nodes() -> void:
 	if not parent_3d:
 		return
 
-	# 1. Swirling Toxic Gas Clouds (Turbulence-driven)
+	# Generate realistic smoke texture procedurally
+	var smoke_texture := _create_procedural_smoke_texture()
+	var fly_texture := _create_procedural_fly_texture()
+
+	# 1. Realistic Volumetric Gas Clouds (Proximity Fade & Quad Billboards)
 	if not _gas_particles:
 		_gas_particles = GPUParticles3D.new()
 		_gas_particles.name = "VFX_StenchGasClouds"
 		_gas_particles.emitting = false
-		_gas_particles.amount = 45
-		_gas_particles.lifetime = 1.8
-		_gas_particles.speed_scale = 1.0
+		_gas_particles.amount = 55
+		_gas_particles.lifetime = 2.2
+		_gas_particles.speed_scale = 0.9
 
 		var mat_proc := ParticleProcessMaterial.new()
 		mat_proc.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_SPHERE
-		mat_proc.emission_sphere_radius = 1.2
+		mat_proc.emission_sphere_radius = 1.3
 		mat_proc.direction = Vector3(0, 1, 0)
-		mat_proc.spread = 60.0
-		mat_proc.initial_velocity_min = 0.5
-		mat_proc.initial_velocity_max = 1.6
-		mat_proc.gravity = Vector3(0, 0.4, 0)
-		mat_proc.scale_min = 0.2
-		mat_proc.scale_max = 0.55
-		mat_proc.color = Color(0.45, 0.95, 0.2, 0.7) # Vivid Toxic Green
+		mat_proc.spread = 45.0
+		mat_proc.initial_velocity_min = 0.3
+		mat_proc.initial_velocity_max = 1.1
+		mat_proc.gravity = Vector3(0, 0.25, 0)
+		mat_proc.scale_min = 0.8
+		mat_proc.scale_max = 1.6
+		mat_proc.color = Color(0.38, 0.85, 0.22, 0.55) # Realistic Toxic Green
 
-		# Enable dynamic turbulence for realistic gas swirls
+		# Realistic turbulence for organic billows
 		mat_proc.turbulence_enabled = true
-		mat_proc.turbulence_noise_strength = 2.0
-		mat_proc.turbulence_noise_scale = 1.5
+		mat_proc.turbulence_noise_strength = 1.8
+		mat_proc.turbulence_noise_scale = 1.4
 
 		var draw_mat := StandardMaterial3D.new()
 		draw_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-		draw_mat.albedo_color = Color(0.45, 0.95, 0.2, 0.6)
+		draw_mat.albedo_texture = smoke_texture
+		draw_mat.albedo_color = Color(0.4, 0.9, 0.22, 0.6)
 		draw_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 		draw_mat.billboard_mode = BaseMaterial3D.BILLBOARD_PARTICLES
+		draw_mat.billboard_keep_scale = true
 
-		var sphere_mesh := SphereMesh.new()
-		sphere_mesh.material = draw_mat
-		sphere_mesh.radius = 0.22
-		sphere_mesh.height = 0.44
+		# Enable Proximity Fade so gas puffs softly blend with ground, walls and player
+		draw_mat.proximity_fade_enabled = true
+		draw_mat.proximity_fade_distance = 0.8
+
+		var quad_mesh := QuadMesh.new()
+		quad_mesh.material = draw_mat
+		quad_mesh.size = Vector2(1.2, 1.2)
 
 		_gas_particles.process_material = mat_proc
-		_gas_particles.draw_pass_1 = sphere_mesh
+		_gas_particles.draw_pass_1 = quad_mesh
 		_gas_particles.position = Vector3(0, 0.9, 0)
 		parent_3d.add_child(_gas_particles)
 
-	# 2. Buzzing Stink Flies (Fast Jittery Orbiting Swarm)
+	# 2. Realistic Buzzing Flies Swarm with Wing Texture & Erratic Brownian Motion
 	if not _flies_particles:
 		_flies_particles = GPUParticles3D.new()
 		_flies_particles.name = "VFX_BuzzingFliesSwarm"
 		_flies_particles.emitting = false
-		_flies_particles.amount = 35
-		_flies_particles.lifetime = 0.9
-		_flies_particles.speed_scale = 1.4
+		_flies_particles.amount = 40
+		_flies_particles.lifetime = 1.0
+		_flies_particles.speed_scale = 1.6
 
 		var mat_proc := ParticleProcessMaterial.new()
 		mat_proc.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_SPHERE
-		mat_proc.emission_sphere_radius = 1.4
+		mat_proc.emission_sphere_radius = 1.5
 		mat_proc.direction = Vector3(0, 1, 0)
 		mat_proc.spread = 180.0
-		mat_proc.initial_velocity_min = 2.0
-		mat_proc.initial_velocity_max = 4.5
+		mat_proc.initial_velocity_min = 2.5
+		mat_proc.initial_velocity_max = 5.0
 		mat_proc.gravity = Vector3(0, 0, 0)
-		mat_proc.scale_min = 0.04
-		mat_proc.scale_max = 0.09
+		mat_proc.scale_min = 0.12
+		mat_proc.scale_max = 0.22
 
-		# Turbulence for erratic fly buzzing trajectory
+		# Fast turbulence for erratic buzzing trajectories
 		mat_proc.turbulence_enabled = true
-		mat_proc.turbulence_noise_strength = 4.5
-		mat_proc.turbulence_noise_scale = 3.0
+		mat_proc.turbulence_noise_strength = 5.0
+		mat_proc.turbulence_noise_scale = 3.5
 
 		var draw_mat := StandardMaterial3D.new()
 		draw_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-		draw_mat.albedo_color = Color(0.08, 0.2, 0.05, 0.95) # Dark Insect Flies
+		draw_mat.albedo_texture = fly_texture
+		draw_mat.albedo_color = Color(0.1, 0.1, 0.1, 0.95)
+		draw_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 		draw_mat.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
 
-		var fly_mesh := SphereMesh.new()
-		fly_mesh.material = draw_mat
-		fly_mesh.radius = 0.04
-		fly_mesh.height = 0.08
+		var fly_quad := QuadMesh.new()
+		fly_quad.material = draw_mat
+		fly_quad.size = Vector2(0.18, 0.18)
 
 		_flies_particles.process_material = mat_proc
-		_flies_particles.draw_pass_1 = fly_mesh
+		_flies_particles.draw_pass_1 = fly_quad
 		_flies_particles.position = Vector3(0, 1.3, 0)
 		parent_3d.add_child(_flies_particles)
 
-	# 3. Floating Toxic Spores / Embers
+	# 3. Glowing Toxic Spores (Rising embers)
 	if not _spore_particles:
 		_spore_particles = GPUParticles3D.new()
 		_spore_particles.name = "VFX_ToxicSpores"
 		_spore_particles.emitting = false
-		_spore_particles.amount = 25
-		_spore_particles.lifetime = 2.0
+		_spore_particles.amount = 30
+		_spore_particles.lifetime = 2.2
 
 		var mat_proc := ParticleProcessMaterial.new()
 		mat_proc.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_BOX
-		mat_proc.emission_box_extents = Vector3(1.2, 0.2, 1.2)
+		mat_proc.emission_box_extents = Vector3(1.3, 0.2, 1.3)
 		mat_proc.direction = Vector3(0, 1, 0)
-		mat_proc.spread = 30.0
-		mat_proc.initial_velocity_min = 0.6
-		mat_proc.initial_velocity_max = 1.4
+		mat_proc.spread = 35.0
+		mat_proc.initial_velocity_min = 0.7
+		mat_proc.initial_velocity_max = 1.5
 		mat_proc.gravity = Vector3(0, 0.2, 0)
-		mat_proc.scale_min = 0.06
-		mat_proc.scale_max = 0.14
+		mat_proc.scale_min = 0.08
+		mat_proc.scale_max = 0.16
 
 		var draw_mat := StandardMaterial3D.new()
 		draw_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-		draw_mat.albedo_color = Color(0.7, 1.0, 0.2, 0.9) # Bright Glowing Spores
+		draw_mat.albedo_color = Color(0.75, 1.0, 0.25, 0.9)
+		draw_mat.proximity_fade_enabled = true
+		draw_mat.proximity_fade_distance = 0.5
 
 		var spore_mesh := SphereMesh.new()
 		spore_mesh.material = draw_mat
@@ -151,24 +163,79 @@ func _setup_visual_nodes() -> void:
 		_spore_particles.position = Vector3(0, 0.2, 0)
 		parent_3d.add_child(_spore_particles)
 
-	# 4. Animated Ground Toxic Damage Ring Emitter
+	# 4. Soft Proximity-Faded Ground Toxic Damage Ring Emitter
 	if not _toxic_ring_mesh:
 		_toxic_ring_mesh = MeshInstance3D.new()
 		_toxic_ring_mesh.name = "VFX_ToxicDamageRing"
 		var torus := TorusMesh.new()
-		torus.inner_radius = stench_aura_radius - 0.25
+		torus.inner_radius = stench_aura_radius - 0.3
 		torus.outer_radius = stench_aura_radius
 
 		_ring_material = StandardMaterial3D.new()
 		_ring_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-		_ring_material.albedo_color = Color(0.45, 0.95, 0.2, 0.55)
+		_ring_material.albedo_color = Color(0.45, 0.95, 0.2, 0.5)
 		_ring_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		_ring_material.proximity_fade_enabled = true
+		_ring_material.proximity_fade_distance = 0.5
 
 		_toxic_ring_mesh.mesh = torus
 		_toxic_ring_mesh.material_override = _ring_material
 		_toxic_ring_mesh.position = Vector3(0, 0.1, 0)
 		_toxic_ring_mesh.visible = false
 		parent_3d.add_child(_toxic_ring_mesh)
+
+func _create_procedural_smoke_texture() -> ImageTexture:
+	var img := Image.create(128, 128, false, Image.FORMAT_RGBA8)
+	var noise := FastNoiseLite.new()
+	noise.noise_type = FastNoiseLite.TYPE_SIMPLEX_SMOOTH
+	noise.frequency = 0.025
+	noise.fractal_octaves = 4
+
+	var center := Vector2(64, 64)
+	var max_radius := 60.0
+
+	for y in range(128):
+		for x in range(128):
+			var pos := Vector2(x, y)
+			var dist := pos.distance_to(center)
+			if dist >= max_radius:
+				img.set_pixel(x, y, Color(0, 0, 0, 0))
+				continue
+
+			var n_val := (noise.get_noise_2d(x, y) + 1.0) * 0.5
+			var falloff := 1.0 - (dist / max_radius)
+			falloff = smoothstep(0.0, 1.0, falloff)
+			var alpha := clampf(n_val * falloff * 0.9, 0.0, 1.0)
+
+			img.set_pixel(x, y, Color(1.0, 1.0, 1.0, alpha))
+
+	return ImageTexture.create_from_image(img)
+
+func _create_procedural_fly_texture() -> ImageTexture:
+	var img := Image.create(64, 64, false, Image.FORMAT_RGBA8)
+	img.fill(Color(0, 0, 0, 0))
+
+	# Draw fly body & wings
+	var center := Vector2(32, 32)
+	for y in range(64):
+		for x in range(64):
+			var pos := Vector2(x, y)
+			var body_dist := pos.distance_to(center)
+			# Oval body
+			var dx := (x - 32) * 1.5
+			var dy := (y - 32) * 0.8
+			var body_val := sqrt(dx * dx + dy * dy)
+			if body_val <= 10.0:
+				img.set_pixel(x, y, Color(0.08, 0.08, 0.08, 0.95))
+				continue
+
+			# Wings
+			var wing_left := pos.distance_to(Vector2(22, 24))
+			var wing_right := pos.distance_to(Vector2(42, 24))
+			if wing_left <= 8.0 or wing_right <= 8.0:
+				img.set_pixel(x, y, Color(0.7, 0.8, 0.9, 0.6))
+
+	return ImageTexture.create_from_image(img)
 
 func handle_ability_input(event: InputEvent) -> void:
 	if not _ensure_player_ref() or not player.is_multiplayer_authority():
@@ -211,32 +278,31 @@ func wash_stench_gradual(amount: float) -> void:
 	_update_gas_visuals()
 
 func _update_gas_visuals() -> void:
-	# Dynamic Intensity Scaling based on stench level (0 to 100%)
 	var intensity := stench_level / max_stench
 
-	# 1. Toxic Gas Clouds (Turn on at 20%)
+	# 1. Volumetric Gas Clouds
 	if _gas_particles:
 		var should_emit := (stench_level >= 20.0)
 		if _gas_particles.emitting != should_emit:
 			_gas_particles.emitting = should_emit
 		if should_emit:
-			_gas_particles.amount = int(lerpf(15.0, 45.0, intensity))
+			_gas_particles.amount = int(lerpf(20.0, 55.0, intensity))
 
-	# 2. Buzzing Flies Swarm (Turn on at 35%)
+	# 2. Buzzing Flies Swarm
 	if _flies_particles:
 		var should_flies := (stench_level >= 35.0)
 		if _flies_particles.emitting != should_flies:
 			_flies_particles.emitting = should_flies
 		if should_flies:
-			_flies_particles.amount = int(lerpf(10.0, 40.0, intensity))
+			_flies_particles.amount = int(lerpf(15.0, 40.0, intensity))
 
-	# 3. Glowing Toxic Spores (Turn on at 50%)
+	# 3. Glowing Toxic Spores
 	if _spore_particles:
 		var should_spores := (stench_level >= 50.0)
 		if _spore_particles.emitting != should_spores:
 			_spore_particles.emitting = should_spores
 
-	# 4. Animated Damage Ring (Turn on at 75%)
+	# 4. Animated Damage Ring
 	if _toxic_ring_mesh and _ring_material:
 		var is_toxic := (stench_level >= stench_damage_threshold)
 		_toxic_ring_mesh.visible = is_toxic
