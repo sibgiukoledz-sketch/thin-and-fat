@@ -2,8 +2,8 @@ class_name FragileGlassFloor
 extends StaticBody3D
 
 ## Realistic AAA Fragile Glass Floor panel.
-## Safely supports Thin characters, but shatters into small 3D physical micro glass shards that scatter,
-## fall with gravity, and fade away over time when Fat (or a Heavy Boulder) steps on it!
+## Safely supports Thin characters, but shatters into small 3D physical glass micro-shards that fall naturally
+## under gravity, land on the ground below, and fade away over time when Fat (or a Heavy Boulder) steps on it!
 
 signal glass_shattered
 
@@ -38,7 +38,7 @@ func _setup_glass_material() -> void:
 
 	_glass_material = StandardMaterial3D.new()
 	_glass_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	_glass_material.albedo_color = Color(0.8, 0.95, 1.0, 0.38) # Crystal clear glass tint
+	_glass_material.albedo_color = Color(0.82, 0.96, 1.0, 0.38) # Crystal clear glass tint
 	_glass_material.roughness = 0.02
 	_glass_material.metallic = 0.15
 	_glass_material.refraction_enabled = true
@@ -49,7 +49,12 @@ func _setup_glass_material() -> void:
 
 func _create_procedural_glass_texture(has_cracks: bool) -> ImageTexture:
 	var img: Image = Image.create(512, 512, false, Image.FORMAT_RGBA8)
-	img.fill(Color(1, 1, 1, 0.25))
+	img.fill(Color(1, 1, 1, 0.22))
+
+	var noise: FastNoiseLite = FastNoiseLite.new()
+	noise.noise_type = FastNoiseLite.TYPE_CELLULAR
+	noise.frequency = 0.025
+	noise.fractal_octaves = 3
 
 	var center: Vector2 = Vector2(256, 256)
 	for y in range(512):
@@ -61,7 +66,7 @@ func _create_procedural_glass_texture(has_cracks: bool) -> ImageTexture:
 
 			# Beveled Glass Edges
 			if x <= 18 or x >= 493 or y <= 18 or y >= 493:
-				img.set_pixel(x, y, Color(1.0, 1.0, 1.0, 0.5))
+				img.set_pixel(x, y, Color(1.0, 1.0, 1.0, 0.45))
 				continue
 
 			if has_cracks:
@@ -69,12 +74,13 @@ func _create_procedural_glass_texture(has_cracks: bool) -> ImageTexture:
 				var dist: float = pos.distance_to(center)
 				var angle: float = pos.angle_to_point(center)
 
-				# Spiderweb radial crack lines
-				var radial_crack: bool = (int(absf(angle * 12.0)) % 3 == 0) and dist < 230.0
-				# Concentric ring cracks
-				var ring_crack: bool = (int(dist) % 45 < 3) and dist > 30.0
+				# High-contrast organic spiderweb fracture pattern
+				var n_val: float = absf(noise.get_noise_2d(float(x), float(y)))
+				var radial_crack: bool = (int(absf(angle * 14.0)) % 2 == 0) and dist < 240.0
+				var ring_crack: bool = (int(dist) % 40 < 3) and dist > 20.0
+				var cell_crack: bool = n_val > 0.48 and dist < 240.0
 
-				if radial_crack or ring_crack:
+				if radial_crack or ring_crack or cell_crack:
 					img.set_pixel(x, y, Color(1.0, 1.0, 1.0, 0.95))
 
 	return ImageTexture.create_from_image(img)
@@ -86,22 +92,23 @@ func _setup_particles() -> void:
 	shatter_particles = GPUParticles3D.new()
 	shatter_particles.name = "ShatterParticles"
 	shatter_particles.top_level = true
-	shatter_particles.amount = 110
-	shatter_particles.lifetime = 1.4
+	shatter_particles.amount = 120
+	shatter_particles.lifetime = 1.2
 	shatter_particles.one_shot = true
-	shatter_particles.explosiveness = 0.98
+	shatter_particles.explosiveness = 0.95
 	shatter_particles.emitting = false
 
+	# Downward showering glass dust particle process material
 	var mat_proc: ParticleProcessMaterial = ParticleProcessMaterial.new()
 	mat_proc.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_BOX
-	mat_proc.emission_box_extents = Vector3(1.5, 0.08, 1.5)
-	mat_proc.direction = Vector3(0, 1, 0)
-	mat_proc.spread = 180.0
-	mat_proc.initial_velocity_min = 3.0
-	mat_proc.initial_velocity_max = 8.5
-	mat_proc.gravity = Vector3(0, -22.0, 0)
-	mat_proc.scale_min = 0.04
-	mat_proc.scale_max = 0.18
+	mat_proc.emission_box_extents = Vector3(1.5, 0.05, 1.5)
+	mat_proc.direction = Vector3(0, -1, 0) # Shower downwards under gravity!
+	mat_proc.spread = 45.0
+	mat_proc.initial_velocity_min = 1.5
+	mat_proc.initial_velocity_max = 4.5
+	mat_proc.gravity = Vector3(0, -18.0, 0)
+	mat_proc.scale_min = 0.03
+	mat_proc.scale_max = 0.12
 
 	var draw_mat: StandardMaterial3D = StandardMaterial3D.new()
 	draw_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
@@ -110,7 +117,7 @@ func _setup_particles() -> void:
 
 	var shard_mesh: PrismMesh = PrismMesh.new()
 	shard_mesh.material = draw_mat
-	shard_mesh.size = Vector3(0.1, 0.14, 0.04)
+	shard_mesh.size = Vector3(0.08, 0.1, 0.03)
 
 	shatter_particles.process_material = mat_proc
 	shatter_particles.draw_pass_1 = shard_mesh
@@ -134,10 +141,10 @@ func _start_shatter_sequence() -> void:
 		return
 	_is_breaking = true
 
-	# Phase 1: Instant White Spiderweb Crack Animation (No red tint!)
+	# Phase 1: Instant White Spiderweb Crack Animation (Clean crystal white!)
 	if _glass_material:
 		_glass_material.albedo_texture = _cracked_texture
-		_glass_material.albedo_color = Color(0.92, 0.96, 1.0, 0.65)
+		_glass_material.albedo_color = Color(0.95, 0.98, 1.0, 0.75)
 
 	get_tree().create_timer(break_delay_fat).timeout.connect(shatter)
 
@@ -154,17 +161,17 @@ func rpc_shatter() -> void:
 	if mesh_instance:
 		mesh_instance.hide()
 
-	# 1. Trigger Micro-Particle Dust Explosion
+	# 1. Trigger Glass Dust Shower VFX
 	if shatter_particles:
 		shatter_particles.global_position = global_position
 		shatter_particles.restart()
 		shatter_particles.emitting = true
 
-	# 2. Spawn Small 3D Physical Glass Micro-Shards (No Player Collision to prevent launching!)
+	# 2. Spawn Realistic Downward-Falling 3D Glass Micro-Shards (No Player Collision!)
 	_spawn_3d_physical_shards()
 
 	glass_shattered.emit()
-	print("💥 GLASS FLOOR SHATTERED! Spawned 36 small 3D physical glass shards!")
+	print("💥 GLASS FLOOR SHATTERED! Micro glass shards collapsing downward.")
 
 	if respawn_time > 0.0:
 		get_tree().create_timer(respawn_time).timeout.connect(restore_floor)
@@ -191,11 +198,11 @@ func _spawn_3d_physical_shards() -> void:
 			# Create 3D RigidBody for each small glass shard
 			var shard_rb: RigidBody3D = RigidBody3D.new()
 			shard_rb.name = "GlassShard3D"
-			shard_rb.mass = 0.4 # Lightweight micro-shard
+			shard_rb.mass = 0.3 # Lightweight micro-shard
 			shard_rb.global_position = shard_pos
 
 			# CRITICAL FIX: Set collision_layer = 4 (debris) and collision_mask = 1 (world floor ONLY).
-			# NO collision with Player (layer 2) so players NEVER get flung into the air when shards spawn!
+			# NO collision with Player (layer 2) so players NEVER get flung into the air!
 			shard_rb.collision_layer = 4
 			shard_rb.collision_mask = 1
 
@@ -203,9 +210,9 @@ func _spawn_3d_physical_shards() -> void:
 			var shard_mesh: MeshInstance3D = MeshInstance3D.new()
 			var p_mesh: PrismMesh = PrismMesh.new()
 			p_mesh.material = draw_mat
-			var s_x: float = randf_range(0.12, 0.26)
-			var s_y: float = randf_range(0.04, 0.10)
-			var s_z: float = randf_range(0.12, 0.26)
+			var s_x: float = randf_range(0.1, 0.22)
+			var s_y: float = randf_range(0.03, 0.08)
+			var s_z: float = randf_range(0.1, 0.22)
 			p_mesh.size = Vector3(s_x, s_y, s_z)
 			shard_mesh.mesh = p_mesh
 
@@ -221,11 +228,12 @@ func _spawn_3d_physical_shards() -> void:
 			get_tree().root.add_child(shard_rb)
 			_active_shards.append(shard_rb)
 
-			# Explosive scatter impulse outwards & downwards
-			var scatter_dir: Vector3 = Vector3(offset_x, randf_range(-0.4, 0.3), offset_z).normalized()
-			var impulse_y: float = randf_range(-4.0, 3.0)
-			shard_rb.apply_central_impulse(Vector3(scatter_dir.x * randf_range(3.0, 7.0), impulse_y, scatter_dir.z * randf_range(3.0, 7.0)))
-			shard_rb.apply_torque_impulse(Vector3(randf_range(-15.0, 15.0), randf_range(-15.0, 15.0), randf_range(-15.0, 15.0)))
+			# REALISTIC COLLAPSE PHYSICS: Downward drop under gravity with gentle local tumble (NO far horizontal explosive fling!)
+			var nudge_x: float = randf_range(-0.5, 0.5)
+			var nudge_z: float = randf_range(-0.5, 0.5)
+			var drop_y: float = randf_range(-3.5, -0.8) # Heavy downward collapse!
+			shard_rb.apply_central_impulse(Vector3(nudge_x, drop_y, nudge_z))
+			shard_rb.apply_torque_impulse(Vector3(randf_range(-2.5, 2.5), randf_range(-2.5, 2.5), randf_range(-2.5, 2.5)))
 
 			# Schedule smooth fade-out and destruction after 4.5 seconds
 			_fade_and_free_shard(shard_rb, draw_mat)
@@ -270,5 +278,5 @@ func rpc_restore_floor() -> void:
 
 	if _glass_material:
 		_glass_material.albedo_texture = _clean_texture
-		_glass_material.albedo_color = Color(0.8, 0.95, 1.0, 0.38)
+		_glass_material.albedo_color = Color(0.82, 0.96, 1.0, 0.38)
 	print("✨ GLASS FLOOR RESTORED!")
