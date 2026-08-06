@@ -3,8 +3,8 @@ extends BaseCharacterMechanics
 
 ## Controller for "Fat / Жирдяй" character mechanics:
 ## 1. AAA Volumetric Stench & Buzzing Flies System.
-## 2. Low Heavy Leap + Seismic Earthquake Landing (Pops items & players).
-## 3. Slingshot Launch Shove: Powerful push launching Thin player into the stratosphere!
+## 2. Low Heavy Leap + Seismic Earthquake Landing (Pops Heavy Boulder & physical objects + players).
+## 3. Slingshot Launch Shove: Powerful push launching Thin players and Dummy NPCs into the stratosphere!
 
 signal stench_changed(current: float, max_stench: float)
 
@@ -29,7 +29,6 @@ var _seismic_shockwave_particles: GPUParticles3D
 var _slingshot_blast_particles: GPUParticles3D
 
 # Slingshot Target Tracking
-var _targeted_thin_player: Player = null
 var _slingshot_cooldown: float = 0.0
 
 func _ready() -> void:
@@ -315,9 +314,9 @@ func rpc_seismic_earthquake(center_pos: Vector3, impact_speed: float) -> void:
 		_seismic_shockwave_particles.emitting = true
 
 	if player and player.is_multiplayer_authority() and player.camera_3d:
-		player.camera_3d.rotation.z = deg_to_rad(randf_range(-12.0, 12.0))
+		player.camera_3d.rotation.z = deg_to_rad(randf_range(-14.0, 14.0))
 
-	var radius: float = 6.5
+	var radius: float = 7.5
 	var root: Node = get_tree().root
 	_pop_seismic_nodes_recursive(root, center_pos, radius, impact_speed)
 
@@ -333,16 +332,21 @@ func _pop_seismic_nodes_recursive(node: Node, center: Vector3, radius: float, im
 		if dist <= radius:
 			var falloff: float = 1.0 - (dist / radius)
 
+			# Case A: RigidBody3D physical objects (Heavy Boulder, barrels, crates, items) -> MASSIVE POP UPWARD!
 			if node is RigidBody3D:
 				var rb: RigidBody3D = node as RigidBody3D
 				if not rb.freeze:
-					var pop_y: float = clampf(140.0 * (impact_speed / 3.5) * falloff, 70.0, 260.0)
+					# Scaled mass impulse so giant 450kg Heavy Boulder pops up noticeably in the air!
+					var pop_y: float = clampf(rb.mass * 9.5 * (impact_speed / 3.5) * falloff, 300.0, 5000.0)
 					var dir_xz: Vector3 = (rb.global_position - center)
 					dir_xz.y = 0
-					dir_xz = dir_xz.normalized()
-					rb.apply_central_impulse(Vector3(dir_xz.x * 40.0 * falloff, pop_y, dir_xz.z * 40.0 * falloff))
+					if dir_xz.length_squared() > 0.001:
+						dir_xz = dir_xz.normalized()
+					rb.apply_central_impulse(Vector3(dir_xz.x * rb.mass * 3.5 * falloff, pop_y, dir_xz.z * rb.mass * 3.5 * falloff))
+					rb.apply_torque_impulse(Vector3(randf_range(-150.0, 150.0), 0, randf_range(-150.0, 150.0)))
 					print("💥 SEISMIC POP: Launched RigidBody %s into the air!" % rb.name)
 
+			# Case B: Teammates / Other Players -> POP UPWARD IN THE AIR!
 			elif node is Player:
 				var target_player: Player = node as Player
 				if not target_player.is_dead:
@@ -352,13 +356,18 @@ func _pop_seismic_nodes_recursive(node: Node, center: Vector3, radius: float, im
 						target_player.camera_3d.rotation.z = deg_to_rad(randf_range(-14.0, 14.0))
 					print("💥 SEISMIC POP: Launched teammate %s into the air! (y_vel: %.1f)" % [target_player.name, pop_y_vel])
 
-			elif node.has_method("take_damage"):
-				node.take_damage(12.0 * falloff, n3d.global_position)
+			# Case C: Dummy NPC
+			elif node is DummyNPC:
+				var dummy: DummyNPC = node as DummyNPC
+				var pop_y_vel: float = clampf(6.5 * (impact_speed / 3.5) * falloff, 4.2, 9.2)
+				dummy.velocity = Vector3(randf_range(-3, 3), pop_y_vel, randf_range(-3, 3))
+				dummy.take_damage(15.0 * falloff, n3d.global_position)
+				print("💥 SEISMIC POP: Launched DummyNPC %s into the air!" % dummy.name)
 
 	for child in node.get_children():
 		_pop_seismic_nodes_recursive(child, center, radius, impact_speed)
 
-# Slingshot Shove & Launch Mechanics
+# Slingshot Shove & Launch Mechanics (Supports Thin Players AND Dummy NPCs)
 func handle_ability_input(event: InputEvent) -> void:
 	if not _ensure_player_ref() or not player.is_multiplayer_authority() or player.is_dead:
 		return
@@ -366,82 +375,95 @@ func handle_ability_input(event: InputEvent) -> void:
 	var is_interact_pressed: bool = event.is_action_pressed("interact") or (event is InputEventKey and event.pressed and not event.echo and (event.keycode == KEY_E or event.keycode == KEY_F))
 
 	if is_interact_pressed and _slingshot_cooldown <= 0.0:
-		var thin_target: Player = _find_thin_player_target()
-		if thin_target:
+		var target_node: Node3D = _find_thin_target()
+		if target_node:
 			var forward: Vector3 = -player.camera_3d.global_transform.basis.z if player.camera_3d else -player.global_transform.basis.z
 			var launch_dir: Vector3 = (forward + Vector3(0, 0.45, 0)).normalized()
 			var launch_vel: Vector3 = launch_dir * 28.0 # Slingshot velocity!
 
 			_slingshot_cooldown = 1.2
-			rpc_slingshot_launch.rpc(thin_target.get_path(), launch_vel)
+			rpc_slingshot_launch.rpc(target_node.get_path(), launch_vel)
 			return
 
 	if event is InputEventKey and event.pressed and not event.echo:
 		if event.keycode == KEY_K or event.keycode == KEY_G:
 			add_stench(35.0)
 
-func _find_thin_player_target() -> Player:
+func _find_thin_target() -> Node3D:
 	if not player:
 		return null
 
 	var origin: Vector3 = player.head.global_position if player.head else player.global_position + Vector3(0, 1.5, 0)
 	var forward: Vector3 = -player.camera_3d.global_transform.basis.z if player.camera_3d else -player.global_transform.basis.z
 
-	# Raycast check forward (3.8m range)
+	# 1. Raycast check forward (4.0m range)
 	var space_state: PhysicsDirectSpaceState3D = player.get_world_3d().direct_space_state
-	var query: PhysicsRayQueryParameters3D = PhysicsRayQueryParameters3D.create(origin, origin + forward * 3.8)
+	var query: PhysicsRayQueryParameters3D = PhysicsRayQueryParameters3D.create(origin, origin + forward * 4.0)
 	query.exclude = [player]
 
 	var hit: Dictionary = space_state.intersect_ray(query)
-	if not hit.is_empty() and hit.get("collider") is Player:
-		var p: Player = hit["collider"] as Player
-		if p.selected_character_id.to_lower() == "thin" and not p.is_dead:
-			return p
+	if not hit.is_empty() and hit.get("collider") is Node3D:
+		var col: Node3D = hit["collider"] as Node3D
+		if _is_valid_thin_target(col):
+			return col
 
-	# Fallback: Radial search within 3.5m radius
+	# 2. Fallback: Radial search within 3.8m radius
 	var root: Node = get_tree().root
-	return _find_thin_player_recursive(root, player.global_position, 3.5)
+	return _find_thin_target_recursive(root, player.global_position, 3.8)
 
-func _find_thin_player_recursive(node: Node, center: Vector3, radius: float) -> Player:
+func _is_valid_thin_target(node: Node3D) -> bool:
+	if node is Player and node != player:
+		var p: Player = node as Player
+		return p.selected_character_id.to_lower() == "thin" and not p.is_dead
+	elif node is DummyNPC:
+		var dummy: DummyNPC = node as DummyNPC
+		return not dummy.is_dead
+	return false
+
+func _find_thin_target_recursive(node: Node, center: Vector3, radius: float) -> Node3D:
 	if not node:
 		return null
 
-	if node is Player and node != player:
-		var p: Player = node as Player
-		if p.selected_character_id.to_lower() == "thin" and not p.is_dead:
-			if center.distance_to(p.global_position) <= radius:
-				return p
+	if node is Node3D and node != player:
+		var n3d: Node3D = node as Node3D
+		if _is_valid_thin_target(n3d):
+			if center.distance_to(n3d.global_position) <= radius:
+				return n3d
 
 	for child in node.get_children():
-		var res: Player = _find_thin_player_recursive(child, center, radius)
+		var res: Node3D = _find_thin_target_recursive(child, center, radius)
 		if res:
 			return res
 	return null
 
 @rpc("any_peer", "call_local", "reliable")
 func rpc_slingshot_launch(target_path: NodePath, launch_velocity: Vector3) -> void:
-	var target_player: Player = get_node_or_null(target_path) as Player
-	if not target_player:
+	var target_node: Node3D = get_node_or_null(target_path) as Node3D
+	if not target_node:
 		return
 
-	# 1. Apply Slingshot Launch Velocity to Thin player
-	target_player.velocity = launch_velocity
+	# Apply Slingshot Launch to Player or DummyNPC
+	if target_node is Player:
+		var p: Player = target_node as Player
+		p.velocity = launch_velocity
+		if p.camera_3d:
+			p.set_target_fov(95.0)
+	elif target_node is DummyNPC:
+		var dummy: DummyNPC = target_node as DummyNPC
+		dummy.velocity = launch_velocity
+		dummy.take_damage(20.0, dummy.global_position)
 
-	# 2. Camera FOV boost & shudder on Thin player
-	if target_player.camera_3d:
-		target_player.set_target_fov(95.0)
-
-	# 3. Trigger Particle Blast VFX at launch point
+	# Trigger Particle Blast VFX at launch point
 	if _slingshot_blast_particles:
-		_slingshot_blast_particles.global_position = target_player.global_position + Vector3(0, 1.0, 0)
+		_slingshot_blast_particles.global_position = target_node.global_position + Vector3(0, 1.0, 0)
 		_slingshot_blast_particles.restart()
 		_slingshot_blast_particles.emitting = true
 
-	# 4. Camera recoil for Fat player
+	# Camera recoil for Fat player
 	if player and player.is_multiplayer_authority() and player.camera_3d:
 		player.camera_3d.rotation.z = deg_to_rad(-12.0)
 
-	print("🚀 SLINGSHOT LAUNCH: Fat launched %s into the air! Velocity: %s" % [target_player.name, str(launch_velocity)])
+	print("🚀 SLINGSHOT LAUNCH: Fat launched %s into the air! Velocity: %s" % [target_node.name, str(launch_velocity)])
 
 func add_stench(amount: float) -> void:
 	stench_level = clampf(stench_level + amount, 0.0, max_stench)

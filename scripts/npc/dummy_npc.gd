@@ -1,11 +1,13 @@
 class_name DummyNPC
 extends CharacterBody3D
 
-## Interactive Training Dummy NPC with networked HP bar, hit reaction shake & particle burst.
+## Interactive Training Dummy NPC with networked HP bar, hit reaction shake, particle burst,
+## and full compatibility for testing Thin character mechanics (Slingshot launching, Boulder crushing, Seismic pops).
 
 signal health_changed(current: float, max_hp: float)
 signal dummy_hit(damage: float, hit_position: Vector3)
 
+@export var selected_character_id: String = "thin"
 @export var max_health: float = 200.0
 @export var current_health: float = 200.0
 @export var auto_respawn_delay: float = 3.0
@@ -17,6 +19,7 @@ signal dummy_hit(damage: float, hit_position: Vector3)
 @onready var hp_label: Label = $SubViewport/Panel/VBox/HPLabel
 @onready var particles: GPUParticles3D = $HitParticles
 
+var is_dead: bool = false
 var _original_mesh_scale: Vector3 = Vector3.ONE
 var _original_mesh_pos: Vector3 = Vector3.ZERO
 var _auto_heal_timer: float = 0.0
@@ -30,6 +33,15 @@ func _ready() -> void:
 
 	update_hp_display()
 
+func _physics_process(delta: float) -> void:
+	# Flight and gravity physics when launched by Slingshot or Seismic pop
+	if velocity.length_squared() > 0.01:
+		if not is_on_floor():
+			velocity.y -= 18.0 * delta
+		velocity.x = lerpf(velocity.x, 0.0, 2.5 * delta)
+		velocity.z = lerpf(velocity.z, 0.0, 2.5 * delta)
+		move_and_slide()
+
 func _process(delta: float) -> void:
 	if current_health < max_health:
 		_auto_heal_timer += delta
@@ -37,6 +49,7 @@ func _process(delta: float) -> void:
 			current_health = lerpf(current_health, max_health, 2.0 * delta)
 			if absf(current_health - max_health) < 0.5:
 				current_health = max_health
+				is_dead = false
 			update_hp_display()
 
 func take_damage(amount: float, hit_pos: Vector3 = Vector3.ZERO) -> void:
@@ -46,11 +59,12 @@ func take_damage(amount: float, hit_pos: Vector3 = Vector3.ZERO) -> void:
 func rpc_take_damage(amount: float, hit_pos: Vector3 = Vector3.ZERO) -> void:
 	current_health = maxf(current_health - amount, 0.0)
 	_auto_heal_timer = 0.0
+	if current_health <= 0.0:
+		is_dead = true
 
 	health_changed.emit(current_health, max_health)
 	dummy_hit.emit(amount, hit_pos)
 
-	# Trigger visual reactions
 	_play_hit_shake()
 	_spawn_hit_particles(hit_pos)
 	_spawn_floating_damage_text(amount, hit_pos)
@@ -61,7 +75,7 @@ func update_hp_display() -> void:
 		hp_bar.max_value = max_health
 		hp_bar.value = current_health
 	if hp_label:
-		hp_label.text = "MANNEQUIN: %d / %d HP" % [int(current_health), int(max_health)]
+		hp_label.text = "TEST DUMMY (THIN): %d / %d HP" % [int(current_health), int(max_health)]
 
 func _play_hit_shake() -> void:
 	if not mesh_instance:
@@ -74,7 +88,6 @@ func _play_hit_shake() -> void:
 	mesh_instance.position = _original_mesh_pos
 
 	_shake_tween = create_tween()
-	# Squish and wobble effect
 	var shake_offset := Vector3(randf_range(-0.15, 0.15), randf_range(-0.08, 0.08), randf_range(-0.15, 0.15))
 	var squish_scale := Vector3(_original_mesh_scale.x * 1.15, _original_mesh_scale.y * 0.85, _original_mesh_scale.z * 1.15)
 
