@@ -1,0 +1,89 @@
+[gd_scene format=3 uid="uid://c7testroom01"]
+
+[ext_resource type="Script" path="res://scripts/objects/test_room.gd" id="1_room"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_floor"]
+albedo_color = Color(0.18, 0.2, 0.24, 1)
+roughness = 0.3
+metallic = 0.2
+
+[sub_resource type="BoxMesh" id="BoxMesh_floor"]
+material = SubResource("StandardMaterial3D_floor")
+size = Vector3(16, 0.2, 12)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_floor"]
+size = Vector3(16, 0.2, 12)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_wall"]
+albedo_color = Color(0.32, 0.35, 0.4, 1)
+roughness = 0.6
+
+[sub_resource type="BoxMesh" id="BoxMesh_wall_back"]
+material = SubResource("StandardMaterial3D_wall")
+size = Vector3(16, 5, 0.3)
+
+[sub_resource type="BoxMesh" id="BoxMesh_wall_side"]
+material = SubResource("StandardMaterial3D_wall")
+size = Vector3(0.3, 5, 12)
+
+[sub_resource type="BoxMesh" id="BoxMesh_wall_front"]
+material = SubResource("StandardMaterial3D_wall")
+size = Vector3(5, 5, 0.3)
+
+[sub_resource type="BoxMesh" id="BoxMesh_arch"]
+material = SubResource("StandardMaterial3D_wall")
+size = Vector3(6, 1.2, 0.3)
+
+[node name="TestRoom" type="Node3D"]
+script = ExtResource("1_room")
+
+[node name="FloorStatic" type="StaticBody3D" parent="."]
+collision_layer = 1
+collision_mask = 3
+
+[node name="FloorMesh" type="MeshInstance3D" parent="FloorStatic"]
+mesh = SubResource("BoxMesh_floor")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="FloorStatic"]
+shape = SubResource("BoxShape3D_floor")
+
+[node name="Walls" type="StaticBody3D" parent="."]
+collision_layer = 1
+collision_mask = 3
+
+[node name="WallBack" type="MeshInstance3D" parent="Walls"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.5, -6)
+mesh = SubResource("BoxMesh_wall_back")
+
+[node name="WallLeft" type="MeshInstance3D" parent="Walls"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 2.5, 0)
+mesh = SubResource("BoxMesh_wall_side")
+
+[node name="WallRight" type="MeshInstance3D" parent="Walls"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 2.5, 0)
+mesh = SubResource("BoxMesh_wall_side")
+
+[node name="WallFrontLeft" type="MeshInstance3D" parent="Walls"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.5, 2.5, 6)
+mesh = SubResource("BoxMesh_wall_front")
+
+[node name="WallFrontRight" type="MeshInstance3D" parent="Walls"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.5, 2.5, 6)
+mesh = SubResource("BoxMesh_wall_front")
+
+[node name="DoorArch" type="MeshInstance3D" parent="Walls"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.4, 6)
+mesh = SubResource("BoxMesh_arch")
+
+[node name="CeilingLight" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.2, 0)
+light_color = Color(0.9, 0.95, 1, 1)
+light_energy = 2.2
+omni_range = 16.0
+
+[node name="TitleLabel3D" type="Label3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.4, 6.2)
+double_sided = false
+font_size = 42
+outline_size = 12
+text = "🔬 ТЕСТОВАЯ КАМЕРА: МЕХАНИКИ"

@@ -16,7 +16,9 @@
 [ext_resource type="PackedScene" uid="uid://xynhci10f1b5" path="res://scenes/objects/fragile_glass_floor.tscn" id="8_glass_scene"]
 [ext_resource type="Texture2D" uid="uid://c1vwcdcdvb74a" path="res://addons/sky_3d/assets/thirdparty/textures/milkyway/Milkyway.jpg" id="8_xgqkh"]
 [ext_resource type="Script" uid="uid://b4tkplvh7fq40" path="res://addons/sky_3d/src/SkyDome.gd" id="10_munwf"]
+[ext_resource type="PackedScene" uid="uid://c7testroom01" path="res://scenes/objects/test_room.tscn" id="9_room_scene"]
 [ext_resource type="Script" uid="uid://cjmkcj8hwm7ts" path="res://addons/sky_3d/src/TimeOfDay.gd" id="11_ts3gi"]
+
 [ext_resource type="Texture2D" uid="uid://cxn2xyrsehric" path="res://addons/lowpolytrees/tex3.png" id="16_0nbtd"]
 [ext_resource type="Texture2D" uid="uid://dk3sax7qgv6cy" path="res://addons/lowpolytrees/tex1.png" id="17_37qwj"]
 [ext_resource type="Texture2D" uid="uid://dev8auypr0qs5" path="res://addons/lowpolytrees/tex4.png" id="18_navra"]
@@ -531,10 +533,20 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.0, 0.08, 3.954)
 glass_type = 0
 is_vertical_wall = true
 
-[node name="FragileGlassWall2" parent="." unique_id=2084910292 instance=ExtResource("8_glass_scene")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.0, 0.08, 7.154)
-glass_type = 2
-is_vertical_wall = true
+[node name="TestRoom_Glass" parent="." unique_id=384910291 instance=ExtResource("9_room_scene")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 0.08, 5.5)
+room_title = "КАМЕРА №1: ХРУПКОЕ СТЕКЛО И СТЕНЫ"
+
+[node name="TestRoom_Boulder" parent="." unique_id=384910292 instance=ExtResource("9_room_scene")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 0.08, 5.5)
+room_title = "КАМЕРА №2: ОГРОМНЫЙ ВАЛУН И СЕЙСМИКА"
+room_color = Color(1, 0.6, 0.2, 1)
+
+[node name="TestRoom_Dummies" parent="." unique_id=384910293 instance=ExtResource("9_room_scene")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.08, -18)
+room_title = "КАМЕРА №3: МАНЕКЕНЫ И ТОЛЧОК РОГАТКА"
+room_color = Color(0.3, 1, 0.5, 1)
+
 
 
 
