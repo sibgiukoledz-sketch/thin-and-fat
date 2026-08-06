@@ -1,23 +1,23 @@
-[gd_scene format=3 uid="uid://dqknjse4ig1eq"]
+[gd_scene load_steps=26 format=3 uid="uid://c7windtunnelfan01"]
 
-[ext_resource type="Script" uid="uid://cgifvmodqogt8" path="res://scripts/objects/wind_tunnel_fan.gd" id="1_fan"]
-
-[sub_resource type="BoxShape3D" id="BoxShape3D_fan_col"]
-size = Vector3(4.2, 4.2, 3)
+[ext_resource type="Script" path="res://scripts/objects/wind_tunnel_fan.gd" id="1_fan"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_concrete"]
 albedo_color = Color(0.18, 0.2, 0.24, 1)
-metallic = 0.3
 roughness = 0.5
+metallic = 0.3
 
 [sub_resource type="BoxMesh" id="BoxMesh_base"]
 material = SubResource("StandardMaterial3D_concrete")
 size = Vector3(4.2, 0.5, 3)
 
+[sub_resource type="BoxShape3D" id="BoxShape3D_fan_col"]
+size = Vector3(4.2, 4.2, 3)
+
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_steel_ring"]
 albedo_color = Color(0.25, 0.28, 0.34, 1)
-metallic = 0.9
 roughness = 0.2
+metallic = 0.9
 
 [sub_resource type="TorusMesh" id="TorusMesh_shroud"]
 material = SubResource("StandardMaterial3D_steel_ring")
@@ -41,8 +41,8 @@ ring_segments = 12
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_hub"]
 albedo_color = Color(0.12, 0.14, 0.18, 1)
-metallic = 0.95
 roughness = 0.15
+metallic = 0.95
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_hub"]
 material = SubResource("StandardMaterial3D_hub")
@@ -53,8 +53,8 @@ radial_segments = 24
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_cone"]
 albedo_color = Color(0.9, 0.35, 0.1, 1)
-metallic = 0.8
 roughness = 0.25
+metallic = 0.8
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_nose_cone"]
 material = SubResource("StandardMaterial3D_cone")
@@ -63,23 +63,10 @@ bottom_radius = 0.58
 height = 0.7
 radial_segments = 24
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_grill"]
-transparency = 1
-albedo_color = Color(0.5, 0.55, 0.65, 0.7)
-metallic = 0.85
-roughness = 0.2
-
-[sub_resource type="CylinderMesh" id="CylinderMesh_grill_spoke"]
-material = SubResource("StandardMaterial3D_grill")
-top_radius = 0.05
-bottom_radius = 0.05
-height = 4.1
-radial_segments = 8
-
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_blade_accent"]
 albedo_color = Color(0.95, 0.4, 0.1, 1)
-metallic = 0.75
 roughness = 0.2
+metallic = 0.75
 emission_enabled = true
 emission = Color(0.85, 0.3, 0.05, 1)
 emission_energy_multiplier = 0.5
@@ -87,6 +74,19 @@ emission_energy_multiplier = 0.5
 [sub_resource type="BoxMesh" id="BoxMesh_blade"]
 material = SubResource("StandardMaterial3D_blade_accent")
 size = Vector3(3.6, 0.38, 0.06)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_grill"]
+transparency = 1
+albedo_color = Color(0.5, 0.55, 0.65, 0.7)
+roughness = 0.2
+metallic = 0.85
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_grill_spoke"]
+material = SubResource("StandardMaterial3D_grill")
+top_radius = 0.05
+bottom_radius = 0.05
+height = 4.1
+radial_segments = 8
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_wind_zone"]
 size = Vector3(4.6, 4.2, 16)
@@ -110,83 +110,83 @@ albedo_color = Color(0.7, 0.9, 1, 0.65)
 material = SubResource("StandardMaterial3D_wind_part")
 size = Vector3(0.09, 0.09, 1.4)
 
-[node name="WindTunnelFan" type="Node3D" unique_id=182134180]
+[node name="WindTunnelFan" type="Node3D"]
 script = ExtResource("1_fan")
 
-[node name="FanStatic" type="StaticBody3D" parent="." unique_id=2142275448]
+[node name="FanStatic" type="StaticBody3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.1, 0)
+collision_layer = 1
 collision_mask = 7
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="FanStatic" unique_id=1002600709]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="FanStatic"]
 shape = SubResource("BoxShape3D_fan_col")
 
-[node name="BasePedestal" type="MeshInstance3D" parent="." unique_id=839420156]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.12527835, 0)
+[node name="BasePedestal" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.25, 0)
 mesh = SubResource("BoxMesh_base")
 
-[node name="TurbineHousing" type="Node3D" parent="." unique_id=1014998704]
+[node name="TurbineHousing" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.2, 0)
 
-[node name="OuterShroud" type="MeshInstance3D" parent="TurbineHousing" unique_id=1009673516]
-transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 0)
+[node name="OuterShroud" type="MeshInstance3D" parent="TurbineHousing"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
 mesh = SubResource("TorusMesh_shroud")
 
-[node name="CyanGlowingRing" type="MeshInstance3D" parent="TurbineHousing" unique_id=140552541]
-transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 0.35)
+[node name="CyanGlowingRing" type="MeshInstance3D" parent="TurbineHousing"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.35)
 mesh = SubResource("TorusMesh_cyan_ring")
 
-[node name="CenterHub" type="MeshInstance3D" parent="TurbineHousing" unique_id=1420692115]
+[node name="CenterHub" type="MeshInstance3D" parent="TurbineHousing"]
 transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 0)
 mesh = SubResource("CylinderMesh_hub")
 
-[node name="NoseCone" type="MeshInstance3D" parent="TurbineHousing" unique_id=561721249]
+[node name="NoseCone" type="MeshInstance3D" parent="TurbineHousing"]
 transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 0.8)
 mesh = SubResource("CylinderMesh_nose_cone")
 
-[node name="GrillSpokeHoriz" type="MeshInstance3D" parent="TurbineHousing" unique_id=1601334975]
+[node name="GrillSpokeHoriz" type="MeshInstance3D" parent="TurbineHousing"]
 transform = Transform3D(-4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 0, 1, 0, 0, 0.7)
 mesh = SubResource("CylinderMesh_grill_spoke")
 
-[node name="GrillSpokeVert" type="MeshInstance3D" parent="TurbineHousing" unique_id=108868808]
+[node name="GrillSpokeVert" type="MeshInstance3D" parent="TurbineHousing"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.7)
 mesh = SubResource("CylinderMesh_grill_spoke")
 
-[node name="BladesMesh" type="MeshInstance3D" parent="TurbineHousing" unique_id=205074145]
-transform = Transform3D(-0.98263806, -0.18562686, 0, 0.18562686, -0.98263806, 0, 0, 0, 1, 0, 0, 0.08)
+[node name="BladesMesh" type="MeshInstance3D" parent="TurbineHousing"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.08)
 mesh = SubResource("BoxMesh_blade")
 
-[node name="BladesMesh2" type="MeshInstance3D" parent="TurbineHousing/BladesMesh" unique_id=902811853]
+[node name="BladesMesh2" type="MeshInstance3D" parent="TurbineHousing/BladesMesh"]
 transform = Transform3D(0.5, -0.866025, 0, 0.866025, 0.5, 0, 0, 0, 1, 0, 0, 0)
 mesh = SubResource("BoxMesh_blade")
 
-[node name="BladesMesh3" type="MeshInstance3D" parent="TurbineHousing/BladesMesh" unique_id=1766616807]
+[node name="BladesMesh3" type="MeshInstance3D" parent="TurbineHousing/BladesMesh"]
 transform = Transform3D(-0.5, -0.866025, 0, 0.866025, -0.5, 0, 0, 0, 1, 0, 0, 0)
 mesh = SubResource("BoxMesh_blade")
 
-[node name="WarningBeacon" type="OmniLight3D" parent="TurbineHousing" unique_id=1833825561]
+[node name="WarningBeacon" type="OmniLight3D" parent="TurbineHousing"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.2, 0.3)
 light_color = Color(0.1, 0.85, 1, 1)
 light_energy = 4.0
 omni_range = 10.0
 
-[node name="WindArea" type="Area3D" parent="." unique_id=244846780]
+[node name="WindArea" type="Area3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.2, 8)
 collision_layer = 0
 collision_mask = 7
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="WindArea" unique_id=568011650]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WindArea"]
 shape = SubResource("BoxShape3D_wind_zone")
 
-[node name="WindParticles" type="GPUParticles3D" parent="." unique_id=1513383643]
+[node name="WindParticles" type="GPUParticles3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.2, 0.7)
-emitting = false
 amount = 140
 lifetime = 0.9
 explosiveness = 0.05
 process_material = SubResource("ParticleProcessMaterial_wind")
 draw_pass_1 = SubResource("BoxMesh_wind_part")
 
-[node name="RayCastSensor" type="RayCast3D" parent="." unique_id=517804726]
+[node name="RayCastSensor" type="RayCast3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.2, 0)
 target_position = Vector3(0, 0, 16)
 collision_mask = 7
