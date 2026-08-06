@@ -80,6 +80,7 @@ const SPRINT_FOV: float = 88.0
 @onready var health_label: Label = $HUD/MarginContainer/VBoxContainer/HealthLabel
 @onready var stamina_bar: ProgressBar = $HUD/MarginContainer/VBoxContainer/StaminaBar
 @onready var stamina_label: Label = $HUD/MarginContainer/VBoxContainer/StaminaLabel
+@onready var crosshair: Control = $HUD/Crosshair
 
 # Runtime state
 var active_character_data: CharacterData
@@ -313,12 +314,18 @@ func _update_camera_zoom(delta: float) -> void:
 	if spring_arm:
 		spring_arm.spring_length = current_camera_zoom
 
+	var is_first_person := (current_camera_zoom < 0.25)
+
 	if is_multiplayer_authority():
 		if mesh_instance:
-			mesh_instance.visible = (current_camera_zoom >= 0.25)
+			mesh_instance.visible = not is_first_person
+		if crosshair:
+			crosshair.visible = is_first_person
 	else:
 		if mesh_instance:
 			mesh_instance.visible = true
+		if crosshair:
+			crosshair.visible = false
 
 # Movement helpers
 func get_movement_input() -> Vector3:
