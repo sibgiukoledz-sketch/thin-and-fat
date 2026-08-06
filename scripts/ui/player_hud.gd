@@ -1,7 +1,7 @@
 class_name PlayerHUD
 extends CanvasLayer
 
-## Component script for managing HUD UI displays, status bars, and bottom-right cooldown indicators.
+## Component script for managing HUD UI displays, status bars, and circular ability cooldown icons ("Кругляшки").
 
 @onready var state_label: Label = $MarginContainer/VBoxContainer/StateLabel
 @onready var authority_label: Label = $MarginContainer/VBoxContainer/AuthorityLabel
@@ -17,10 +17,11 @@ extends CanvasLayer
 @onready var death_overlay: Control = $DeathOverlay
 @onready var respawn_label: Label = $DeathOverlay/VBox/RespawnLabel
 
-# Bottom-Right Cooldown Indicator Nodes
-@onready var melee_bar: ProgressBar = $ActionCooldownContainer/VBox/MeleeProgressBar
-@onready var melee_timer_label: Label = $ActionCooldownContainer/VBox/MeleeTimerLabel
-@onready var melee_title_label: Label = $ActionCooldownContainer/VBox/MeleeTitleLabel
+# Bottom-Right Slingshot Ability Circular Widget
+@onready var slingshot_widget: Control = $SlingshotAbilityWidget
+@onready var slingshot_circle_bg: Panel = $SlingshotAbilityWidget/CircleBg
+@onready var slingshot_timer_label: Label = $SlingshotAbilityWidget/CircleBg/TimerLabel
+@onready var slingshot_key_label: Label = $SlingshotAbilityWidget/KeyBadge/KeyLabel
 
 var player: Player
 
@@ -52,6 +53,7 @@ func update_display() -> void:
 		var view_mode: String = "1ST PERSON" if player.current_camera_zoom < 0.25 else "3RD PERSON (%.1fm)" % player.current_camera_zoom
 		char_info_label.text = "CHAR: %s | VIEW: %s" % [player.active_character_data.character_name, view_mode]
 
+	# Handle Stench & Slingshot Ability Widget visibility
 	if player.active_mechanics and player.active_mechanics is FatMechanics:
 		var fat_mech: FatMechanics = player.active_mechanics as FatMechanics
 		if stench_bar and stench_label:
@@ -63,30 +65,31 @@ func update_display() -> void:
 				stench_label.text = "ВОНЬ: %d%% (ОПАСНАЯ АУРА!)" % int(fat_mech.stench_level)
 			else:
 				stench_label.text = "ВОНЬ: %d%%" % int(fat_mech.stench_level)
+
+		if slingshot_widget:
+			slingshot_widget.show()
 	else:
 		if stench_bar and stench_label:
 			stench_bar.hide()
 			stench_label.hide()
+		if slingshot_widget:
+			slingshot_widget.hide()
 
 func update_respawn_timer(seconds_left: float) -> void:
 	if respawn_label:
 		respawn_label.text = "ВОЗРОЖДЕНИЕ ЧЕРЕЗ %d СЕК..." % int(ceil(seconds_left))
 
-func update_melee_cooldown(cooldown_timer: float, max_cooldown: float) -> void:
-	if not melee_bar or not melee_timer_label:
+func update_slingshot_cooldown(cooldown_timer: float, max_cooldown: float) -> void:
+	if not slingshot_widget or not slingshot_timer_label:
 		return
 
 	if cooldown_timer <= 0.0:
-		melee_bar.max_value = max_cooldown
-		melee_bar.value = max_cooldown
-		melee_timer_label.text = "ГОТОВО"
-		melee_timer_label.modulate = Color(0.2, 1.0, 0.4)
-		if melee_title_label:
-			melee_title_label.modulate = Color(1.0, 1.0, 1.0)
+		slingshot_timer_label.text = "ГОТОВО"
+		slingshot_timer_label.modulate = Color(0.2, 1.0, 0.4)
+		if slingshot_circle_bg:
+			slingshot_circle_bg.modulate = Color(1.0, 1.0, 1.0)
 	else:
-		melee_bar.max_value = max_cooldown
-		melee_bar.value = max_cooldown - cooldown_timer
-		melee_timer_label.text = "КД: %.1f с" % cooldown_timer
-		melee_timer_label.modulate = Color(1.0, 0.6, 0.2)
-		if melee_title_label:
-			melee_title_label.modulate = Color(0.8, 0.8, 0.8)
+		slingshot_timer_label.text = "%.1f с" % cooldown_timer
+		slingshot_timer_label.modulate = Color(1.0, 0.6, 0.2)
+		if slingshot_circle_bg:
+			slingshot_circle_bg.modulate = Color(0.75, 0.75, 0.75)

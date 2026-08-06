@@ -95,12 +95,29 @@ corner_radius_top_right = 4
 corner_radius_bottom_right = 4
 corner_radius_bottom_left = 4
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cooldown_fill"]
-bg_color = Color(1, 0.6, 0.2, 1)
-corner_radius_top_left = 4
-corner_radius_top_right = 4
-corner_radius_bottom_right = 4
-corner_radius_bottom_left = 4
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_circle_ready"]
+bg_color = Color(0.08, 0.12, 0.16, 0.85)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.2, 0.95, 0.45, 1)
+corner_radius_top_left = 35
+corner_radius_top_right = 35
+corner_radius_bottom_right = 35
+corner_radius_bottom_left = 35
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_key_badge"]
+bg_color = Color(0.12, 0.14, 0.18, 0.95)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0.85, 0.2, 1)
+corner_radius_top_left = 13
+corner_radius_top_right = 13
+corner_radius_bottom_right = 13
+corner_radius_bottom_left = 13
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_crosshair"]
 bg_color = Color(1, 1, 1, 0.95)
@@ -328,53 +345,129 @@ grow_vertical = 2
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_crosshair")
 
-[node name="ActionCooldownContainer" type="MarginContainer" parent="HUD"]
+[node name="SlingshotAbilityWidget" type="Control" parent="HUD"]
+layout_mode = 3
 anchors_preset = 3
 anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -220.0
-offset_top = -105.0
-offset_right = -20.0
-offset_bottom = -20.0
+offset_left = -120.0
+offset_top = -120.0
+offset_right = -15.0
+offset_bottom = -15.0
 grow_horizontal = 0
 grow_vertical = 0
 mouse_filter = 2
 
-[node name="Panel" type="Panel" parent="HUD/ActionCooldownContainer"]
-layout_mode = 2
+[node name="CircleBg" type="Panel" parent="HUD/SlingshotAbilityWidget"]
+custom_minimum_size = Vector2(70, 70)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -35.0
+offset_top = -42.0
+offset_right = 35.0
+offset_bottom = 28.0
+grow_horizontal = 2
+grow_vertical = 2
 mouse_filter = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_hud")
+theme_override_styles/panel = SubResource("StyleBoxFlat_circle_ready")
 
-[node name="VBox" type="VBoxContainer" parent="HUD/ActionCooldownContainer"]
-layout_mode = 2
-mouse_filter = 2
-theme_override_constants/separation = 4
-
-[node name="MeleeTitleLabel" type="Label" parent="HUD/ActionCooldownContainer/VBox"]
-layout_mode = 2
+[node name="IconLabel" type="Label" parent="HUD/SlingshotAbilityWidget/CircleBg"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -30.0
+offset_top = -26.0
+offset_right = 30.0
+offset_bottom = 4.0
+grow_horizontal = 2
+grow_vertical = 2
 mouse_filter = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
-theme_override_constants/outline_size = 4
-theme_override_font_sizes/font_size = 14
-text = "[ЛКМ] УДАР РУКОЙ"
+theme_override_constants/outline_size = 6
+theme_override_font_sizes/font_size = 22
+text = "🚀"
+horizontal_alignment = 1
+vertical_alignment = 1
 
-[node name="MeleeProgressBar" type="ProgressBar" parent="HUD/ActionCooldownContainer/VBox"]
-custom_minimum_size = Vector2(0, 10)
-layout_mode = 2
-mouse_filter = 2
-theme_override_styles/fill = SubResource("StyleBoxFlat_cooldown_fill")
-value = 100.0
-show_percentage = false
-
-[node name="MeleeTimerLabel" type="Label" parent="HUD/ActionCooldownContainer/VBox"]
-layout_mode = 2
+[node name="TimerLabel" type="Label" parent="HUD/SlingshotAbilityWidget/CircleBg"]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -35.0
+offset_top = -24.0
+offset_right = 35.0
+offset_bottom = -4.0
+grow_horizontal = 2
+grow_vertical = 0
 mouse_filter = 2
 theme_override_colors/font_color = Color(0.2, 1, 0.4, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 4
-theme_override_font_sizes/font_size = 14
+theme_override_font_sizes/font_size = 13
 text = "ГОТОВО"
+horizontal_alignment = 1
+
+[node name="KeyBadge" type="Panel" parent="HUD/SlingshotAbilityWidget"]
+custom_minimum_size = Vector2(26, 26)
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -34.0
+offset_top = -5.0
+offset_right = -8.0
+offset_bottom = 21.0
+grow_horizontal = 0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_key_badge")
+
+[node name="KeyLabel" type="Label" parent="HUD/SlingshotAbilityWidget/KeyBadge"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 0.9, 0.3, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 14
+text = "E"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="NameLabel" type="Label" parent="HUD/SlingshotAbilityWidget"]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -60.0
+offset_top = -18.0
+offset_right = 60.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.9, 0.9, 0.9, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 12
+text = "ТОЛЧОК (РОГАТКА)"
+horizontal_alignment = 1
+
 

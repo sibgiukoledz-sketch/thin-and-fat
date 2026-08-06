@@ -28,8 +28,10 @@ var _spore_particles: GPUParticles3D
 var _seismic_shockwave_particles: GPUParticles3D
 var _slingshot_blast_particles: GPUParticles3D
 
-# Slingshot Target Tracking
+# Slingshot Target Tracking & Cooldown
+@export var slingshot_cooldown_max: float = 1.8
 var _slingshot_cooldown: float = 0.0
+
 
 func _ready() -> void:
 	super._ready()
@@ -381,8 +383,9 @@ func handle_ability_input(event: InputEvent) -> void:
 			var launch_dir: Vector3 = (forward + Vector3(0, 0.45, 0)).normalized()
 			var launch_vel: Vector3 = launch_dir * 28.0 # Slingshot velocity!
 
-			_slingshot_cooldown = 1.2
+			_slingshot_cooldown = slingshot_cooldown_max
 			rpc_slingshot_launch.rpc(target_node.get_path(), launch_vel)
+
 			return
 
 	if event is InputEventKey and event.pressed and not event.echo:
@@ -475,7 +478,10 @@ func update_mechanics(delta: float) -> void:
 		return
 
 	if _slingshot_cooldown > 0.0:
-		_slingshot_cooldown -= delta
+		_slingshot_cooldown = maxf(_slingshot_cooldown - delta, 0.0)
+
+	if player and player.hud and player.hud.has_method("update_slingshot_cooldown"):
+		player.hud.update_slingshot_cooldown(_slingshot_cooldown, slingshot_cooldown_max)
 
 	var input_dir := player.get_movement_input()
 	if input_dir.length_squared() > 0.01:
