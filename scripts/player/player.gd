@@ -8,6 +8,7 @@ signal health_changed(new_hp: float, max_hp: float)
 signal stamina_changed(new_stamina: float, max_stamina: float)
 signal character_switched(new_char_id: String)
 signal player_died
+signal player_landed(downward_velocity: float)
 
 const MOUSE_SENSITIVITY_DEFAULT := 0.0025
 const ZOOM_STEP := 0.5
@@ -340,6 +341,7 @@ func _physics_process(delta: float) -> void:
 	# Landing impact calculation
 	if is_on_floor() and _was_in_air:
 		var fall_impact: float = absf(_last_air_velocity_y)
+		player_landed.emit(fall_impact)
 		if fall_impact > 12.0:
 			var fall_dmg: float = (fall_impact - 12.0) * 4.0
 			take_damage(fall_dmg)
