@@ -205,6 +205,7 @@ func _setup_character_mechanics(id: String) -> void:
 		active_mechanics = FatMechanics.new()
 		active_mechanics.name = "FatMechanics"
 
+	active_mechanics.player = self
 	add_child(active_mechanics)
 
 # Health & Combat System Methods
