@@ -14,15 +14,34 @@ extends Node3D
 @export var wind_force: float = 32.0 # Push force magnitude
 @export var fan_reach_length: float = 16.0 # Wind zone length in meters
 
+@onready var outer_shroud: MeshInstance3D = $TurbineHousing/OuterShroud
+@onready var cyan_glowing_ring: MeshInstance3D = $TurbineHousing/CyanGlowingRing
+@onready var center_hub: MeshInstance3D = $TurbineHousing/CenterHub
+@onready var nose_cone: MeshInstance3D = $TurbineHousing/NoseCone
 @onready var blades_mesh: MeshInstance3D = $TurbineHousing/BladesMesh
 @onready var wind_area: Area3D = $WindArea
 @onready var wind_particles: GPUParticles3D = $WindParticles
 
 func _ready() -> void:
+	_apply_visual_rotations()
 	if wind_particles:
 		wind_particles.emitting = is_active and not Engine.is_editor_hint()
 
+func _apply_visual_rotations() -> void:
+	# Enforce vertical 90 degree X rotation on all circular turbine shroud meshes
+	if outer_shroud:
+		outer_shroud.rotation_degrees = Vector3(90, 0, 0)
+	if cyan_glowing_ring:
+		cyan_glowing_ring.rotation_degrees = Vector3(90, 0, 0)
+	if center_hub:
+		center_hub.rotation_degrees = Vector3(90, 0, 0)
+	if nose_cone:
+		nose_cone.rotation_degrees = Vector3(90, 0, 0)
+
 func _physics_process(delta: float) -> void:
+	# Ensure shroud meshes stay upright
+	_apply_visual_rotations()
+
 	# Spin turbine blades in editor and in-game!
 	if blades_mesh:
 		blades_mesh.rotate_z(18.0 * delta)
