@@ -1,4 +1,4 @@
-[gd_scene format=3 uid="uid://btrchkfuruibk"]
+[gd_scene load_steps=9 format=3 uid="uid://c8lobbymenufps01"]
 
 [ext_resource type="Script" path="res://scripts/ui/lobby_menu.gd" id="1_lobby"]
 
@@ -44,6 +44,20 @@ corner_radius_top_left = 12
 corner_radius_top_right = 12
 corner_radius_bottom_right = 12
 corner_radius_bottom_left = 12
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_start_btn"]
+bg_color = Color(0.2, 0.65, 0.3, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.85, 0.98, 0.85, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+shadow_color = Color(0.1, 0.3, 0.15, 0.4)
+shadow_size = 6
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_input"]
 bg_color = Color(0.92, 0.89, 0.82, 1)
@@ -107,24 +121,16 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_bone_frame")
 layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
-offset_top = 20.0
-offset_bottom = 70.0
+offset_top = 16.0
+offset_bottom = 60.0
 grow_horizontal = 2
-theme_override_constants/separation = 2
+alignment = 1
 
 [node name="LobbyTitle" type="Label" parent="OuterBorderFrame/MainPanel/HeaderContainer"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.2, 0.16, 0.12, 1)
 theme_override_font_sizes/font_size = 24
 text = "🦴 MULTIPLAYER LOBBY ROOM 🦴"
-horizontal_alignment = 1
-
-[node name="SelectedCharLabel" type="Label" parent="OuterBorderFrame/MainPanel/HeaderContainer"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_colors/font_color = Color(0.35, 0.28, 0.2, 1)
-theme_override_font_sizes/font_size = 13
-text = "Выбран персонаж: 🦛 2. Жирный (Жирдяй)"
 horizontal_alignment = 1
 
 [node name="HSeparator" type="HSeparator" parent="OuterBorderFrame/MainPanel/HeaderContainer"]
@@ -136,9 +142,9 @@ anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = 32.0
-offset_top = 80.0
+offset_top = 64.0
 offset_right = -32.0
-offset_bottom = -32.0
+offset_bottom = -28.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 24
@@ -146,37 +152,18 @@ theme_override_constants/separation = 24
 [node name="LeftForm" type="VBoxContainer" parent="OuterBorderFrame/MainPanel/ContentContainer"]
 custom_minimum_size = Vector2(360, 0)
 layout_mode = 2
-theme_override_constants/separation = 14
+theme_override_constants/separation = 10
 
 [node name="HostSectionLabel" type="Label" parent="OuterBorderFrame/MainPanel/ContentContainer/LeftForm"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.25, 0.2, 0.15, 1)
-theme_override_font_sizes/font_size = 16
-text = "1. СОЗДАТЬ СЕРВЕР (HOST):"
-
-[node name="HostButton" type="Button" parent="OuterBorderFrame/MainPanel/ContentContainer/LeftForm"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 44)
-layout_mode = 2
-theme_override_colors/font_color = Color(0.18, 0.15, 0.12, 1)
 theme_override_font_sizes/font_size = 15
-theme_override_styles/normal = SubResource("StyleBoxFlat_bone_btn")
-theme_override_styles/hover = SubResource("StyleBoxFlat_bone_btn_hover")
-text = "[ CREATE ROOM / HOST GAME ]"
-
-[node name="HSeparator2" type="HSeparator" parent="OuterBorderFrame/MainPanel/ContentContainer/LeftForm"]
-layout_mode = 2
-
-[node name="JoinSectionLabel" type="Label" parent="OuterBorderFrame/MainPanel/ContentContainer/LeftForm"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.25, 0.2, 0.15, 1)
-theme_override_font_sizes/font_size = 16
-text = "2. ПОДКЛЮЧИТЬСЯ К ИГРОКУ (JOIN):"
+text = "1. СОЗДАТЬ ИЛИ ПОДКЛЮЧИТЬСЯ:"
 
 [node name="GridContainer" type="GridContainer" parent="OuterBorderFrame/MainPanel/ContentContainer/LeftForm"]
 layout_mode = 2
-theme_override_constants/h_separation = 10
-theme_override_constants/v_separation = 8
+theme_override_constants/h_separation = 8
+theme_override_constants/v_separation = 6
 columns = 2
 
 [node name="IPLabel" type="Label" parent="OuterBorderFrame/MainPanel/ContentContainer/LeftForm/GridContainer"]
@@ -205,25 +192,79 @@ theme_override_colors/font_color = Color(0.15, 0.12, 0.1, 1)
 theme_override_styles/normal = SubResource("StyleBoxFlat_input")
 text = "8910"
 
-[node name="JoinButton" type="Button" parent="OuterBorderFrame/MainPanel/ContentContainer/LeftForm"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 44)
+[node name="ButtonsRow" type="HBoxContainer" parent="OuterBorderFrame/MainPanel/ContentContainer/LeftForm"]
 layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="HostButton" type="Button" parent="OuterBorderFrame/MainPanel/ContentContainer/LeftForm/ButtonsRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 38)
+layout_mode = 2
+size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.18, 0.15, 0.12, 1)
-theme_override_font_sizes/font_size = 15
+theme_override_font_sizes/font_size = 13
 theme_override_styles/normal = SubResource("StyleBoxFlat_bone_btn")
 theme_override_styles/hover = SubResource("StyleBoxFlat_bone_btn_hover")
-text = "[ CONNECT TO ROOM ]"
+text = "[ CREATE HOST ]"
+
+[node name="JoinButton" type="Button" parent="OuterBorderFrame/MainPanel/ContentContainer/LeftForm/ButtonsRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 38)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.18, 0.15, 0.12, 1)
+theme_override_font_sizes/font_size = 13
+theme_override_styles/normal = SubResource("StyleBoxFlat_bone_btn")
+theme_override_styles/hover = SubResource("StyleBoxFlat_bone_btn_hover")
+text = "[ JOIN CLIENT ]"
+
+[node name="HSeparator2" type="HSeparator" parent="OuterBorderFrame/MainPanel/ContentContainer/LeftForm"]
+layout_mode = 2
+
+[node name="CharSectionLabel" type="Label" parent="OuterBorderFrame/MainPanel/ContentContainer/LeftForm"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.25, 0.2, 0.15, 1)
+theme_override_font_sizes/font_size = 15
+text = "2. ВЫБЕРИТЕ ВАШЕГО ПЕРСОНАЖА:"
+
+[node name="BtnSelectFat" type="Button" parent="OuterBorderFrame/MainPanel/ContentContainer/LeftForm"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 42)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.18, 0.15, 0.12, 1)
+theme_override_font_sizes/font_size = 14
+theme_override_styles/normal = SubResource("StyleBoxFlat_bone_btn")
+theme_override_styles/hover = SubResource("StyleBoxFlat_bone_btn_hover")
+text = "[ 🦛 2. ЖИРНЫЙ (ЖИРДЯЙ) ]"
+
+[node name="BtnSelectThin" type="Button" parent="OuterBorderFrame/MainPanel/ContentContainer/LeftForm"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 42)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.18, 0.15, 0.12, 1)
+theme_override_font_sizes/font_size = 14
+theme_override_styles/normal = SubResource("StyleBoxFlat_bone_btn")
+theme_override_styles/hover = SubResource("StyleBoxFlat_bone_btn_hover")
+text = "[ 🦒 1. ВЫСОКИЙ (ХУДОЙ) ]"
 
 [node name="HSeparator3" type="HSeparator" parent="OuterBorderFrame/MainPanel/ContentContainer/LeftForm"]
 layout_mode = 2
 
+[node name="StartMatchButton" type="Button" parent="OuterBorderFrame/MainPanel/ContentContainer/LeftForm"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 15
+theme_override_styles/normal = SubResource("StyleBoxFlat_start_btn")
+text = "[ 🚀 ЗАПУСТИТЬ ИГРУ / START MATCH ]"
+
 [node name="BackButton" type="Button" parent="OuterBorderFrame/MainPanel/ContentContainer/LeftForm"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 40)
+custom_minimum_size = Vector2(0, 36)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.18, 0.15, 0.12, 1)
-theme_override_font_sizes/font_size = 14
+theme_override_font_sizes/font_size = 13
 theme_override_styles/normal = SubResource("StyleBoxFlat_bone_btn")
 theme_override_styles/hover = SubResource("StyleBoxFlat_bone_btn_hover")
 text = "[ ← BACK TO MAIN MENU ]"
@@ -238,7 +279,7 @@ unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.45, 0.25, 0.1, 1)
 theme_override_font_sizes/font_size = 14
-text = "Status: Ready to host or connect"
+text = "Статус: Создайте комнату или подключитесь по IP"
 horizontal_alignment = 1
 
 [node name="PlayerListPanel" type="PanelContainer" parent="OuterBorderFrame/MainPanel/ContentContainer/RightList"]

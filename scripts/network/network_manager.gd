@@ -1,9 +1,10 @@
 extends Node
 
-## Autoload NetworkManager handling ENet multiplayer hosting, joining, and player character selection.
+## Autoload NetworkManager handling ENet multiplayer hosting, joining, character selection in lobby, and match launching.
 
 signal connection_status_changed(status: String)
 signal player_list_changed(players: Dictionary)
+signal character_choices_updated
 
 const DEFAULT_PORT: int = 8910
 const MAX_CLIENTS: int = 8
@@ -25,9 +26,17 @@ func _ready() -> void:
 
 func set_local_character(character_id: String) -> void:
 	local_character_id = character_id
+	var my_id := 1
+	if multiplayer.multiplayer_peer and multiplayer.peer_connected:
+		my_id = multiplayer.get_unique_id()
+	player_character_choices[my_id] = character_id
+	character_choices_updated.emit()
+
+	if multiplayer.multiplayer_peer and multiplayer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTED:
+		rpc_send_character_choice.rpc(character_id)
 
 func get_character_for_peer(peer_id: int) -> String:
-	return player_character_choices.get(peer_id, "thin")
+	return player_character_choices.get(peer_id, "fat")
 
 func host_game(port: int = DEFAULT_PORT) -> Error:
 	current_port = port
@@ -44,9 +53,7 @@ func host_game(port: int = DEFAULT_PORT) -> Error:
 	# Register host choice
 	player_character_choices[1] = local_character_id
 	_register_player(1, "Host Player")
-	connection_status_changed.emit("Hosting server on port %d" % current_port)
-	
-	load_game_world()
+	connection_status_changed.emit("Комната создана! Ожидание игроков...")
 	return OK
 
 func join_game(ip: String = "127.0.0.1", port: int = DEFAULT_PORT) -> Error:
@@ -59,8 +66,16 @@ func join_game(ip: String = "127.0.0.1", port: int = DEFAULT_PORT) -> Error:
 		return err
 
 	multiplayer.multiplayer_peer = peer
-	connection_status_changed.emit("Connecting to %s:%d..." % [current_ip, current_port])
+	connection_status_changed.emit("Подключение к %s:%d..." % [current_ip, current_port])
 	return OK
+
+func start_game_match() -> void:
+	if multiplayer.is_server():
+		rpc_load_match.rpc()
+
+@rpc("call_local", "reliable")
+func rpc_load_match() -> void:
+	get_tree().change_scene_to_file("res://scenes/world.tscn")
 
 func disconnect_game() -> void:
 	if peer:
@@ -69,10 +84,6 @@ func disconnect_game() -> void:
 	connected_players.clear()
 	player_character_choices.clear()
 	connection_status_changed.emit("Disconnected")
-	get_tree().change_scene_to_file("res://scenes/main_menu.tscn")
-
-func load_game_world() -> void:
-	get_tree().change_scene_to_file("res://scenes/world.tscn")
 
 # RPC to sync chosen character to host & peers
 @rpc("any_peer", "call_local", "reliable")
@@ -81,12 +92,17 @@ func rpc_send_character_choice(character_id: String) -> void:
 	if sender_id == 0:
 		sender_id = multiplayer.get_unique_id()
 	player_character_choices[sender_id] = character_id
+	character_choices_updated.emit()
+	player_list_changed.emit(connected_players)
 
 # Signal Handlers
 func _on_peer_connected(id: int) -> void:
 	print("Peer connected with ID: ", id)
 	if multiplayer.is_server():
-		_register_player(id, "Player_%d" % id)
+		_register_player(id, "Игрок_%d" % id)
+		# Send current choices to new peer
+		for p_id in player_character_choices:
+			rpc_send_character_choice.rpc_id(id, player_character_choices[p_id])
 
 func _on_peer_disconnected(id: int) -> void:
 	print("Peer disconnected with ID: ", id)
@@ -95,6 +111,7 @@ func _on_peer_disconnected(id: int) -> void:
 		player_list_changed.emit(connected_players)
 	if player_character_choices.has(id):
 		player_character_choices.erase(id)
+		character_choices_updated.emit()
 
 	var players_container := get_tree().root.get_node_or_null("World/Players")
 	if players_container and players_container.has_node(str(id)):
@@ -103,17 +120,17 @@ func _on_peer_disconnected(id: int) -> void:
 
 func _on_connected_to_server() -> void:
 	var my_id := multiplayer.get_unique_id()
-	connection_status_changed.emit("Connected as Client ID: %d" % my_id)
+	connection_status_changed.emit("Вы в комнате (Client ID: %d)" % my_id)
 	rpc_send_character_choice.rpc(local_character_id)
-	load_game_world()
 
 func _on_connection_failed() -> void:
-	connection_status_changed.emit("Connection failed!")
+	connection_status_changed.emit("Ошибка подключения!")
 	multiplayer.multiplayer_peer = null
 
 func _on_server_disconnected() -> void:
-	connection_status_changed.emit("Server disconnected!")
+	connection_status_changed.emit("Сервер отключился!")
 	disconnect_game()
+	get_tree().change_scene_to_file("res://scenes/main_menu.tscn")
 
 func _register_player(id: int, player_name: String) -> void:
 	connected_players[id] = {
