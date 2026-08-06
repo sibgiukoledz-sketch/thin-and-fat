@@ -65,17 +65,15 @@ shape = SubResource("BoxShape3D_trigger")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.4, 0)
 billboard = 1
 double_sided = false
-text = "[E] ПОМЫТЬСЯ В ДУШЕ"
+text = "🚿 ДУШЕВАЯ (АВТО-МЫТЬЁ)"
 font_size = 28
 outline_size = 6
 
 [node name="WaterParticles" type="GPUParticles3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.2, 0)
-emitting = false
-amount = 40
+amount = 48
 lifetime = 0.6
-one_shot = true
-explosiveness = 0.2
+explosiveness = 0.0
 process_material = SubResource("ParticleProcessMaterial_water")
 draw_pass_1 = SubResource("SphereMesh_drop")
 

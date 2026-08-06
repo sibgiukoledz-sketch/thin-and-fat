@@ -7,8 +7,8 @@ signal stench_changed(current: float, max_stench: float)
 
 @export var max_stench: float = 100.0
 @export var stench_level: float = 0.0
-@export var stench_walk_rate: float = 3.5
-@export var stench_sprint_rate: float = 8.0
+@export var stench_walk_rate: float = 8.0
+@export var stench_sprint_rate: float = 18.0
 @export var stench_damage_threshold: float = 75.0
 @export var stench_damage_per_sec: float = 10.0
 @export var stench_aura_radius: float = 4.5
@@ -51,6 +51,21 @@ func _create_stench_particles() -> void:
 	_stench_particles.process_material = mat_proc
 	_stench_particles.draw_pass_1 = sphere_mesh
 	add_child(_stench_particles)
+
+func handle_ability_input(event: InputEvent) -> void:
+	if not player or not player.is_multiplayer_authority():
+		return
+
+	# Quick Test Key K or G: Instantly add +30% Stench for rapid testing!
+	if event is InputEventKey and event.pressed and not event.echo:
+		if event.keycode == KEY_K or event.keycode == KEY_G:
+			add_stench(30.0)
+			print("🧪 TEST KEY: Added +30% Stench! Current: ", int(stench_level))
+
+func add_stench(amount: float) -> void:
+	stench_level = clampf(stench_level + amount, 0.0, max_stench)
+	stench_changed.emit(stench_level, max_stench)
+	_update_gas_visuals()
 
 func update_mechanics(delta: float) -> void:
 	if not player or not player.is_multiplayer_authority() or player.is_dead:
