@@ -1,22 +1,26 @@
 class_name FatMechanics
 extends BaseCharacterMechanics
 
-## Controller for "Fat / Жирдяй" character mechanics: Stench accumulation, Toxic Gas Aura & Shower mechanics.
+## Controller for "Fat / Жирдяй" character mechanics: Stench accumulation, Toxic Gas & Flies Visuals, & AoE Damage.
 
 signal stench_changed(current: float, max_stench: float)
 
 @export var max_stench: float = 100.0
 @export var stench_level: float = 0.0
-@export var stench_walk_rate: float = 12.0
-@export var stench_sprint_rate: float = 24.0
+
+# Balanced Accumulation Rates
+@export var stench_walk_rate: float = 1.8
+@export var stench_sprint_rate: float = 7.5
+
 @export var stench_damage_threshold: float = 75.0
 @export var stench_damage_per_sec: float = 20.0
 @export var stench_aura_radius: float = 8.0
 
 var _damage_timer: float = 0.0
-var _stench_particles: GPUParticles3D
-var _aura_mesh: MeshInstance3D
-var _aura_material: StandardMaterial3D
+var _gas_particles: GPUParticles3D
+var _flies_particles: GPUParticles3D
+var _toxic_ring_mesh: MeshInstance3D
+var _ring_material: StandardMaterial3D
 
 func _ready() -> void:
 	super._ready()
@@ -29,60 +33,92 @@ func _setup_visual_nodes() -> void:
 	if not parent_3d:
 		return
 
-	# 1. Create GPUParticles3D attached directly to player 3D node
-	if not _stench_particles:
-		_stench_particles = GPUParticles3D.new()
-		_stench_particles.name = "StenchGasParticles"
-		_stench_particles.emitting = false
-		_stench_particles.amount = 50
-		_stench_particles.lifetime = 1.2
+	# 1. Rising Toxic Gas Puffs Particles
+	if not _gas_particles:
+		_gas_particles = GPUParticles3D.new()
+		_gas_particles.name = "StenchGasParticles"
+		_gas_particles.emitting = false
+		_gas_particles.amount = 32
+		_gas_particles.lifetime = 1.5
 
 		var mat_proc := ParticleProcessMaterial.new()
 		mat_proc.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_SPHERE
-		mat_proc.emission_sphere_radius = 1.2
+		mat_proc.emission_sphere_radius = 1.1
 		mat_proc.direction = Vector3(0, 1, 0)
-		mat_proc.spread = 75.0
-		mat_proc.initial_velocity_min = 0.8
-		mat_proc.initial_velocity_max = 2.5
-		mat_proc.gravity = Vector3(0, 0.8, 0)
-		mat_proc.scale_min = 0.25
-		mat_proc.scale_max = 0.6
-		mat_proc.color = Color(0.3, 0.95, 0.15, 0.85) # Toxic Green
+		mat_proc.spread = 45.0
+		mat_proc.initial_velocity_min = 0.4
+		mat_proc.initial_velocity_max = 1.2
+		mat_proc.gravity = Vector3(0, 0.3, 0)
+		mat_proc.scale_min = 0.15
+		mat_proc.scale_max = 0.4
+		mat_proc.color = Color(0.4, 0.9, 0.2, 0.7) # Bright Toxic Green
 
 		var draw_mat := StandardMaterial3D.new()
 		draw_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-		draw_mat.albedo_color = Color(0.35, 0.95, 0.15, 0.8)
+		draw_mat.albedo_color = Color(0.4, 0.9, 0.2, 0.65)
 		draw_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 
 		var sphere_mesh := SphereMesh.new()
 		sphere_mesh.material = draw_mat
-		sphere_mesh.radius = 0.2
-		sphere_mesh.height = 0.4
+		sphere_mesh.radius = 0.15
+		sphere_mesh.height = 0.3
 
-		_stench_particles.process_material = mat_proc
-		_stench_particles.draw_pass_1 = sphere_mesh
-		_stench_particles.position = Vector3(0, 1.0, 0)
-		parent_3d.add_child(_stench_particles)
+		_gas_particles.process_material = mat_proc
+		_gas_particles.draw_pass_1 = sphere_mesh
+		_gas_particles.position = Vector3(0, 0.8, 0)
+		parent_3d.add_child(_gas_particles)
 
-	# 2. Create 3D Toxic Aura Sphere mesh around player
-	if not _aura_mesh:
-		_aura_mesh = MeshInstance3D.new()
-		_aura_mesh.name = "ToxicAuraSphere"
-		var aura_sphere := SphereMesh.new()
-		aura_sphere.radius = stench_aura_radius
-		aura_sphere.height = stench_aura_radius * 2.0
+	# 2. Buzzing Stink Flies Particles
+	if not _flies_particles:
+		_flies_particles = GPUParticles3D.new()
+		_flies_particles.name = "StenchFliesParticles"
+		_flies_particles.emitting = false
+		_flies_particles.amount = 20
+		_flies_particles.lifetime = 0.8
 
-		_aura_material = StandardMaterial3D.new()
-		_aura_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-		_aura_material.albedo_color = Color(0.2, 0.95, 0.15, 0.22)
-		_aura_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-		_aura_material.cull_mode = BaseMaterial3D.CULL_DISABLED
+		var mat_proc := ParticleProcessMaterial.new()
+		mat_proc.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_SPHERE
+		mat_proc.emission_sphere_radius = 1.3
+		mat_proc.direction = Vector3(0, 1, 0)
+		mat_proc.spread = 180.0
+		mat_proc.initial_velocity_min = 1.2
+		mat_proc.initial_velocity_max = 3.0
+		mat_proc.gravity = Vector3(0, 0, 0)
+		mat_proc.scale_min = 0.04
+		mat_proc.scale_max = 0.08
 
-		_aura_mesh.mesh = aura_sphere
-		_aura_mesh.material_override = _aura_material
-		_aura_mesh.position = Vector3(0, 1.0, 0)
-		_aura_mesh.visible = false
-		parent_3d.add_child(_aura_mesh)
+		var draw_mat := StandardMaterial3D.new()
+		draw_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		draw_mat.albedo_color = Color(0.1, 0.25, 0.05, 0.95) # Dark Fly Dots
+
+		var fly_mesh := SphereMesh.new()
+		fly_mesh.material = draw_mat
+		fly_mesh.radius = 0.04
+		fly_mesh.height = 0.08
+
+		_flies_particles.process_material = mat_proc
+		_flies_particles.draw_pass_1 = fly_mesh
+		_flies_particles.position = Vector3(0, 1.2, 0)
+		parent_3d.add_child(_flies_particles)
+
+	# 3. Ground Toxic Damage Ring Emitter
+	if not _toxic_ring_mesh:
+		_toxic_ring_mesh = MeshInstance3D.new()
+		_toxic_ring_mesh.name = "ToxicDamageRing"
+		var torus := TorusMesh.new()
+		torus.inner_radius = stench_aura_radius - 0.2
+		torus.outer_radius = stench_aura_radius
+
+		_ring_material = StandardMaterial3D.new()
+		_ring_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		_ring_material.albedo_color = Color(0.4, 0.95, 0.2, 0.5)
+		_ring_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+
+		_toxic_ring_mesh.mesh = torus
+		_toxic_ring_mesh.material_override = _ring_material
+		_toxic_ring_mesh.position = Vector3(0, 0.1, 0)
+		_toxic_ring_mesh.visible = false
+		parent_3d.add_child(_toxic_ring_mesh)
 
 func handle_ability_input(event: InputEvent) -> void:
 	if not _ensure_player_ref() or not player.is_multiplayer_authority():
@@ -121,17 +157,22 @@ func wash_stench() -> void:
 	print("🦛 FAT: Stench completely washed off in shower!")
 
 func _update_gas_visuals() -> void:
-	if _stench_particles:
+	if _gas_particles:
 		var should_emit := (stench_level >= 25.0)
-		if _stench_particles.emitting != should_emit:
-			_stench_particles.emitting = should_emit
+		if _gas_particles.emitting != should_emit:
+			_gas_particles.emitting = should_emit
 
-	if _aura_mesh and _aura_material:
+	if _flies_particles:
+		var should_flies := (stench_level >= 45.0)
+		if _flies_particles.emitting != should_flies:
+			_flies_particles.emitting = should_flies
+
+	if _toxic_ring_mesh and _ring_material:
 		var is_toxic := (stench_level >= stench_damage_threshold)
-		_aura_mesh.visible = is_toxic
+		_toxic_ring_mesh.visible = is_toxic
 		if is_toxic:
-			var alpha := 0.22 + sin(Time.get_ticks_msec() * 0.006) * 0.08
-			_aura_material.albedo_color.a = alpha
+			var alpha := 0.4 + sin(Time.get_ticks_msec() * 0.008) * 0.2
+			_ring_material.albedo_color.a = alpha
 
 func _update_aoe_poison_damage(delta: float) -> void:
 	if stench_level < stench_damage_threshold:
@@ -147,7 +188,6 @@ func _apply_aoe_damage_tick() -> void:
 		return
 
 	var center := player.global_position
-	# Find all damageable nodes in the scene
 	var root := get_tree().root
 	_damage_nodes_recursive(root, center)
 

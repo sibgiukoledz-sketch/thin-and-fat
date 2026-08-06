@@ -84,26 +84,26 @@ func _play_hit_shake() -> void:
 	_shake_tween.tween_property(mesh_instance, "scale", _original_mesh_scale, 0.12).set_trans(Tween.TRANS_SPRING)
 	_shake_tween.parallel().tween_property(mesh_instance, "position", _original_mesh_pos, 0.12)
 
-func _spawn_hit_particles(hit_pos: Vector3) -> void:
+func _spawn_hit_particles(_hit_pos: Vector3) -> void:
 	if particles:
-		if hit_pos != Vector3.ZERO:
-			particles.global_position = hit_pos
+		particles.position = Vector3(0, 1.0, 0)
 		particles.restart()
 		particles.emitting = true
 
-func _spawn_floating_damage_text(amount: float, hit_pos: Vector3) -> void:
-	var text_pos := hit_pos if hit_pos != Vector3.ZERO else global_position + Vector3(0, 2.0, 0)
+func _spawn_floating_damage_text(amount: float, _hit_pos: Vector3) -> void:
+	var text_pos := global_position + Vector3(randf_range(-0.3, 0.3), 2.2, randf_range(-0.3, 0.3))
 
 	var label_3d := Label3D.new()
 	label_3d.text = "-%d" % int(amount)
-	label_3d.font_size = 32
+	label_3d.font_size = 36
+	label_3d.outline_size = 8
 	label_3d.modulate = Color(1.0, 0.2, 0.2, 1.0)
 	label_3d.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	label_3d.global_position = text_pos + Vector3(randf_range(-0.2, 0.2), randf_range(0.2, 0.5), randf_range(-0.2, 0.2))
+	label_3d.global_position = text_pos
 
 	get_tree().root.add_child(label_3d)
 
 	var tween := get_tree().create_tween()
-	tween.tween_property(label_3d, "global_position:y", label_3d.global_position.y + 0.8, 0.6)
-	tween.parallel().tween_property(label_3d, "modulate:a", 0.0, 0.6)
+	tween.tween_property(label_3d, "global_position:y", text_pos.y + 1.0, 0.75)
+	tween.parallel().tween_property(label_3d, "modulate:a", 0.0, 0.75)
 	tween.tween_callback(label_3d.queue_free)
