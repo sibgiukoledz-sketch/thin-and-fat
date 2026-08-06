@@ -1,11 +1,10 @@
 class_name FragileGlassFloor
 extends StaticBody3D
 
-## Realistic AAA Fragile Glass Floor panel supporting multiple distinct glass types:
-## 1. CRYSTAL_CLEAR: Clear crystal glass (0.65s crack delay).
-## 2. FROSTED_ARMOURED: Reinforced wire mesh glass (takes 2 heavy steps or boulder impact to shatter!).
-## 3. STAINED_EMERALD: Glowing emerald green stained glass.
-## 4. STAINED_RUBY: Glowing ruby red stained glass.
+## Realistic AAA Fragile Glass Floor / Wall panel supporting multiple types & formats:
+## - Formats: Horizontal Floor panel or Vertical Wall / Window format (is_vertical_wall).
+## - Types: CRYSTAL_CLEAR, FROSTED_ARMOURED, STAINED_EMERALD, STAINED_RUBY.
+## - 3D Editor Markers: Visual 3D TypeLabel3D showing glass type and format in the editor viewport & game.
 
 enum GlassType {
 	CRYSTAL_CLEAR,
@@ -16,7 +15,23 @@ enum GlassType {
 
 signal glass_shattered
 
-@export var glass_type: GlassType = GlassType.CRYSTAL_CLEAR
+@export var glass_type: GlassType = GlassType.CRYSTAL_CLEAR:
+	set(val):
+		glass_type = val
+		_update_type_label()
+		_setup_glass_material()
+
+@export var is_vertical_wall: bool = false:
+	set(val):
+		is_vertical_wall = val
+		_setup_geometry()
+		_update_type_label()
+
+@export var show_editor_label: bool = true:
+	set(val):
+		show_editor_label = val
+		_update_type_label()
+
 @export var is_broken: bool = false
 @export var break_delay_fat: float = 0.65 # Extended crack spreading phase (0.65s) before collapse
 @export var respawn_time: float = 8.0 # Auto-restore floor after 8 seconds
@@ -25,6 +40,7 @@ signal glass_shattered
 @onready var mesh_instance: MeshInstance3D = $MeshInstance3D
 @onready var detection_area: Area3D = $DetectionArea
 @onready var shatter_particles: GPUParticles3D = $ShatterParticles
+@onready var type_label: Label3D = $TypeLabel3D
 
 var _is_breaking: bool = false
 var _step_count: int = 0
@@ -34,11 +50,71 @@ var _clean_texture: ImageTexture
 var _active_shards: Array[Node] = []
 
 func _ready() -> void:
+	_setup_geometry()
 	_setup_glass_material()
 	_setup_particles()
+	_update_type_label()
+
 	if detection_area:
 		if not detection_area.body_entered.is_connected(_on_body_entered):
 			detection_area.body_entered.connect(_on_body_entered)
+
+func _setup_geometry() -> void:
+	if not collision_shape or not mesh_instance or not detection_area:
+		return
+
+	var box_shape: BoxShape3D = BoxShape3D.new()
+	var box_mesh: BoxMesh = BoxMesh.new()
+	var detect_shape: BoxShape3D = BoxShape3D.new()
+	var detect_col: CollisionShape3D = detection_area.get_node_or_null("CollisionShape3D") as CollisionShape3D
+
+	if is_vertical_wall:
+		# Vertical Wall / Window format (3.2m width x 3.2m height x 0.15m thickness)
+		box_shape.size = Vector3(3.2, 3.2, 0.15)
+		box_mesh.size = Vector3(3.2, 3.2, 0.15)
+		detect_shape.size = Vector3(3.2, 3.2, 0.6)
+		detection_area.position = Vector3(0, 0, 0)
+		if type_label:
+			type_label.position = Vector3(0, 1.8, 0)
+	else:
+		# Horizontal Floor Format (3.2m width x 0.15m height x 3.2m depth)
+		box_shape.size = Vector3(3.2, 0.15, 3.2)
+		box_mesh.size = Vector3(3.2, 0.15, 3.2)
+		detect_shape.size = Vector3(3.1, 0.4, 3.1)
+		detection_area.position = Vector3(0, 0.25, 0)
+		if type_label:
+			type_label.position = Vector3(0, 0.4, 0)
+
+	collision_shape.shape = box_shape
+	mesh_instance.mesh = box_mesh
+	if detect_col:
+		detect_col.shape = detect_shape
+
+func _update_type_label() -> void:
+	if not is_node_ready() or not type_label:
+		return
+
+	var type_name: String = ""
+	var type_color: Color = Color.WHITE
+	var format_str: String = "СТЕНА" if is_vertical_wall else "ПОЛ"
+
+	match glass_type:
+		GlassType.CRYSTAL_CLEAR:
+			type_name = "💎 КРИСТАЛЬНОЕ СТЕКЛО (%s)" % format_str
+			type_color = Color(0.6, 0.95, 1.0)
+		GlassType.FROSTED_ARMOURED:
+			type_name = "🛡️ АРМИРОВАННОЕ СТЕКЛО (2 ШАГА, %s)" % format_str
+			type_color = Color(0.4, 0.8, 1.0)
+		GlassType.STAINED_EMERALD:
+			type_name = "🟢 ИЗУМРУДНЫЙ ВИТРАЖ (%s)" % format_str
+			type_color = Color(0.2, 1.0, 0.5)
+		GlassType.STAINED_RUBY:
+			type_name = "🔴 РУБИНОВЫЙ ВИТРАЖ (%s)" % format_str
+			type_color = Color(1.0, 0.3, 0.4)
+
+	type_label.text = type_name
+	type_label.modulate = type_color
+	type_label.visible = show_editor_label and not is_broken
 
 func _setup_glass_material() -> void:
 	if not mesh_instance:
@@ -86,12 +162,10 @@ func _create_procedural_glass_texture(has_cracks: bool) -> ImageTexture:
 	var center: Vector2 = Vector2(256, 256)
 	for y in range(512):
 		for x in range(512):
-			# Chrome Outer Frame
 			if x <= 12 or x >= 499 or y <= 12 or y >= 499:
 				img.set_pixel(x, y, Color(0.9, 0.95, 1.0, 0.95))
 				continue
 
-			# Reinforced Diagonal Wire Grid for Armoured Glass
 			if glass_type == GlassType.FROSTED_ARMOURED:
 				if (x + y) % 36 == 0 or (x - y + 512) % 36 == 0:
 					img.set_pixel(x, y, Color(0.4, 0.45, 0.5, 0.7))
@@ -127,7 +201,7 @@ func _setup_particles() -> void:
 
 	var mat_proc: ParticleProcessMaterial = ParticleProcessMaterial.new()
 	mat_proc.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_BOX
-	mat_proc.emission_box_extents = Vector3(1.5, 0.05, 1.5)
+	mat_proc.emission_box_extents = Vector3(1.5, 1.5, 0.1) if is_vertical_wall else Vector3(1.5, 0.05, 1.5)
 	mat_proc.direction = Vector3(0, -1, 0)
 	mat_proc.spread = 45.0
 	mat_proc.initial_velocity_min = 1.5
@@ -162,14 +236,13 @@ func _on_body_entered(body: Node) -> void:
 
 	if body is Player:
 		var p: Player = body as Player
-		if p.selected_character_id.to_lower() == "fat" or p.is_carrying_heavy_object:
+		if p.selected_character_id.to_lower() == "fat" or p.is_carrying_heavy_object or p.velocity.length_squared() > 100.0:
 			_handle_heavy_step()
-	elif body is HeavyBoulder:
+	elif body is HeavyBoulder or body is RigidBody3D:
 		_start_shatter_sequence()
 
 func _handle_heavy_step() -> void:
 	_step_count += 1
-	# Armoured glass requires 2 heavy steps before shattering!
 	if glass_type == GlassType.FROSTED_ARMOURED and _step_count < 2:
 		if _glass_material:
 			_glass_material.albedo_texture = _cracked_texture
@@ -206,6 +279,8 @@ func rpc_shatter() -> void:
 		collision_shape.set_deferred("disabled", true)
 	if mesh_instance:
 		mesh_instance.hide()
+	if type_label:
+		type_label.hide()
 
 	if shatter_particles:
 		shatter_particles.global_position = global_position
@@ -215,7 +290,7 @@ func rpc_shatter() -> void:
 	_spawn_3d_physical_shards()
 
 	glass_shattered.emit()
-	print("💥 GLASS FLOOR SHATTERED! Type: %d" % int(glass_type))
+	print("💥 GLASS FLOOR/WALL SHATTERED! Format: %s, Type: %d" % ["WALL" if is_vertical_wall else "FLOOR", int(glass_type)])
 
 	if respawn_time > 0.0:
 		get_tree().create_timer(respawn_time).timeout.connect(restore_floor)
@@ -242,10 +317,15 @@ func _spawn_3d_physical_shards() -> void:
 			draw_mat.albedo_color = Color(0.8, 0.95, 1.0, 0.65)
 
 	for gx in range(grid_count):
-		for gz in range(grid_count):
+		for gy_or_z in range(grid_count):
 			var offset_x: float = (float(gx) - float(grid_count - 1) * 0.5) * tile_size + randf_range(-0.05, 0.05)
-			var offset_z: float = (float(gz) - float(grid_count - 1) * 0.5) * tile_size + randf_range(-0.05, 0.05)
-			var shard_pos: Vector3 = global_position + Vector3(offset_x, randf_range(-0.05, 0.05), offset_z)
+			var offset_2: float = (float(gy_or_z) - float(grid_count - 1) * 0.5) * tile_size + randf_range(-0.05, 0.05)
+
+			var shard_pos: Vector3 = Vector3.ZERO
+			if is_vertical_wall:
+				shard_pos = global_position + Vector3(offset_x, offset_2, randf_range(-0.05, 0.05))
+			else:
+				shard_pos = global_position + Vector3(offset_x, randf_range(-0.05, 0.05), offset_2)
 
 			var shard_rb: RigidBody3D = RigidBody3D.new()
 			shard_rb.name = "GlassShard3D"
@@ -320,6 +400,8 @@ func rpc_restore_floor() -> void:
 		collision_shape.set_deferred("disabled", false)
 	if mesh_instance:
 		mesh_instance.show()
+	if type_label and show_editor_label:
+		type_label.show()
 
 	_setup_glass_material()
-	print("✨ GLASS FLOOR RESTORED!")
+	print("✨ GLASS FLOOR/WALL RESTORED!")

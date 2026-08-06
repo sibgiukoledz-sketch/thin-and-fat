@@ -526,3 +526,14 @@ glass_type = 2
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.417773, 0.7804297, 7.1543474)
 glass_type = 3
 
+[node name="FragileGlassWall1" parent="." unique_id=2084910291 instance=ExtResource("8_glass_scene")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.0, 2.3, 3.954)
+glass_type = 0
+is_vertical_wall = true
+
+[node name="FragileGlassWall2" parent="." unique_id=2084910292 instance=ExtResource("8_glass_scene")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.0, 2.3, 7.154)
+glass_type = 2
+is_vertical_wall = true
+
+
