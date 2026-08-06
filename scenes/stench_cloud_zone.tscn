@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3 uid="uid://c8stenchcloud01"]
+[gd_scene format=3 uid="uid://bf3hj2indasb5"]
 
 [ext_resource type="Script" path="res://scripts/objects/stench_cloud_zone.gd" id="1_cloud"]
 

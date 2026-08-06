@@ -299,29 +299,41 @@ func _perform_melee_attack() -> void:
 func trigger_nausea(amount: float) -> void:
 	nausea_intensity = clampf(nausea_intensity + amount, 0.0, 1.0)
 
+var _nausea_heave_timer: float = 0.0
+
 func _update_nausea_effects(delta: float) -> void:
 	if not is_multiplayer_authority():
 		return
 
-	# Gradually decay nausea when away from stench
-	nausea_intensity = maxf(nausea_intensity - 0.25 * delta, 0.0)
+	# Slowly decay nausea when away from stench
+	nausea_intensity = maxf(nausea_intensity - 0.2 * delta, 0.0)
 
-	# Update 1st Person Nausea Screen Overlay
+	# 1. Dark Murky Stomach-Bile Color (Dark sickly olive-brown, not chemical neon)
 	if nausea_overlay:
 		if nausea_intensity > 0.001:
-			var pulse := sin(Time.get_ticks_msec() * 0.005) * 0.12
-			var alpha := clampf(nausea_intensity * 0.45 + pulse * nausea_intensity, 0.0, 0.65)
-			nausea_overlay.color = Color(0.2, 0.85, 0.15, alpha)
+			var t := Time.get_ticks_msec() * 0.001
+			var retch_pulse := pow(maxf(sin(t * 3.2), 0.0), 4.0) * 0.25 # Periodic gag pulse
+			var alpha := clampf(nausea_intensity * 0.55 + retch_pulse * nausea_intensity, 0.0, 0.75)
+			# Dark sickly bile tone (olive brown-green)
+			nausea_overlay.color = Color(0.12, 0.16, 0.04, alpha)
 		else:
 			nausea_overlay.color.a = 0.0
 
-	# 1st Person Camera Sway & Roll Wobble
-	if camera_3d:
+	# 2. Visceral Vertigo Camera Sway & Periodic Gag / Retch Heaves
+	if camera_3d and head:
 		if nausea_intensity > 0.01:
-			var sway_z := sin(Time.get_ticks_msec() * 0.004) * deg_to_rad(6.5) * nausea_intensity
-			camera_3d.rotation.z = sway_z
+			var t := Time.get_ticks_msec() * 0.001
+			# Asymmetric Lissajous Vertigo Roll & Pitch
+			var roll_z := sin(t * 2.4) * deg_to_rad(10.0) * nausea_intensity
+			var pitch_sway := cos(t * 3.6) * deg_to_rad(4.5) * nausea_intensity
+
+			# Periodic gag heave (downward head jerk simulating stomach retch)
+			var gag_heave := -pow(maxf(sin(t * 3.2), 0.0), 6.0) * deg_to_rad(8.0) * nausea_intensity
+
+			camera_3d.rotation.z = roll_z
+			head.rotation.x = clampf(head.rotation.x + gag_heave * delta * 4.0 + pitch_sway * delta * 2.0, deg_to_rad(-89.0), deg_to_rad(89.0))
 		else:
-			camera_3d.rotation.z = lerpf(camera_3d.rotation.z, 0.0, 10.0 * delta)
+			camera_3d.rotation.z = lerpf(camera_3d.rotation.z, 0.0, 8.0 * delta)
 
 func _process(delta: float) -> void:
 	_update_camera_zoom(delta)
