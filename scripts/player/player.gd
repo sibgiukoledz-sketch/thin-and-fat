@@ -411,4 +411,3 @@ func is_crouch_requested() -> bool:
 
 func is_sprint_requested() -> bool:
 	return Input.is_action_pressed("sprint") and not is_stamina_exhausted
-

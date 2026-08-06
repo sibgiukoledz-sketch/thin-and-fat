@@ -492,8 +492,9 @@ func update_mechanics(delta: float) -> void:
 	var input_dir: Vector3 = player.get_movement_input()
 
 	if input_dir.length_squared() > 0.01:
-		var is_sprinting := (player.synced_state_name.to_lower() == "sprint")
-		var rate := stench_sprint_rate if is_sprinting else stench_walk_rate
+		var is_sprinting: bool = (player.synced_state_name.to_lower() == "sprint")
+		var rate: float = stench_sprint_rate if is_sprinting else stench_walk_rate
+
 		stench_level = clampf(stench_level + rate * delta, 0.0, max_stench)
 		stench_changed.emit(stench_level, max_stench)
 
