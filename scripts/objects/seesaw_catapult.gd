@@ -9,8 +9,8 @@ extends Node3D
 signal catapult_launched(launched_body: Node, launch_velocity: float)
 
 @export var max_tilt_angle: float = 20.0 # Max tilt in degrees (deg_to_rad(20.0) ~ 0.35 rad)
-@export var base_launch_force: float = 26.0 # Base skyward velocity (m/s)
-@export var max_launch_force: float = 40.0 # Max skyward launch velocity for heavy falls
+@export var base_launch_force: float = 28.0 # Base skyward velocity (m/s)
+@export var max_launch_force: float = 42.0 # Max skyward launch velocity for heavy falls
 
 @onready var plank_pivot: Node3D = $PlankPivot
 @onready var area_left: Area3D = $PlankPivot/AreaLeft
@@ -20,6 +20,7 @@ signal catapult_launched(launched_body: Node, launch_velocity: float)
 
 var _is_animating: bool = false
 var _current_side: int = 0 # -1 = Left down, +1 = Right down, 0 = Level
+var _last_slam_time: float = 0.0
 
 func _ready() -> void:
 	if area_left:
@@ -28,27 +29,34 @@ func _ready() -> void:
 		area_right.body_entered.connect(func(body: Node) -> void: _on_side_impact(body, 1))
 
 func _on_side_impact(body: Node, side: int) -> void:
-	# Check if body is a Heavy Slammer (Fat character landing or Heavy Boulder)
-	var is_fat: bool = false
+	# Cooldown between slams to prevent rapid jitter
+	var now: float = Time.get_ticks_msec() / 1000.0
+	if now - _last_slam_time < 0.4:
+		return
+
+	# Require SIGNIFICANT DOWNWARD IMPACT (Fat jumping/landing or Heavy Boulder falling)
+	# Normal walking or light touching will NOT trigger the catapult!
+	var is_heavy_slam: bool = false
 	var downward_speed: float = 0.0
 
 	if body is Player:
 		var p: Player = body as Player
 		if p.selected_character_id.to_lower() == "fat":
-			is_fat = true
-			downward_speed = absf(minf(p.velocity.y, -1.0))
-	elif body is HeavyBoulder:
-		is_fat = true
-		downward_speed = absf(minf(body.linear_velocity.y, -2.0))
-	elif body is RigidBody3D and body.mass >= 150.0:
-		is_fat = true
-		downward_speed = absf(minf(body.linear_velocity.y, -2.0))
+			# Require Fat to have downward jump/fall velocity (at least 2.5 m/s) or carry heavy item
+			if p.velocity.y < -2.5 or p.is_carrying_heavy_object:
+				is_heavy_slam = true
+				downward_speed = absf(p.velocity.y)
+	elif body is HeavyBoulder or (body is RigidBody3D and body.mass >= 100.0):
+		var rb: RigidBody3D = body as RigidBody3D
+		if rb.linear_velocity.y < -1.5 or rb.linear_velocity.length_squared() > 8.0:
+			is_heavy_slam = true
+			downward_speed = absf(rb.linear_velocity.y)
 
-	if not is_fat:
+	if not is_heavy_slam:
 		return
 
-	# Execute Catapult Slam RPC
-	var impact_power: float = clampf(18.0 + downward_speed * 1.6, base_launch_force, max_launch_force)
+	_last_slam_time = now
+	var impact_power: float = clampf(20.0 + downward_speed * 1.8, base_launch_force, max_launch_force)
 	rpc_trigger_catapult_slam.rpc(side, impact_power)
 
 @rpc("any_peer", "call_local", "reliable")
@@ -59,7 +67,7 @@ func rpc_trigger_catapult_slam(slam_side: int, launch_force: float) -> void:
 	# 1. Animate Plank Tilt
 	if plank_pivot:
 		var tween: Tween = create_tween()
-		tween.tween_property(plank_pivot, "rotation:z", target_angle_rad, 0.08).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		tween.tween_property(plank_pivot, "rotation:z", target_angle_rad, 0.07).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 
 	# 2. Spawn Launch FX on Slammed Side
 	var target_particles: GPUParticles3D = particles_left if slam_side == -1 else particles_right
@@ -67,37 +75,57 @@ func rpc_trigger_catapult_slam(slam_side: int, launch_force: float) -> void:
 		target_particles.restart()
 		target_particles.emitting = true
 
-	# 3. Launch Entities on OPPOSITE Side!
+	# 3. Find All Entities on OPPOSITE Side (both Area3D overlap + 3.8m radius search around target pad)
 	var opposite_area: Area3D = area_right if slam_side == -1 else area_left
-	if not opposite_area:
-		return
-
+	var opposite_pad: GPUParticles3D = particles_right if slam_side == -1 else particles_left
+	var opp_pad_pos: Vector3 = opposite_pad.global_position if opposite_pad else global_position
 	var launch_dir_x: float = 1.0 if slam_side == -1 else -1.0
-	var bodies: Array[Node3D] = opposite_area.get_overlapping_bodies()
 
-	for victim in bodies:
+	var launch_targets: Array[Node3D] = []
+
+	# Check Area3D overlaps
+	if opposite_area:
+		for b in opposite_area.get_overlapping_bodies():
+			if b is Node3D and not b in launch_targets:
+				launch_targets.append(b as Node3D)
+
+	# Check 3.8m distance radius around opposite landing pad for players & NPCs
+	var root: Node = get_tree().root
+	for child in root.find_children("*", "CharacterBody3D", true, false):
+		if child is Node3D:
+			var n3d: Node3D = child as Node3D
+			if n3d.global_position.distance_to(opp_pad_pos) < 3.8 and not n3d in launch_targets:
+				launch_targets.append(n3d)
+
+	for child in root.find_children("*", "RigidBody3D", true, false):
+		if child is RigidBody3D and child.mass < 100.0:
+			var rb: RigidBody3D = child as RigidBody3D
+			if rb.global_position.distance_to(opp_pad_pos) < 3.8 and not rb in launch_targets:
+				launch_targets.append(rb)
+
+	# 4. Launch Target Entities Skyward ("в открытый космос")!
+	for victim in launch_targets:
 		if victim is Player:
 			var p: Player = victim as Player
-			# Launch Thin player or any teammate high into the sky!
 			p.velocity.y = launch_force
-			p.velocity.x += launch_dir_x * 5.0
+			p.velocity.x += launch_dir_x * 6.0
 			p.velocity.z += randf_range(-1.5, 1.5)
 			if p.has_method("set_target_fov"):
-				p.set_target_fov(100.0)
+				p.set_target_fov(105.0)
 			catapult_launched.emit(p, launch_force)
-			print("🚀 CATAPULT SEESAW: Player %s launched at %.1f m/s!" % [p.name, launch_force])
+			print("🚀 CATAPULT SEESAW: Player %s launched skyward at %.1f m/s!" % [p.name, launch_force])
 
 		elif victim is DummyNPC:
 			var npc: DummyNPC = victim as DummyNPC
-			npc.velocity.y = launch_force
-			npc.velocity.x += launch_dir_x * 5.0
+			npc.velocity = Vector3(launch_dir_x * 6.0, launch_force * 1.15, randf_range(-1.5, 1.5))
+			npc.move_and_slide()
 			catapult_launched.emit(npc, launch_force)
-			print("🚀 CATAPULT SEESAW: DummyNPC launched at %.1f m/s!" % launch_force)
+			print("🚀 CATAPULT SEESAW: DummyNPC %s launched skyward at %.1f m/s!" % [npc.name, launch_force])
 
 		elif victim is RigidBody3D:
 			var rb: RigidBody3D = victim as RigidBody3D
-			var impulse: Vector3 = Vector3(launch_dir_x * 3.0, launch_force * rb.mass * 1.1, randf_range(-1.0, 1.0))
+			var impulse: Vector3 = Vector3(launch_dir_x * 4.0, launch_force * rb.mass * 1.25, randf_range(-1.5, 1.5))
 			rb.apply_central_impulse(impulse)
-			rb.apply_torque_impulse(Vector3(randf_range(-4.0, 4.0), randf_range(-4.0, 4.0), randf_range(-4.0, 4.0)))
+			rb.apply_torque_impulse(Vector3(randf_range(-5.0, 5.0), randf_range(-5.0, 5.0), randf_range(-5.0, 5.0)))
 			catapult_launched.emit(rb, launch_force)
 			print("🚀 CATAPULT SEESAW: RigidBody %s launched skyward!" % rb.name)
