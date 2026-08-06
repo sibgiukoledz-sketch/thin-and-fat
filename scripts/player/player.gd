@@ -351,7 +351,7 @@ func is_jump_requested() -> bool:
 func is_sprint_requested() -> bool:
 	if not is_multiplayer_authority() or is_dead:
 		return false
-	if is_stamina_exhausted or shift_must_be_released or current_stamina < 15.0:
+	if is_stamina_exhausted or shift_must_be_released or current_stamina <= 0.0:
 		return false
 	return Input.is_action_pressed("sprint") or Input.is_physical_key_pressed(KEY_SHIFT)
 
