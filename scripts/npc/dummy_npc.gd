@@ -34,12 +34,14 @@ func _ready() -> void:
 	update_hp_display()
 
 func _physics_process(delta: float) -> void:
-	# Flight and gravity physics when launched by Slingshot, Catapult, or Seismic pop
+	# Flight, wind pushing, and gravity physics for DummyNPC
 	if not is_on_floor() or velocity.length_squared() > 0.01:
-		velocity.y -= 18.0 * delta
-		velocity.x = lerpf(velocity.x, 0.0, 2.5 * delta)
-		velocity.z = lerpf(velocity.z, 0.0, 2.5 * delta)
+		if not is_on_floor():
+			velocity.y -= 18.0 * delta
+		velocity.x = lerpf(velocity.x, 0.0, 1.2 * delta)
+		velocity.z = lerpf(velocity.z, 0.0, 1.2 * delta)
 		move_and_slide()
+
 
 
 func _process(delta: float) -> void:

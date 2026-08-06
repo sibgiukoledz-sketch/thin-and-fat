@@ -9,8 +9,8 @@ extends Node3D
 ##   allowing Thin to safely advance forward through the hurricane!
 
 @export var is_active: bool = true
-@export var wind_force: float = 24.0 # Push force magnitude
-@export var fan_reach_length: float = 14.0 # Wind zone length in meters
+@export var wind_force: float = 28.0 # Push force magnitude
+@export var fan_reach_length: float = 15.0 # Wind zone length in meters
 
 @onready var blades_mesh: MeshInstance3D = $TurbineHousing/BladesMesh
 @onready var wind_area: Area3D = $WindArea
@@ -29,7 +29,7 @@ func _physics_process(delta: float) -> void:
 
 	# Spin turbine blades
 	if blades_mesh:
-		blades_mesh.rotate_z(16.0 * delta)
+		blades_mesh.rotate_z(18.0 * delta)
 
 	if not wind_particles.emitting:
 		wind_particles.emitting = true
@@ -42,7 +42,7 @@ func _apply_wind_physics(delta: float) -> void:
 
 	# Direction the wind is blowing (local +Z or global transform)
 	var wind_dir: Vector3 = global_transform.basis.z.normalized()
-	var fan_origin: Vector3 = global_position + Vector3(0, 1.2, 0)
+	var fan_origin: Vector3 = global_position + Vector3(0, 1.8, 0)
 
 	var bodies: Array[Node3D] = wind_area.get_overlapping_bodies()
 	for body in bodies:
@@ -70,20 +70,21 @@ func _apply_wind_physics(delta: float) -> void:
 		# Apply hurricane wind push force
 		if body is Player:
 			var p: Player = body as Player
-			p.velocity += wind_dir * wind_force * delta
-			# Limit forward movement against wind when exposed
+			p.velocity += wind_dir * (wind_force * 1.6) * delta
+			# Push back against forward movement against the wind
 			var dot: float = p.velocity.dot(wind_dir)
 			if dot < 0.0:
-				p.velocity -= wind_dir * (dot * 0.7)
+				p.velocity -= wind_dir * (dot * 0.85)
 
 		elif body is DummyNPC:
 			var npc: DummyNPC = body as DummyNPC
-			npc.velocity += wind_dir * wind_force * delta
+			npc.velocity += wind_dir * (wind_force * 2.2) * delta
+			npc.move_and_slide()
 
 		elif body is RigidBody3D:
 			var rb: RigidBody3D = body as RigidBody3D
 			if rb.mass < 120.0:
-				rb.apply_central_force(wind_dir * wind_force * rb.mass * 12.0)
+				rb.apply_central_force(wind_dir * wind_force * rb.mass * 14.0)
 
 func _check_is_shielded_by_fat(fan_origin: Vector3, victim_pos: Vector3) -> bool:
 	# Search for Fat player standing between fan_origin and victim_pos
@@ -107,8 +108,8 @@ func _check_is_shielded_by_fat(fan_origin: Vector3, victim_pos: Vector3) -> bool
 					var proj_len: float = fat_vec.dot(line_vec)
 					var perp_dist: float = (fat_vec - line_vec * proj_len).length()
 
-					# If Fat is within 1.8m width of the wind line, Fat shields the victim!
-					if perp_dist <= 1.8:
+					# If Fat is within 2.0m width of the wind line, Fat shields the victim!
+					if perp_dist <= 2.0:
 						return true
 
 	return false
