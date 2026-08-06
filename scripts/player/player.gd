@@ -329,10 +329,14 @@ func _unhandled_input(event: InputEvent) -> void:
 			target_camera_zoom = clampf(target_camera_zoom + ZOOM_STEP, MIN_ZOOM, MAX_ZOOM)
 
 	if event.is_action_pressed("ui_cancel"):
-		if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
-			Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+		if hud and hud.has_method("toggle_pause_menu"):
+			hud.toggle_pause_menu()
 		else:
-			Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+			if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
+				Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+			else:
+				Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+
 
 	if active_mechanics:
 		active_mechanics.handle_ability_input(event)

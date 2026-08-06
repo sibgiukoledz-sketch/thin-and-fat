@@ -88,6 +88,46 @@ corner_radius_top_right = 4
 corner_radius_bottom_right = 4
 corner_radius_bottom_left = 4
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_pause_bg"]
+bg_color = Color(0.05, 0.07, 0.12, 0.88)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_pause_card"]
+bg_color = Color(0.1, 0.14, 0.2, 0.95)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.3, 0.65, 0.95, 0.6)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_pause_btn"]
+bg_color = Color(0.16, 0.22, 0.35, 0.9)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.35, 0.65, 1, 0.45)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_pause_btn_hover"]
+bg_color = Color(0.24, 0.42, 0.7, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.55, 0.85, 1, 0.9)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_stench_fill"]
 bg_color = Color(0.4, 0.85, 0.25, 1)
 corner_radius_top_left = 4
@@ -241,6 +281,111 @@ theme_override_constants/outline_size = 8
 theme_override_font_sizes/font_size = 24
 text = "ВОЗРОЖДЕНИЕ ЧЕРЕЗ 3 СЕК..."
 horizontal_alignment = 1
+
+[node name="PauseOverlay" type="Control" parent="HUD"]
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Background" type="Panel" parent="HUD/PauseOverlay"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_pause_bg")
+
+[node name="CenterContainer" type="CenterContainer" parent="HUD/PauseOverlay"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="CardPanel" type="PanelContainer" parent="HUD/PauseOverlay/CenterContainer"]
+custom_minimum_size = Vector2(620, 500)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_pause_card")
+
+[node name="Margin" type="MarginContainer" parent="HUD/PauseOverlay/CenterContainer/CardPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 32
+theme_override_constants/margin_top = 28
+theme_override_constants/margin_right = 32
+theme_override_constants/margin_bottom = 28
+
+[node name="VBox" type="VBoxContainer" parent="HUD/PauseOverlay/CenterContainer/CardPanel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="TitleLabel" type="Label" parent="HUD/PauseOverlay/CenterContainer/CardPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 0.85, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 10
+theme_override_font_sizes/font_size = 36
+text = "⏸️ ПАУЗА / МЕНЮ ИГРЫ"
+horizontal_alignment = 1
+
+[node name="SubtitleLabel" type="Label" parent="HUD/PauseOverlay/CenterContainer/CardPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.75, 0.85, 1)
+theme_override_font_sizes/font_size = 16
+text = "FPS Multiplayer Chamber Engine — Co-op Mechanics"
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="HUD/PauseOverlay/CenterContainer/CardPanel/Margin/VBox"]
+layout_mode = 2
+
+[node name="BtnResume" type="Button" parent="HUD/PauseOverlay/CenterContainer/CardPanel/Margin/VBox"]
+custom_minimum_size = Vector2(0, 46)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = SubResource("StyleBoxFlat_pause_btn")
+theme_override_styles/hover = SubResource("StyleBoxFlat_pause_btn_hover")
+text = "▶️ ПРОДОЛЖИТЬ ИГРУ"
+
+[node name="BtnSwitchChar" type="Button" parent="HUD/PauseOverlay/CenterContainer/CardPanel/Margin/VBox"]
+custom_minimum_size = Vector2(0, 46)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.95, 1, 1)
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = SubResource("StyleBoxFlat_pause_btn")
+theme_override_styles/hover = SubResource("StyleBoxFlat_pause_btn_hover")
+text = "🔄 СМЕНИТЬ ПЕРСОНАЖА (ХУДОЙ / ЖИРДЯЙ)"
+
+[node name="BtnRespawn" type="Button" parent="HUD/PauseOverlay/CenterContainer/CardPanel/Margin/VBox"]
+custom_minimum_size = Vector2(0, 46)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.95, 1, 1)
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = SubResource("StyleBoxFlat_pause_btn")
+theme_override_styles/hover = SubResource("StyleBoxFlat_pause_btn_hover")
+text = "🚩 ВОЗРОДИТЬСЯ НА СПАВНЕ"
+
+[node name="BtnQuit" type="Button" parent="HUD/PauseOverlay/CenterContainer/CardPanel/Margin/VBox"]
+custom_minimum_size = Vector2(0, 46)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.45, 0.45, 1)
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = SubResource("StyleBoxFlat_pause_btn")
+theme_override_styles/hover = SubResource("StyleBoxFlat_pause_btn_hover")
+text = "🚪 ВЫЙТИ В ГЛАВНОЕ МЕНЮ"
+
+[node name="ControlsInfoLabel" type="Label" parent="HUD/PauseOverlay/CenterContainer/CardPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.65, 0.7, 0.8, 0.9)
+theme_override_font_sizes/font_size = 14
+text = "WASD: Ходьба | SHIFT: Спринт | SPACE: Прыжок | E: Способность | V: 1/3 Лицо | C: Смена персонажа | ESC: Пауза"
+horizontal_alignment = 1
+autowrap_mode = 2
 
 [node name="MarginContainer" type="MarginContainer" parent="HUD"]
 anchors_preset = 0

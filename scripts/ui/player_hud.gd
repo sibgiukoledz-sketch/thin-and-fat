@@ -1,7 +1,7 @@
 class_name PlayerHUD
 extends CanvasLayer
 
-## Component script for managing HUD UI displays, status bars, and circular ability cooldown icons ("Кругляшки").
+## Component script for managing HUD UI displays, status bars, circular ability cooldown icons, and Pause Menu overlay.
 
 @onready var fps_label: Label = $MarginContainer/VBoxContainer/FPSLabel
 @onready var state_label: Label = $MarginContainer/VBoxContainer/StateLabel
@@ -19,6 +19,13 @@ extends CanvasLayer
 @onready var death_overlay: Control = $DeathOverlay
 @onready var respawn_label: Label = $DeathOverlay/VBox/RespawnLabel
 
+# Pause Menu Overlay Controls
+@onready var pause_overlay: Control = $PauseOverlay
+@onready var btn_resume: Button = $PauseOverlay/CenterContainer/CardPanel/Margin/VBox/BtnResume
+@onready var btn_switch_char: Button = $PauseOverlay/CenterContainer/CardPanel/Margin/VBox/BtnSwitchChar
+@onready var btn_respawn: Button = $PauseOverlay/CenterContainer/CardPanel/Margin/VBox/BtnRespawn
+@onready var btn_quit: Button = $PauseOverlay/CenterContainer/CardPanel/Margin/VBox/BtnQuit
+
 # Bottom-Right Slingshot Ability Circular Widget
 @onready var slingshot_widget: Control = $SlingshotAbilityWidget
 @onready var slingshot_circle_bg: Panel = $SlingshotAbilityWidget/CircleBg
@@ -27,6 +34,27 @@ extends CanvasLayer
 
 var player: Player
 var _fps_timer: float = 0.0
+
+func _ready() -> void:
+	if btn_resume:
+		btn_resume.pressed.connect(hide_pause_menu)
+	if btn_switch_char:
+		btn_switch_char.pressed.connect(func() -> void:
+			hide_pause_menu()
+			if player and player.has_method("rpc_request_character_switch"):
+				player.rpc_request_character_switch.rpc()
+		)
+	if btn_respawn:
+		btn_respawn.pressed.connect(func() -> void:
+			hide_pause_menu()
+			if player and player.has_method("rpc_respawn"):
+				player.rpc_respawn.rpc()
+		)
+	if btn_quit:
+		btn_quit.pressed.connect(func() -> void:
+			hide_pause_menu()
+			get_tree().change_scene_to_file("res://scenes/main_menu.tscn")
+		)
 
 func _process(delta: float) -> void:
 	_fps_timer += delta
@@ -38,8 +66,27 @@ func _process(delta: float) -> void:
 			fps_label.text = "⚡ %d FPS (%.1f ms)" % [fps, ms]
 
 func setup(player_node: Player) -> void:
-
 	player = player_node
+
+func toggle_pause_menu() -> void:
+	if pause_overlay:
+		if pause_overlay.visible:
+			hide_pause_menu()
+		else:
+			show_pause_menu()
+
+func show_pause_menu() -> void:
+	if pause_overlay:
+		pause_overlay.visible = true
+		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+
+func hide_pause_menu() -> void:
+	if pause_overlay:
+		pause_overlay.visible = false
+		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+
+func is_pause_menu_open() -> bool:
+	return pause_overlay != null and pause_overlay.visible
 
 func update_display() -> void:
 	if not player or not player.is_multiplayer_authority():
@@ -62,48 +109,61 @@ func update_display() -> void:
 			stamina_label.text = "STAMINA: EXHAUSTED!"
 		else:
 			stamina_label.text = "STAMINA: %d%%" % int((player.current_stamina / player.max_stamina) * 100.0)
-	if char_info_label and player.active_character_data:
-		var view_mode: String = "1ST PERSON" if player.current_camera_zoom < 0.25 else "3RD PERSON (%.1fm)" % player.current_camera_zoom
-		char_info_label.text = "CHAR: %s | VIEW: %s" % [player.active_character_data.character_name, view_mode]
+	if char_info_label:
+		var char_name: String = "ЖИРНЫЙ (ЖИРДЯЙ)" if player.selected_character_id.to_lower() == "fat" else "ХУДОЙ"
+		var view_str: String = "1ST PERSON" if player.is_first_person else "3RD PERSON"
+		char_info_label.text = "CHAR: %s | VIEW: %s" % [char_name, view_str]
 
-	# Handle Stench & Slingshot Ability Widget visibility
-	if player.active_mechanics and player.active_mechanics is FatMechanics:
-		var fat_mech: FatMechanics = player.active_mechanics as FatMechanics
-		if stench_bar and stench_label:
-			stench_bar.show()
-			stench_label.show()
-			stench_bar.max_value = fat_mech.max_stench
-			stench_bar.value = fat_mech.stench_level
-			if fat_mech.stench_level >= fat_mech.stench_damage_threshold:
-				stench_label.text = "ВОНЬ: %d%% (ОПАСНАЯ АУРА!)" % int(fat_mech.stench_level)
-			else:
-				stench_label.text = "ВОНЬ: %d%%" % int(fat_mech.stench_level)
+	if stench_bar and stench_label:
+		if player.selected_character_id.to_lower() == "fat":
+			stench_bar.visible = true
+			stench_label.visible = true
+			if player.active_mechanics and "stench_buildup" in player.active_mechanics:
+				var stench_val: float = player.active_mechanics.stench_buildup
+				stench_bar.value = stench_val
+				stench_label.text = "ВОНЬ: %d%%" % int(stench_val)
+		else:
+			stench_bar.visible = false
+			stench_label.visible = false
 
-		if slingshot_widget:
-			slingshot_widget.show()
-	else:
-		if stench_bar and stench_label:
-			stench_bar.hide()
-			stench_label.hide()
-		if slingshot_widget:
-			slingshot_widget.hide()
+	_update_slingshot_widget()
 
-func update_respawn_timer(seconds_left: float) -> void:
-	if respawn_label:
-		respawn_label.text = "ВОЗРОЖДЕНИЕ ЧЕРЕЗ %d СЕК..." % int(ceil(seconds_left))
+func update_death_display(is_dead: bool, time_left: float = 0.0) -> void:
+	if death_overlay:
+		death_overlay.visible = is_dead
+	if respawn_label and is_dead:
+		respawn_label.text = "ВОЗРОДИТЬСЯ ЧЕРЕЗ %d СЕК..." % int(ceilf(time_left))
 
-func update_slingshot_cooldown(cooldown_timer: float, _max_cooldown: float) -> void:
+func set_nausea_intensity(intensity: float) -> void:
+	if nausea_overlay and nausea_overlay.material:
+		nausea_overlay.material.set_shader_parameter("intensity", clampf(intensity, 0.0, 1.0))
 
-	if not slingshot_widget or not slingshot_timer_label:
+func _update_slingshot_widget() -> void:
+	if not slingshot_widget:
 		return
 
-	if cooldown_timer <= 0.0:
-		slingshot_timer_label.text = "ГОТОВО"
-		slingshot_timer_label.modulate = Color(0.2, 1.0, 0.4)
+	if not player or player.selected_character_id.to_lower() != "thin":
+		slingshot_widget.visible = false
+		return
+
+	slingshot_widget.visible = true
+
+	var cooldown_remaining: float = 0.0
+	var is_ready: bool = true
+
+	if player.active_mechanics and "slingshot_cooldown_timer" in player.active_mechanics:
+		cooldown_remaining = player.active_mechanics.slingshot_cooldown_timer
+		is_ready = cooldown_remaining <= 0.001
+
+	if is_ready:
 		if slingshot_circle_bg:
-			slingshot_circle_bg.modulate = Color(1.0, 1.0, 1.0)
+			slingshot_circle_bg.modulate = Color(0.2, 1.0, 0.4, 0.9)
+		if slingshot_timer_label:
+			slingshot_timer_label.text = "ГОТОВО"
+			slingshot_timer_label.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0))
 	else:
-		slingshot_timer_label.text = "%.1f с" % cooldown_timer
-		slingshot_timer_label.modulate = Color(1.0, 0.6, 0.2)
 		if slingshot_circle_bg:
-			slingshot_circle_bg.modulate = Color(0.75, 0.75, 0.75)
+			slingshot_circle_bg.modulate = Color(1.0, 0.3, 0.2, 0.85)
+		if slingshot_timer_label:
+			slingshot_timer_label.text = "%.1fs" % cooldown_remaining
+			slingshot_timer_label.add_theme_color_override("font_color", Color(1.0, 0.9, 0.4))
