@@ -276,24 +276,37 @@ func _physics_process(delta: float) -> void:
 	if active_mechanics:
 		active_mechanics.physics_update_mechanics(delta)
 
+var shift_must_be_released: bool = false
+
 func _update_stamina_logic(delta: float) -> void:
 	if not is_multiplayer_authority() or is_dead:
 		return
 
 	var is_currently_sprinting := (synced_state_name.to_lower() == "sprint")
+	var is_holding_sprint_key := Input.is_action_pressed("sprint") or Input.is_physical_key_pressed(KEY_SHIFT)
 
 	if is_currently_sprinting:
 		current_stamina -= stamina_drain_rate * delta
 		if current_stamina <= 0.0:
 			current_stamina = 0.0
 			is_stamina_exhausted = true
+			shift_must_be_released = true
 			if state_machine:
 				state_machine.transition_to("Walk")
 	else:
 		current_stamina += stamina_regen_rate * delta
-		# Recover from exhaustion only after reaching 35% threshold
-		if is_stamina_exhausted and current_stamina >= (max_stamina * 0.35):
-			is_stamina_exhausted = false
+
+		# Reset release requirement if player lets go of Shift key
+		if not is_holding_sprint_key:
+			shift_must_be_released = false
+
+		# Clear exhaustion if Shift released and stamina recovered > 20%, or if stamina reached 100%
+		if is_stamina_exhausted:
+			if not is_holding_sprint_key and current_stamina >= (max_stamina * 0.20):
+				is_stamina_exhausted = false
+			elif current_stamina >= max_stamina:
+				is_stamina_exhausted = false
+				shift_must_be_released = false
 
 func _update_camera_zoom(delta: float) -> void:
 	current_camera_zoom = lerpf(current_camera_zoom, target_camera_zoom, 14.0 * delta)
@@ -338,7 +351,7 @@ func is_jump_requested() -> bool:
 func is_sprint_requested() -> bool:
 	if not is_multiplayer_authority() or is_dead:
 		return false
-	if is_stamina_exhausted or current_stamina < 5.0:
+	if is_stamina_exhausted or shift_must_be_released or current_stamina < 15.0:
 		return false
 	return Input.is_action_pressed("sprint") or Input.is_physical_key_pressed(KEY_SHIFT)
 
