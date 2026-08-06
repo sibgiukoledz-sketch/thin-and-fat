@@ -163,27 +163,6 @@ func _setup_visual_nodes() -> void:
 		_spore_particles.position = Vector3(0, 0.2, 0)
 		parent_3d.add_child(_spore_particles)
 
-	# 4. Soft Proximity-Faded Ground Toxic Damage Ring Emitter
-	if not _toxic_ring_mesh:
-		_toxic_ring_mesh = MeshInstance3D.new()
-		_toxic_ring_mesh.name = "VFX_ToxicDamageRing"
-		var torus := TorusMesh.new()
-		torus.inner_radius = stench_aura_radius - 0.3
-		torus.outer_radius = stench_aura_radius
-
-		_ring_material = StandardMaterial3D.new()
-		_ring_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-		_ring_material.albedo_color = Color(0.45, 0.95, 0.2, 0.5)
-		_ring_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-		_ring_material.proximity_fade_enabled = true
-		_ring_material.proximity_fade_distance = 0.5
-
-		_toxic_ring_mesh.mesh = torus
-		_toxic_ring_mesh.material_override = _ring_material
-		_toxic_ring_mesh.position = Vector3(0, 0.1, 0)
-		_toxic_ring_mesh.visible = false
-		parent_3d.add_child(_toxic_ring_mesh)
-
 func _create_procedural_smoke_texture() -> ImageTexture:
 	var img := Image.create(128, 128, false, Image.FORMAT_RGBA8)
 	var noise := FastNoiseLite.new()
@@ -301,14 +280,6 @@ func _update_gas_visuals() -> void:
 		var should_spores := (stench_level >= 50.0)
 		if _spore_particles.emitting != should_spores:
 			_spore_particles.emitting = should_spores
-
-	# 4. Animated Damage Ring
-	if _toxic_ring_mesh and _ring_material:
-		var is_toxic := (stench_level >= stench_damage_threshold)
-		_toxic_ring_mesh.visible = is_toxic
-		if is_toxic:
-			var alpha := 0.45 + sin(Time.get_ticks_msec() * 0.009) * 0.2
-			_ring_material.albedo_color.a = alpha
 
 func _update_aoe_poison_damage(delta: float) -> void:
 	if stench_level < stench_damage_threshold:
