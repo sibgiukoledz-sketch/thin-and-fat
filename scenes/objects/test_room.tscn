@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3 uid="uid://c7testroom01"]
+[gd_scene load_steps=18 format=3 uid="uid://c7testroom01"]
 
 [ext_resource type="Script" path="res://scripts/objects/test_room.gd" id="1_room"]
 
@@ -26,13 +26,22 @@ refraction_scale = 0.03
 material = SubResource("StandardMaterial3D_glass_wall")
 size = Vector3(16, 5, 0.15)
 
+[sub_resource type="BoxShape3D" id="BoxShape3D_wall_back"]
+size = Vector3(16, 5, 0.3)
+
 [sub_resource type="BoxMesh" id="BoxMesh_wall_side"]
 material = SubResource("StandardMaterial3D_glass_wall")
 size = Vector3(0.15, 5, 12)
 
+[sub_resource type="BoxShape3D" id="BoxShape3D_wall_side"]
+size = Vector3(0.3, 5, 12)
+
 [sub_resource type="BoxMesh" id="BoxMesh_wall_front"]
 material = SubResource("StandardMaterial3D_glass_wall")
 size = Vector3(5, 5, 0.15)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_wall_front"]
+size = Vector3(5, 5, 0.3)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_frame"]
 albedo_color = Color(0.2, 0.25, 0.35, 1)
@@ -46,6 +55,9 @@ size = Vector3(0.4, 5, 0.4)
 
 [sub_resource type="BoxMesh" id="BoxMesh_arch"]
 material = SubResource("StandardMaterial3D_frame")
+size = Vector3(6, 0.8, 0.3)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_arch"]
 size = Vector3(6, 0.8, 0.3)
 
 [node name="TestRoom" type="Node3D"]
@@ -69,21 +81,41 @@ collision_mask = 3
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.5, -6)
 mesh = SubResource("BoxMesh_wall_back")
 
+[node name="ColWallBack" type="CollisionShape3D" parent="Walls"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.5, -6)
+shape = SubResource("BoxShape3D_wall_back")
+
 [node name="WallLeft" type="MeshInstance3D" parent="Walls"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 2.5, 0)
 mesh = SubResource("BoxMesh_wall_side")
+
+[node name="ColWallLeft" type="CollisionShape3D" parent="Walls"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 2.5, 0)
+shape = SubResource("BoxShape3D_wall_side")
 
 [node name="WallRight" type="MeshInstance3D" parent="Walls"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 2.5, 0)
 mesh = SubResource("BoxMesh_wall_side")
 
+[node name="ColWallRight" type="CollisionShape3D" parent="Walls"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 2.5, 0)
+shape = SubResource("BoxShape3D_wall_side")
+
 [node name="WallFrontLeft" type="MeshInstance3D" parent="Walls"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.5, 2.5, 6)
 mesh = SubResource("BoxMesh_wall_front")
 
+[node name="ColWallFrontLeft" type="CollisionShape3D" parent="Walls"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.5, 2.5, 6)
+shape = SubResource("BoxShape3D_wall_front")
+
 [node name="WallFrontRight" type="MeshInstance3D" parent="Walls"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.5, 2.5, 6)
 mesh = SubResource("BoxMesh_wall_front")
+
+[node name="ColWallFrontRight" type="CollisionShape3D" parent="Walls"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.5, 2.5, 6)
+shape = SubResource("BoxShape3D_wall_front")
 
 [node name="PillarBL" type="MeshInstance3D" parent="Walls"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 2.5, -6)
@@ -104,6 +136,10 @@ mesh = SubResource("BoxMesh_pillar")
 [node name="DoorArch" type="MeshInstance3D" parent="Walls"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.6, 6)
 mesh = SubResource("BoxMesh_arch")
+
+[node name="ColDoorArch" type="CollisionShape3D" parent="Walls"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.6, 6)
+shape = SubResource("BoxShape3D_arch")
 
 [node name="CeilingLight" type="OmniLight3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.2, 0)
