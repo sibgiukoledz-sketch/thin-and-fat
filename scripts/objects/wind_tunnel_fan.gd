@@ -1,3 +1,4 @@
+@tool
 class_name WindTunnelFan
 extends Node3D
 
@@ -18,17 +19,20 @@ extends Node3D
 
 func _ready() -> void:
 	if wind_particles:
-		wind_particles.emitting = is_active
+		wind_particles.emitting = is_active and not Engine.is_editor_hint()
 
 func _physics_process(delta: float) -> void:
+	# Spin turbine blades in editor and in-game!
+	if blades_mesh:
+		blades_mesh.rotate_z(18.0 * delta)
+
+	if Engine.is_editor_hint():
+		return
+
 	if not is_active:
 		if wind_particles and wind_particles.emitting:
 			wind_particles.emitting = false
 		return
-
-	# Spin turbine blades
-	if blades_mesh:
-		blades_mesh.rotate_z(20.0 * delta)
 
 	if not wind_particles.emitting:
 		wind_particles.emitting = true

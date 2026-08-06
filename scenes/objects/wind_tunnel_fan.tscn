@@ -129,10 +129,11 @@ mesh = SubResource("BoxMesh_base")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.2, 0)
 
 [node name="OuterShroud" type="MeshInstance3D" parent="TurbineHousing"]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 0)
 mesh = SubResource("TorusMesh_shroud")
 
 [node name="CyanGlowingRing" type="MeshInstance3D" parent="TurbineHousing"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.5)
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 0.35)
 mesh = SubResource("TorusMesh_cyan_ring")
 
 [node name="CenterHub" type="MeshInstance3D" parent="TurbineHousing"]
