@@ -303,11 +303,18 @@ func apply_movement(direction: Vector3, speed: float, delta: float, accel_factor
 	if not is_multiplayer_authority() or is_dead:
 		return
 
-	var accel := 10.0 * accel_factor
 	var target_vel := direction * speed
+	var rate: float
 
-	velocity.x = lerpf(velocity.x, target_vel.x, accel * delta)
-	velocity.z = lerpf(velocity.z, target_vel.z, accel * delta)
+	if direction.length_squared() > 0.01:
+		# Acceleration when driving input
+		rate = 9.0 * accel_factor
+	else:
+		# Inertia / Sliding friction when releasing input
+		rate = 4.5 * accel_factor
+
+	velocity.x = lerpf(velocity.x, target_vel.x, rate * delta)
+	velocity.z = lerpf(velocity.z, target_vel.z, rate * delta)
 
 	move_and_slide()
 
