@@ -455,8 +455,8 @@ func get_movement_input() -> Vector3:
 		if Input.is_physical_key_pressed(KEY_D) or Input.is_physical_key_pressed(KEY_RIGHT):
 			input_vec.x += 1.0
 
-	# Drunken/Nauseous Control Wobble & Heavy Stumble Drift
-	if nausea_intensity > 0.05:
+	# Drunken/Nauseous Control Wobble & Heavy Stumble Drift (Only while actively walking)
+	if nausea_intensity > 0.05 and input_vec != Vector2.ZERO:
 		var t := Time.get_ticks_msec() * 0.003
 		var drift_x := sin(t * 2.2) * 1.6 * nausea_intensity
 		var drift_y := cos(t * 1.6) * 1.0 * nausea_intensity
