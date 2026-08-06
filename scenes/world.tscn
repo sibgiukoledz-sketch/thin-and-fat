@@ -1,10 +1,11 @@
-[gd_scene load_steps=12 format=3 uid="uid://c8worldfps01"]
+[gd_scene load_steps=13 format=3 uid="uid://c8worldfps01"]
 
 [ext_resource type="Script" uid="uid://5ej66y8ce2gp" path="res://scripts/world/world.gd" id="1_world"]
 [ext_resource type="PackedScene" uid="uid://c8dummynpc01" path="res://scenes/dummy_npc.tscn" id="2_dummy"]
 [ext_resource type="PackedScene" uid="uid://3eqmdibxw3b5" path="res://scenes/shower_cabin.tscn" id="3_shower"]
 [ext_resource type="PackedScene" uid="uid://c8trashbin01" path="res://scenes/trash_bin.tscn" id="4_trash"]
 [ext_resource type="Script" path="res://addons/sky_3d/src/Sky3D.gd" id="5_sky3d"]
+[ext_resource type="PackedScene" uid="uid://c8stenchcloud01" path="res://scenes/stench_cloud_zone.tscn" id="6_cloud"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_floor"]
 albedo_color = Color(0.2, 0.22, 0.25, 1)
@@ -89,6 +90,9 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.956371, 0, -2.8226674)
 [node name="TrashBinInfinite" parent="TrashBins" unique_id=1583342589 instance=ExtResource("4_trash")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9.820063, 0, -2.8136413)
 is_infinite = true
+
+[node name="StenchCloudZone" parent="." instance=ExtResource("6_cloud")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -2)
 
 [node name="Level" type="Node3D" parent="." unique_id=1790019069]
 
