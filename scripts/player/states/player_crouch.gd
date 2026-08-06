@@ -18,9 +18,10 @@ func physics_update(delta: float) -> void:
 		state_machine.transition_to("Air")
 		return
 
+	var input_dir := player.get_movement_input()
+
 	# Can uncrouch if button released and head raycast is clear
 	if not player.is_crouch_requested() and player.can_uncrouch():
-		var input_dir := player.get_movement_input()
 		if input_dir.length_squared() > 0.01:
 			if player.is_sprint_requested():
 				state_machine.transition_to("Sprint")
@@ -34,5 +35,4 @@ func physics_update(delta: float) -> void:
 		state_machine.transition_to("Air", {"do_jump": true})
 		return
 
-	var input_dir := player.get_movement_input()
 	player.apply_movement(input_dir, player.CROUCH_SPEED, delta)

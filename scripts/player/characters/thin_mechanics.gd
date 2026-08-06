@@ -16,8 +16,16 @@ func handle_ability_input(event: InputEvent) -> void:
 	if not player or not player.is_multiplayer_authority():
 		return
 
-	# Ability 1: Air Dash (E or Right Click)
-	if event.is_action_pressed("ability_1") or (event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT and event.pressed):
+	# Ability 1: Air Dash (E key, Right Click, or ability_1 action)
+	var is_ability_pressed := false
+	if InputMap.has_action("ability_1") and event.is_action_pressed("ability_1"):
+		is_ability_pressed = true
+	elif event is InputEventKey and event.keycode == KEY_E and event.pressed and not event.echo:
+		is_ability_pressed = true
+	elif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT and event.pressed:
+		is_ability_pressed = true
+
+	if is_ability_pressed:
 		trigger_dash()
 
 func trigger_dash() -> void:
