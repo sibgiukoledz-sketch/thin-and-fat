@@ -110,6 +110,9 @@ func _ready() -> void:
 	if state_machine:
 		state_machine.state_changed.connect(_on_state_changed)
 
+	if uncrouch_ray:
+		uncrouch_ray.add_exception(self)
+
 	update_hud_display()
 
 func apply_character_data(data: CharacterData) -> void:
@@ -289,12 +292,17 @@ func is_jump_requested() -> bool:
 func is_sprint_requested() -> bool:
 	if not is_multiplayer_authority() or is_dead:
 		return false
-	return Input.is_action_pressed("sprint") or Input.is_physical_key_pressed(KEY_SHIFT)
+	return Input.is_action_pressed("sprint") \
+		or Input.is_physical_key_pressed(KEY_LEFT_SHIFT) \
+		or Input.is_physical_key_pressed(KEY_RIGHT_SHIFT)
 
 func is_crouch_requested() -> bool:
 	if not is_multiplayer_authority() or is_dead:
 		return false
-	return Input.is_action_pressed("crouch") or Input.is_physical_key_pressed(KEY_CTRL)
+	return Input.is_action_pressed("crouch") \
+		or Input.is_physical_key_pressed(KEY_LEFT_CTRL) \
+		or Input.is_physical_key_pressed(KEY_RIGHT_CTRL) \
+		or Input.is_physical_key_pressed(KEY_C)
 
 func apply_movement(direction: Vector3, speed: float, delta: float, accel_factor: float = 1.0) -> void:
 	if not is_multiplayer_authority() or is_dead:
