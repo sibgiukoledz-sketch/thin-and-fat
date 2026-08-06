@@ -80,6 +80,8 @@ const SPRINT_FOV: float = 88.0
 @onready var health_label: Label = $HUD/MarginContainer/VBoxContainer/HealthLabel
 @onready var stamina_bar: ProgressBar = $HUD/MarginContainer/VBoxContainer/StaminaBar
 @onready var stamina_label: Label = $HUD/MarginContainer/VBoxContainer/StaminaLabel
+@onready var stench_bar: ProgressBar = $HUD/MarginContainer/VBoxContainer/StenchBar
+@onready var stench_label: Label = $HUD/MarginContainer/VBoxContainer/StenchLabel
 @onready var crosshair: Control = $HUD/Crosshair
 
 # Runtime state
@@ -477,3 +479,19 @@ func update_hud_display() -> void:
 	if char_info_label and active_character_data:
 		var view_mode := "1ST PERSON" if current_camera_zoom < 0.25 else "3RD PERSON (%.1fm)" % current_camera_zoom
 		char_info_label.text = "CHAR: %s | VIEW: %s" % [active_character_data.character_name, view_mode]
+
+	if active_mechanics and active_mechanics is FatMechanics:
+		var fat_mech := active_mechanics as FatMechanics
+		if stench_bar and stench_label:
+			stench_bar.show()
+			stench_label.show()
+			stench_bar.max_value = fat_mech.max_stench
+			stench_bar.value = fat_mech.stench_level
+			if fat_mech.stench_level >= fat_mech.stench_damage_threshold:
+				stench_label.text = "ВОНЬ: %d%% (ОПАСНАЯ АУРА!)" % int(fat_mech.stench_level)
+			else:
+				stench_label.text = "ВОНЬ: %d%%" % int(fat_mech.stench_level)
+	else:
+		if stench_bar and stench_label:
+			stench_bar.hide()
+			stench_label.hide()

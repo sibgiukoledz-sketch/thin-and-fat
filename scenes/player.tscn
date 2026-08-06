@@ -1,4 +1,4 @@
-[gd_scene load_steps=18 format=3 uid="uid://c8playerfps01"]
+[gd_scene load_steps=19 format=3 uid="uid://c8playerfps01"]
 
 [ext_resource type="Script" path="res://scripts/player/player.gd" id="1_player"]
 [ext_resource type="Script" path="res://scripts/fsm/state_machine.gd" id="3_fsm"]
@@ -81,6 +81,13 @@ corner_radius_top_right = 4
 corner_radius_bottom_right = 4
 corner_radius_bottom_left = 4
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_stench_fill"]
+bg_color = Color(0.4, 0.85, 0.25, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_crosshair"]
 bg_color = Color(1, 1, 1, 0.95)
 border_width_left = 1
@@ -149,8 +156,8 @@ replication_config = SubResource("SceneReplicationConfig_player")
 anchors_preset = 0
 offset_left = 20.0
 offset_top = 20.0
-offset_right = 320.0
-offset_bottom = 200.0
+offset_right = 340.0
+offset_bottom = 240.0
 mouse_filter = 2
 
 [node name="Panel" type="Panel" parent="HUD/MarginContainer"]
@@ -201,6 +208,20 @@ layout_mode = 2
 mouse_filter = 2
 theme_override_styles/fill = SubResource("StyleBoxFlat_stm_fill")
 value = 100.0
+show_percentage = false
+
+[node name="StenchLabel" type="Label" parent="HUD/MarginContainer/VBoxContainer"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.4, 0.9, 0.25, 1)
+text = "ВОНЬ: 0%"
+
+[node name="StenchBar" type="ProgressBar" parent="HUD/MarginContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 12)
+layout_mode = 2
+mouse_filter = 2
+theme_override_styles/fill = SubResource("StyleBoxFlat_stench_fill")
+value = 0.0
 show_percentage = false
 
 [node name="StateLabel" type="Label" parent="HUD/MarginContainer/VBoxContainer"]
