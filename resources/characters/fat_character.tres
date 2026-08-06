@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="CharacterData" load_steps=2 format=3 uid="uid://c8fatchar01"]
+
+[ext_resource type="Script" path="res://scripts/player/character_data.gd" id="1_data"]
+
+[resource]
+script = ExtResource("1_data")
+character_id = "fat"
+character_name = "FAT (Тяжелый)"
+description = "Массивный персонаж с высокой устойчивостью. Широкий хитбокс."
+walk_speed = 4.2
+sprint_speed = 7.0
+crouch_speed = 2.0
+jump_velocity = 4.2
+air_accel_factor = 0.3
+capsule_radius = 0.55
+stand_height = 1.7
+crouch_height = 1.05
+stand_head_y = 1.4
+crouch_head_y = 0.85
+body_color = Color(0.95, 0.45, 0.15, 1.0)
+mesh_scale = Vector3(1.4, 0.95, 1.4)

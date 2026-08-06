@@ -1,6 +1,6 @@
 extends Node
 
-## Autoload NetworkManager handling ENet multiplayer hosting, joining, and player lifecycle.
+## Autoload NetworkManager handling ENet multiplayer hosting, joining, and player character selection.
 
 signal connection_status_changed(status: String)
 signal player_list_changed(players: Dictionary)
@@ -10,7 +10,9 @@ const MAX_CLIENTS: int = 8
 
 var peer: ENetMultiplayerPeer
 var connected_players: Dictionary = {} # peer_id -> Player Info dict
+var player_character_choices: Dictionary = {} # peer_id -> character_id ("thin" / "fat")
 
+var local_character_id: String = "thin"
 var current_ip: String = "127.0.0.1"
 var current_port: int = DEFAULT_PORT
 
@@ -20,6 +22,12 @@ func _ready() -> void:
 	multiplayer.connected_to_server.connect(_on_connected_to_server)
 	multiplayer.connection_failed.connect(_on_connection_failed)
 	multiplayer.server_disconnected.connect(_on_server_disconnected)
+
+func set_local_character(character_id: String) -> void:
+	local_character_id = character_id
+
+func get_character_for_peer(peer_id: int) -> String:
+	return player_character_choices.get(peer_id, "thin")
 
 func host_game(port: int = DEFAULT_PORT) -> Error:
 	current_port = port
@@ -31,12 +39,13 @@ func host_game(port: int = DEFAULT_PORT) -> Error:
 
 	multiplayer.multiplayer_peer = peer
 	connected_players.clear()
+	player_character_choices.clear()
 
-	# Register host (ID 1)
+	# Register host choice
+	player_character_choices[1] = local_character_id
 	_register_player(1, "Host Player")
 	connection_status_changed.emit("Hosting server on port %d" % current_port)
 	
-	# Load world scene
 	load_game_world()
 	return OK
 
@@ -58,11 +67,20 @@ func disconnect_game() -> void:
 		peer.close()
 		multiplayer.multiplayer_peer = null
 	connected_players.clear()
+	player_character_choices.clear()
 	connection_status_changed.emit("Disconnected")
 	get_tree().change_scene_to_file("res://scenes/main_menu.tscn")
 
 func load_game_world() -> void:
 	get_tree().change_scene_to_file("res://scenes/world.tscn")
+
+# RPC to sync chosen character to host & peers
+@rpc("any_peer", "call_local", "reliable")
+func rpc_send_character_choice(character_id: String) -> void:
+	var sender_id := multiplayer.get_remote_sender_id()
+	if sender_id == 0:
+		sender_id = multiplayer.get_unique_id()
+	player_character_choices[sender_id] = character_id
 
 # Signal Handlers
 func _on_peer_connected(id: int) -> void:
@@ -75,8 +93,9 @@ func _on_peer_disconnected(id: int) -> void:
 	if connected_players.has(id):
 		connected_players.erase(id)
 		player_list_changed.emit(connected_players)
+	if player_character_choices.has(id):
+		player_character_choices.erase(id)
 
-	# Remove player node if present in current scene
 	var players_container := get_tree().root.get_node_or_null("World/Players")
 	if players_container and players_container.has_node(str(id)):
 		var player_node := players_container.get_node(str(id))
@@ -85,6 +104,7 @@ func _on_peer_disconnected(id: int) -> void:
 func _on_connected_to_server() -> void:
 	var my_id := multiplayer.get_unique_id()
 	connection_status_changed.emit("Connected as Client ID: %d" % my_id)
+	rpc_send_character_choice.rpc(local_character_id)
 	load_game_world()
 
 func _on_connection_failed() -> void:

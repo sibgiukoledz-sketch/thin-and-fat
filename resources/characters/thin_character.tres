@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="CharacterData" load_steps=2 format=3 uid="uid://c8thinchar01"]
+
+[ext_resource type="Script" path="res://scripts/player/character_data.gd" id="1_data"]
+
+[resource]
+script = ExtResource("1_data")
+character_id = "thin"
+character_name = "THIN (Быстрый)"
+description = "Высокая скорость бега и длинные прыжки. Узкий хитбокс."
+walk_speed = 6.5
+sprint_speed = 10.5
+crouch_speed = 3.2
+jump_velocity = 5.6
+air_accel_factor = 0.6
+capsule_radius = 0.32
+stand_height = 1.85
+crouch_height = 0.95
+stand_head_y = 1.55
+crouch_head_y = 0.8
+body_color = Color(0.2, 0.7, 1.0, 1.0)
+mesh_scale = Vector3(0.8, 1.0, 0.8)

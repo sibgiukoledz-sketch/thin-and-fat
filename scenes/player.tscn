@@ -37,6 +37,9 @@ properties/3/replication_mode = 1
 properties/4/path = NodePath(".:is_crouching")
 properties/4/spawn = true
 properties/4/replication_mode = 1
+properties/5/path = NodePath(".:selected_character_id")
+properties/5/spawn = true
+properties/5/replication_mode = 1
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hud"]
 bg_color = Color(0.05, 0.07, 0.1, 0.65)
@@ -100,8 +103,8 @@ replication_config = SubResource("SceneReplicationConfig_player")
 anchors_preset = 0
 offset_left = 20.0
 offset_top = 20.0
-offset_right = 300.0
-offset_bottom = 100.0
+offset_right = 320.0
+offset_bottom = 130.0
 
 [node name="Panel" type="Panel" parent="HUD/MarginContainer"]
 layout_mode = 2
@@ -115,6 +118,11 @@ theme_override_constants/separation = 6
 layout_mode = 2
 theme_override_colors/font_color = Color(0.4, 0.8, 1, 1)
 text = "PEER ID: 1 (LOCAL)"
+
+[node name="CharInfoLabel" type="Label" parent="HUD/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.3, 0.95, 0.6, 1)
+text = "CHAR: THIN (SPD: 6.5)"
 
 [node name="StateLabel" type="Label" parent="HUD/MarginContainer/VBoxContainer"]
 layout_mode = 2
