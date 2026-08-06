@@ -2,11 +2,11 @@
 class_name FragileGlassFloor
 extends StaticBody3D
 
-
 ## Realistic AAA Fragile Glass Floor / Wall panel supporting multiple types & formats:
 ## - Formats: Horizontal Floor panel or Vertical Wall / Window format (is_vertical_wall).
 ## - Types: CRYSTAL_CLEAR, FROSTED_ARMOURED, STAINED_EMERALD, STAINED_RUBY.
-## - 3D Editor Markers: Visual 3D TypeLabel3D showing glass type and format in the editor viewport & game.
+## - High-Res 1024x1024 procedural glass textures.
+## - 64+ diverse 3D physical glass shards (triangular prisms, flat tiles, sharp needles) with randomized geometry, rotation & scale.
 
 enum GlassType {
 	CRYSTAL_CLEAR,
@@ -98,7 +98,6 @@ func _setup_geometry() -> void:
 	if detect_col:
 		detect_col.shape = detect_shape
 
-
 func _update_type_label() -> void:
 	if not is_node_ready() or not type_label:
 		return
@@ -109,7 +108,6 @@ func _update_type_label() -> void:
 		return
 
 	var type_name: String = ""
-
 	var type_color: Color = Color.WHITE
 	var format_str: String = "СТЕНА" if is_vertical_wall else "ПОЛ"
 
@@ -140,7 +138,7 @@ func _setup_glass_material() -> void:
 
 	_glass_material = StandardMaterial3D.new()
 	_glass_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	_glass_material.roughness = 0.03
+	_glass_material.roughness = 0.02
 	_glass_material.metallic = 0.15
 	_glass_material.refraction_enabled = true
 	_glass_material.refraction_scale = 0.05
@@ -166,24 +164,30 @@ func _setup_glass_material() -> void:
 	mesh_instance.material_override = _glass_material
 
 func _create_procedural_glass_texture(has_cracks: bool) -> ImageTexture:
-	var img: Image = Image.create(512, 512, false, Image.FORMAT_RGBA8)
+	var size_px: int = 1024 # Ultra High-Res Texture
+	var img: Image = Image.create(size_px, size_px, false, Image.FORMAT_RGBA8)
 	img.fill(Color(1, 1, 1, 0.22))
 
 	var noise: FastNoiseLite = FastNoiseLite.new()
 	noise.noise_type = FastNoiseLite.TYPE_CELLULAR
-	noise.frequency = 0.025
-	noise.fractal_octaves = 3
+	noise.frequency = 0.02
+	noise.fractal_octaves = 4
 
-	var center: Vector2 = Vector2(256, 256)
-	for y in range(512):
-		for x in range(512):
-			if x <= 12 or x >= 499 or y <= 12 or y >= 499:
-				img.set_pixel(x, y, Color(0.9, 0.95, 1.0, 0.95))
+	var center: Vector2 = Vector2(512, 512)
+	for y in range(size_px):
+		for x in range(size_px):
+			# Chrome Outer Frame (Double Bevel)
+			if x <= 24 or x >= 999 or y <= 24 or y >= 999:
+				img.set_pixel(x, y, Color(0.92, 0.96, 1.0, 0.98))
+				continue
+			if x <= 36 or x >= 987 or y <= 36 or y >= 987:
+				img.set_pixel(x, y, Color(1.0, 1.0, 1.0, 0.45))
 				continue
 
+			# Reinforced Grid Mesh for Armoured Glass
 			if glass_type == GlassType.FROSTED_ARMOURED:
-				if (x + y) % 36 == 0 or (x - y + 512) % 36 == 0:
-					img.set_pixel(x, y, Color(0.4, 0.45, 0.5, 0.7))
+				if (x + y) % 72 == 0 or (x - y + 1024) % 72 == 0:
+					img.set_pixel(x, y, Color(0.4, 0.45, 0.5, 0.75))
 					continue
 
 			if has_cracks:
@@ -192,9 +196,9 @@ func _create_procedural_glass_texture(has_cracks: bool) -> ImageTexture:
 				var angle: float = pos.angle_to_point(center)
 
 				var n_val: float = absf(noise.get_noise_2d(float(x), float(y)))
-				var radial_crack: bool = (int(absf(angle * 14.0)) % 2 == 0) and dist < 240.0
-				var ring_crack: bool = (int(dist) % 40 < 3) and dist > 20.0
-				var cell_crack: bool = n_val > 0.48 and dist < 240.0
+				var radial_crack: bool = (int(absf(angle * 20.0)) % 2 == 0) and dist < 480.0
+				var ring_crack: bool = (int(dist) % 80 < 4) and dist > 40.0
+				var cell_crack: bool = n_val > 0.46 and dist < 480.0
 
 				if radial_crack or ring_crack or cell_crack:
 					img.set_pixel(x, y, Color(1.0, 1.0, 1.0, 0.95))
@@ -208,8 +212,8 @@ func _setup_particles() -> void:
 	shatter_particles = GPUParticles3D.new()
 	shatter_particles.name = "ShatterParticles"
 	shatter_particles.top_level = true
-	shatter_particles.amount = 120
-	shatter_particles.lifetime = 1.2
+	shatter_particles.amount = 180 # High density micro-droplets
+	shatter_particles.lifetime = 1.4
 	shatter_particles.one_shot = true
 	shatter_particles.explosiveness = 0.95
 	shatter_particles.emitting = false
@@ -220,10 +224,10 @@ func _setup_particles() -> void:
 	mat_proc.direction = Vector3(0, -1, 0)
 	mat_proc.spread = 45.0
 	mat_proc.initial_velocity_min = 1.5
-	mat_proc.initial_velocity_max = 4.5
+	mat_proc.initial_velocity_max = 5.0
 	mat_proc.gravity = Vector3(0, -18.0, 0)
-	mat_proc.scale_min = 0.03
-	mat_proc.scale_max = 0.12
+	mat_proc.scale_min = 0.02
+	mat_proc.scale_max = 0.10
 
 	match glass_type:
 		GlassType.STAINED_EMERALD:
@@ -239,7 +243,7 @@ func _setup_particles() -> void:
 
 	var shard_mesh: PrismMesh = PrismMesh.new()
 	shard_mesh.material = draw_mat
-	shard_mesh.size = Vector3(0.08, 0.1, 0.03)
+	shard_mesh.size = Vector3(0.06, 0.08, 0.025)
 
 	shatter_particles.process_material = mat_proc
 	shatter_particles.draw_pass_1 = shard_mesh
@@ -313,52 +317,74 @@ func rpc_shatter() -> void:
 func _spawn_3d_physical_shards() -> void:
 	_clear_shards()
 
-	var grid_count: int = 6
+	# Create an 8x8 grid of 64 DIVERSE 3D glass shards with varied geometric meshes & scales
+	var grid_count: int = 8
 	var tile_size: float = 3.0 / float(grid_count)
 
 	var draw_mat: StandardMaterial3D = StandardMaterial3D.new()
 	draw_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	draw_mat.roughness = 0.04
+	draw_mat.roughness = 0.03
 	draw_mat.metallic = 0.2
 
 	match glass_type:
 		GlassType.STAINED_EMERALD:
-			draw_mat.albedo_color = Color(0.2, 0.95, 0.5, 0.7)
+			draw_mat.albedo_color = Color(0.2, 0.95, 0.5, 0.75)
 		GlassType.STAINED_RUBY:
-			draw_mat.albedo_color = Color(0.95, 0.25, 0.35, 0.7)
+			draw_mat.albedo_color = Color(0.95, 0.25, 0.35, 0.75)
 		GlassType.FROSTED_ARMOURED:
-			draw_mat.albedo_color = Color(0.7, 0.88, 0.98, 0.75)
+			draw_mat.albedo_color = Color(0.7, 0.88, 0.98, 0.8)
 		_:
-			draw_mat.albedo_color = Color(0.8, 0.95, 1.0, 0.65)
+			draw_mat.albedo_color = Color(0.82, 0.95, 1.0, 0.7)
 
 	for gx in range(grid_count):
 		for gy_or_z in range(grid_count):
-			var offset_x: float = (float(gx) - float(grid_count - 1) * 0.5) * tile_size + randf_range(-0.05, 0.05)
-			var offset_2: float = (float(gy_or_z) - float(grid_count - 1) * 0.5) * tile_size + randf_range(-0.05, 0.05)
+			var offset_x: float = (float(gx) - float(grid_count - 1) * 0.5) * tile_size + randf_range(-0.06, 0.06)
+			var offset_2: float = (float(gy_or_z) - float(grid_count - 1) * 0.5) * tile_size + randf_range(-0.06, 0.06)
 
 			var shard_pos: Vector3 = Vector3.ZERO
 			if is_vertical_wall:
-				shard_pos = global_position + Vector3(offset_x, offset_2, randf_range(-0.05, 0.05))
+				shard_pos = global_position + Vector3(offset_x, offset_2 + 1.6, randf_range(-0.05, 0.05))
 			else:
 				shard_pos = global_position + Vector3(offset_x, randf_range(-0.05, 0.05), offset_2)
 
 			var shard_rb: RigidBody3D = RigidBody3D.new()
 			shard_rb.name = "GlassShard3D"
-			shard_rb.mass = 0.3
+			shard_rb.mass = randf_range(0.15, 0.4) # Varied mass per shard!
 			shard_rb.global_position = shard_pos
-			shard_rb.collision_layer = 4
+			shard_rb.rotation = Vector3(randf_range(-PI, PI), randf_range(-PI, PI), randf_range(-PI, PI)) # Random 3D initial orientation!
+			shard_rb.collision_layer = 4 # Debris layer (No Player collision!)
 			shard_rb.collision_mask = 1
 
 			var shard_mesh: MeshInstance3D = MeshInstance3D.new()
-			var p_mesh: PrismMesh = PrismMesh.new()
-			p_mesh.material = draw_mat
-			var s_x: float = randf_range(0.1, 0.22)
-			var s_y: float = randf_range(0.03, 0.08)
-			var s_z: float = randf_range(0.1, 0.22)
-			p_mesh.size = Vector3(s_x, s_y, s_z)
-			shard_mesh.mesh = p_mesh
-
 			var shard_col: CollisionShape3D = CollisionShape3D.new()
+			var s_x: float = randf_range(0.06, 0.28)
+			var s_y: float = randf_range(0.02, 0.08)
+			var s_z: float = randf_range(0.06, 0.28)
+
+			# Randomize between 3 distinct geometric shard types!
+			var shard_type_rand: float = randf()
+			if shard_type_rand < 0.4:
+				# Type 1: Sharp Triangular Prism Shard
+				var p_mesh: PrismMesh = PrismMesh.new()
+				p_mesh.material = draw_mat
+				p_mesh.size = Vector3(s_x, s_y, s_z)
+				shard_mesh.mesh = p_mesh
+			elif shard_type_rand < 0.8:
+				# Type 2: Flat Irregular Glass Tile
+				var b_mesh: BoxMesh = BoxMesh.new()
+				b_mesh.material = draw_mat
+				b_mesh.size = Vector3(s_x * 1.2, s_y * 0.6, s_z * 0.9)
+				shard_mesh.mesh = b_mesh
+			else:
+				# Type 3: Sharp Needle / Spike Splinter
+				var c_mesh: CylinderMesh = CylinderMesh.new()
+				c_mesh.radial_segments = 3 # Triangular cross-section needle!
+				c_mesh.material = draw_mat
+				c_mesh.top_radius = 0.01
+				c_mesh.bottom_radius = s_x * 0.5
+				c_mesh.height = s_z * 1.5
+				shard_mesh.mesh = c_mesh
+
 			var box_shape: BoxShape3D = BoxShape3D.new()
 			box_shape.size = Vector3(s_x, s_y, s_z)
 			shard_col.shape = box_shape
@@ -369,11 +395,12 @@ func _spawn_3d_physical_shards() -> void:
 			get_tree().root.add_child(shard_rb)
 			_active_shards.append(shard_rb)
 
+			# Realistic Downward Gravity Collapse Physics
 			var nudge_x: float = randf_range(-0.5, 0.5)
 			var nudge_z: float = randf_range(-0.5, 0.5)
 			var drop_y: float = randf_range(-3.5, -0.8)
 			shard_rb.apply_central_impulse(Vector3(nudge_x, drop_y, nudge_z))
-			shard_rb.apply_torque_impulse(Vector3(randf_range(-2.5, 2.5), randf_range(-2.5, 2.5), randf_range(-2.5, 2.5)))
+			shard_rb.apply_torque_impulse(Vector3(randf_range(-3.5, 3.5), randf_range(-3.5, 3.5), randf_range(-3.5, 3.5)))
 
 			_fade_and_free_shard(shard_rb, draw_mat)
 
