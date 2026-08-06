@@ -12,6 +12,9 @@ extends Control
 var selected_character: String = "fat"
 
 func _ready() -> void:
+	# Guarantee mouse cursor is visible and interactive on Main Menu!
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+
 	if play_btn:
 		play_btn.pressed.connect(_on_play_pressed)
 	if char_select_btn:

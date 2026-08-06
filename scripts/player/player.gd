@@ -312,6 +312,20 @@ func _unhandled_input(event: InputEvent) -> void:
 	if not is_multiplayer_authority() or is_dead:
 		return
 
+	if event.is_action_pressed("ui_cancel"):
+		if hud and hud.has_method("toggle_pause_menu"):
+			hud.toggle_pause_menu()
+		else:
+			if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
+				Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+			else:
+				Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+		return
+
+	# When Pause Menu is open, ignore game inputs so UI buttons can be clicked cleanly!
+	if hud and hud.has_method("is_pause_menu_open") and hud.is_pause_menu_open():
+		return
+
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		if Input.mouse_mode != Input.MOUSE_MODE_CAPTURED:
 			Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
@@ -330,20 +344,11 @@ func _unhandled_input(event: InputEvent) -> void:
 		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
 			target_camera_zoom = clampf(target_camera_zoom + ZOOM_STEP, MIN_ZOOM, MAX_ZOOM)
 
-	if event.is_action_pressed("ui_cancel"):
-		if hud and hud.has_method("toggle_pause_menu"):
-			hud.toggle_pause_menu()
-		else:
-			if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
-				Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-			else:
-				Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
-
-
 	if active_mechanics:
 		active_mechanics.handle_ability_input(event)
 
 func _perform_melee_attack() -> void:
+
 	if not is_multiplayer_authority() or not camera_3d:
 		return
 
