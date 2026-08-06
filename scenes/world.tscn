@@ -1,0 +1,112 @@
+[gd_scene format=3 uid="uid://c8worldfps01"]
+
+[ext_resource type="Script" path="res://scripts/world/world.gd" id="1_world"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sky"]
+sky_top_color = Color(0.18, 0.45, 0.85, 1)
+sky_horizon_color = Color(0.6, 0.75, 0.9, 1)
+ground_bottom_color = Color(0.12, 0.15, 0.2, 1)
+ground_horizon_color = Color(0.6, 0.75, 0.9, 1)
+
+[sub_resource type="Sky" id="Sky_world"]
+sky_material = SubResource("ProceduralSkyMaterial_sky")
+
+[sub_resource type="Environment" id="Environment_world"]
+background_mode = 2
+sky = SubResource("Sky_world")
+tonemap_mode = 2
+glow_enabled = true
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_floor"]
+albedo_color = Color(0.2, 0.22, 0.25, 1)
+roughness = 0.8
+
+[sub_resource type="BoxMesh" id="BoxMesh_floor"]
+material = SubResource("StandardMaterial3D_floor")
+size = Vector3(60, 1, 60)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_floor"]
+size = Vector3(60, 1, 60)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_box"]
+albedo_color = Color(0.85, 0.4, 0.15, 1)
+roughness = 0.5
+
+[sub_resource type="BoxMesh" id="BoxMesh_box"]
+material = SubResource("StandardMaterial3D_box")
+size = Vector3(3, 2, 3)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_box"]
+size = Vector3(3, 2, 3)
+
+[sub_resource type="BoxMesh" id="BoxMesh_tunnel"]
+material = SubResource("StandardMaterial3D_box")
+size = Vector3(6, 0.3, 4)
+
+[node name="World" type="Node3D"]
+script = ExtResource("1_world")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_world")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.866025, -0.353553, 0.353553, 0, 0.707107, 0.707107, -0.5, -0.612372, 0.612372, 0, 20, 0)
+shadow_enabled = true
+
+[node name="MultiplayerSpawner" type="MultiplayerSpawner" parent="."]
+spawn_path = NodePath("../Players")
+_spawnable_scenes = PackedStringArray("res://scenes/player.tscn")
+
+[node name="Players" type="Node3D" parent="."]
+
+[node name="SpawnPoints" type="Node3D" parent="."]
+
+[node name="Spawn1" type="Node3D" parent="SpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 1, -8)
+
+[node name="Spawn2" type="Node3D" parent="SpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 1, -8)
+
+[node name="Spawn3" type="Node3D" parent="SpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 1, 8)
+
+[node name="Spawn4" type="Node3D" parent="SpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 1, 8)
+
+[node name="Level" type="Node3D" parent="."]
+
+[node name="Floor" type="StaticBody3D" parent="Level"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Level/Floor"]
+mesh = SubResource("BoxMesh_floor")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Level/Floor"]
+shape = SubResource("BoxShape3D_floor")
+
+[node name="Obstacle1" type="StaticBody3D" parent="Level"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 1, -3)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Level/Obstacle1"]
+mesh = SubResource("BoxMesh_box")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Level/Obstacle1"]
+shape = SubResource("BoxShape3D_box")
+
+[node name="Obstacle2" type="StaticBody3D" parent="Level"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 1, 4)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Level/Obstacle2"]
+mesh = SubResource("BoxMesh_box")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Level/Obstacle2"]
+shape = SubResource("BoxShape3D_box")
+
+[node name="CrouchTunnelOverhead" type="StaticBody3D" parent="Level"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.4, -6)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Level/CrouchTunnelOverhead"]
+mesh = SubResource("BoxMesh_tunnel")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Level/CrouchTunnelOverhead"]
+shape = SubResource("BoxShape3D_box")
