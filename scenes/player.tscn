@@ -1,6 +1,7 @@
 [gd_scene load_steps=22 format=3 uid="uid://c8playerfps01"]
 
 [ext_resource type="Script" path="res://scripts/player/player.gd" id="1_player"]
+[ext_resource type="Script" path="res://scripts/ui/player_hud.gd" id="2_hud"]
 [ext_resource type="Script" path="res://scripts/fsm/state_machine.gd" id="3_fsm"]
 [ext_resource type="Script" path="res://scripts/player/states/player_idle.gd" id="4_idle"]
 [ext_resource type="Script" path="res://scripts/player/states/player_walk.gd" id="5_walk"]
@@ -160,6 +161,7 @@ script = ExtResource("8_air")
 replication_config = SubResource("SceneReplicationConfig_player")
 
 [node name="HUD" type="CanvasLayer" parent="."]
+script = ExtResource("2_hud")
 
 [node name="NauseaOverlay" type="ColorRect" parent="HUD"]
 material = SubResource("ShaderMaterial_nausea")
