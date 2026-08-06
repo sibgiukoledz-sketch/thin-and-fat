@@ -512,9 +512,17 @@ skeleton = NodePath("")
 
 [node name="FragileGlassFloor1" parent="." unique_id=849501231 instance=ExtResource("8_glass_scene")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11.617773, 0.7804297, 3.9543476)
+glass_type = 0
 
 [node name="FragileGlassFloor2" parent="." unique_id=1207644796 instance=ExtResource("8_glass_scene")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.417773, 0.7804297, 3.9543476)
+glass_type = 1
 
 [node name="FragileGlassFloor3" parent="." unique_id=1530845664 instance=ExtResource("8_glass_scene")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11.617773, 0.7804297, 7.1543474)
+glass_type = 2
+
+[node name="FragileGlassFloor4" parent="." unique_id=1948203912 instance=ExtResource("8_glass_scene")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.417773, 0.7804297, 7.1543474)
+glass_type = 3
+

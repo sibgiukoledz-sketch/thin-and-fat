@@ -285,6 +285,20 @@ func _trigger_all_impact_vfx(at_position: Vector3) -> void:
 		_spark_particles.restart()
 		_spark_particles.emitting = true
 
+	var root: Node = get_tree().root
+	_break_nearby_glass_recursive(root, at_position, 6.5)
+
+func _break_nearby_glass_recursive(node: Node, center: Vector3, radius: float) -> void:
+	if not node:
+		return
+	if node is FragileGlassFloor:
+		var glass: FragileGlassFloor = node as FragileGlassFloor
+		if glass.global_position.distance_to(center) <= radius:
+			glass.trigger_seismic_break()
+	for child in node.get_children():
+		_break_nearby_glass_recursive(child, center, radius)
+
+
 func _update_prompt() -> void:
 	if not prompt_label:
 		return
