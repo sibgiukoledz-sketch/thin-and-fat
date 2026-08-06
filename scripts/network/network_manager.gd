@@ -32,7 +32,7 @@ func set_local_character(character_id: String) -> void:
 	player_character_choices[my_id] = character_id
 	character_choices_updated.emit()
 
-	if multiplayer.multiplayer_peer and multiplayer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTED:
+	if multiplayer.multiplayer_peer and multiplayer.multiplayer_peer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTED:
 		rpc_send_character_choice.rpc(character_id)
 
 func get_character_for_peer(peer_id: int) -> String:

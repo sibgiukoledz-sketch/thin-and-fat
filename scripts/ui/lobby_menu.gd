@@ -72,7 +72,7 @@ func _on_back_pressed() -> void:
 	get_tree().change_scene_to_file("res://scenes/main_menu.tscn")
 
 func _update_lobby_buttons() -> void:
-	var is_in_game := (multiplayer.multiplayer_peer != null and multiplayer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTED)
+	var is_in_game := (multiplayer.multiplayer_peer != null and multiplayer.multiplayer_peer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTED)
 	var is_server := multiplayer.is_server() if is_in_game else false
 
 	if is_server:
