@@ -103,7 +103,13 @@ func _update_type_label() -> void:
 	if not is_node_ready() or not type_label:
 		return
 
+	# Show 3D text label ONLY in the Godot Editor viewport! Hide completely during gameplay!
+	if not Engine.is_editor_hint():
+		type_label.hide()
+		return
+
 	var type_name: String = ""
+
 	var type_color: Color = Color.WHITE
 	var format_str: String = "СТЕНА" if is_vertical_wall else "ПОЛ"
 
