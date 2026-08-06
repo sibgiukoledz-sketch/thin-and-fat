@@ -18,7 +18,8 @@ func physics_update(delta: float) -> void:
 		state_machine.transition_to("Air")
 		return
 
-	var input_dir := player.get_movement_input()
+	var input_dir: Vector3 = player.get_movement_input()
+
 
 	# Can uncrouch if button released and head raycast is clear
 	if not player.is_crouch_requested() and player.can_uncrouch():

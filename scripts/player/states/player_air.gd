@@ -13,7 +13,8 @@ func physics_update(delta: float) -> void:
 	player.apply_gravity(delta)
 
 	# Air control (slightly lower acceleration)
-	var input_dir := player.get_movement_input()
+	var input_dir: Vector3 = player.get_movement_input()
+
 	player.apply_movement(input_dir, player.WALK_SPEED, delta, player.AIR_ACCEL_FACTOR)
 
 	# Check landing

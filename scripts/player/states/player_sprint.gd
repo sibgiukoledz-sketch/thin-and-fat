@@ -26,8 +26,9 @@ func physics_update(delta: float) -> void:
 		state_machine.transition_to("Crouch")
 		return
 
-	var input_dir := player.get_movement_input()
+	var input_dir: Vector3 = player.get_movement_input()
 	if input_dir.length_squared() < 0.01:
+
 		state_machine.transition_to("Idle")
 		return
 

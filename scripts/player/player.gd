@@ -389,3 +389,26 @@ func _update_camera_zoom(delta: float) -> void:
 	else:
 		if mesh_instance:
 			mesh_instance.show()
+
+func get_movement_input() -> Vector3:
+	var raw_input := Input.get_vector("move_left", "move_right", "move_forward", "move_backward")
+	var dir := (global_transform.basis * Vector3(raw_input.x, 0.0, raw_input.y)).normalized()
+	return dir
+
+func apply_movement(dir: Vector3, target_speed: float, delta: float, accel_factor: float = 1.0) -> void:
+	var target_vel_x := dir.x * target_speed
+	var target_vel_z := dir.z * target_speed
+	var accel := 14.0 * accel_factor
+	velocity.x = lerpf(velocity.x, target_vel_x, accel * delta)
+	velocity.z = lerpf(velocity.z, target_vel_z, accel * delta)
+	move_and_slide()
+
+func is_jump_requested() -> bool:
+	return Input.is_action_just_pressed("jump")
+
+func is_crouch_requested() -> bool:
+	return Input.is_action_pressed("crouch") or Input.is_action_pressed("ui_down")
+
+func is_sprint_requested() -> bool:
+	return Input.is_action_pressed("sprint") and not is_stamina_exhausted
+

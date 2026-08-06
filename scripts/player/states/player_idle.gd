@@ -25,8 +25,9 @@ func physics_update(delta: float) -> void:
 		return
 
 	# Check movement direction
-	var input_dir := player.get_movement_input()
+	var input_dir: Vector3 = player.get_movement_input()
 	if input_dir.length_squared() > 0.01:
+
 		if player.is_sprint_requested():
 			state_machine.transition_to("Sprint")
 		else:

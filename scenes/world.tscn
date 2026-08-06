@@ -36,7 +36,7 @@ shader_parameter/atm_darkness = 0.5
 shader_parameter/atm_sun_intensity = 18.0
 shader_parameter/atm_day_tint = Color(0.807843, 0.909804, 1, 1)
 shader_parameter/atm_horizon_light_tint = Color(0.980392, 0.635294, 0.462745, 1)
-shader_parameter/atm_night_tint = Color(0.05663308, 0.06716965, 0.08429119, 0.33584824)
+shader_parameter/atm_night_tint = Color(0.168627, 0.2, 0.25098, 1)
 shader_parameter/atm_level_params = Vector3(1, 0, 0)
 shader_parameter/atm_thickness = 0.7
 shader_parameter/atm_beta_ray = Vector3(5.804544e-06, 1.3562913e-05, 3.311258e-05)
@@ -55,7 +55,7 @@ shader_parameter/moon_texture_flip_u = false
 shader_parameter/moon_texture_flip_v = false
 shader_parameter/moon_size = 0.07
 shader_parameter/atm_moon_mie_tint = Color(0.137255, 0.184314, 0.292196, 1)
-shader_parameter/atm_moon_mie_intensity = 0.0
+shader_parameter/atm_moon_mie_intensity = 0.23509380280971526
 shader_parameter/atm_moon_partial_mie_phase = Vector3(0.36, 1.64, 1.6)
 shader_parameter/starmap_color = Color(0.709804, 0.709804, 0.709804, 0.854902)
 shader_parameter/starmap_texture = ExtResource("8_xgqkh")
@@ -63,7 +63,7 @@ shader_parameter/starmap_flip_u = false
 shader_parameter/starmap_flip_v = false
 shader_parameter/starmap_alignment = Vector3(2.68288, -0.25891, 0.40101)
 shader_parameter/star_rotation_offset = 9.38899
-shader_parameter/star_rotation = -12.883044257862482
+shader_parameter/star_rotation = -13.754562942700558
 shader_parameter/star_tilt = -1.2915436464758039
 shader_parameter/star_field_color = Color(1, 1, 1, 1)
 shader_parameter/star_field_texture = ExtResource("7_ctatt")
@@ -79,8 +79,8 @@ shader_parameter/cirrus_absorption = 2.0
 shader_parameter/cirrus_sky_tint_fade = 0.5
 shader_parameter/cirrus_size = 1.0
 shader_parameter/cirrus_uv = Vector2(0.16, 0.11)
-shader_parameter/cirrus_position1 = Vector2(0.2250949, 0.2250949)
-shader_parameter/cirrus_position2 = Vector2(0.2250949, 0.2250949)
+shader_parameter/cirrus_position1 = Vector2(0.177429, 0.177429)
+shader_parameter/cirrus_position2 = Vector2(0.177429, 0.177429)
 shader_parameter/cirrus_texture = ExtResource("3_2lf6f")
 shader_parameter/cumulus_visible = true
 shader_parameter/cumulus_intensity = 0.6
@@ -90,7 +90,7 @@ shader_parameter/cumulus_absorption = 2.0
 shader_parameter/cumulus_noise_freq = 2.7
 shader_parameter/cumulus_sky_tint_fade = 0.0
 shader_parameter/cumulus_size = 0.5
-shader_parameter/cumulus_position = Vector2(1.1253322, 1.1253322)
+shader_parameter/cumulus_position = Vector2(0.8869996, 0.8869996)
 shader_parameter/cumulus_texture = ExtResource("4_7iits")
 shader_parameter/cumulus_partial_mie_phase = Vector3(0.957564, 1.042436, 0.412)
 shader_parameter/cumulus_mie_intensity = 1.0
@@ -100,7 +100,7 @@ shader_parameter/azimuthal_grid_rotation_offset = 0.03
 shader_parameter/show_equatorial_grid = false
 shader_parameter/equatorial_grid_color = Color(0, 0.75, 1, 1)
 shader_parameter/equatorial_grid_rotation_offset = 0.03
-shader_parameter/moon_matrix = Basis(0.6288448, -0.7474106, -0.21431655, -0.3524732, -0.028338939, -0.93539274, 0.69304895, 0.6637577, -0.281263)
+shader_parameter/moon_matrix = Basis(0.9983691, -0.05487617, -0.015735487, -0.026162568, -0.19482848, -0.9804883, 0.050739728, 0.979301, -0.19594647)
 
 [sub_resource type="Sky" id="Sky_rup4s"]
 sky_material = SubResource("ShaderMaterial_fh13f")
@@ -109,7 +109,7 @@ sky_material = SubResource("ShaderMaterial_fh13f")
 background_mode = 2
 sky = SubResource("Sky_rup4s")
 ambient_light_source = 3
-ambient_light_color = Color(0.39287877, 0.2331611, 0.16065702, 1)
+ambient_light_color = Color(0.23515604, 0.27890667, 0.35, 1)
 ambient_light_sky_contribution = 0.7
 reflected_light_source = 2
 tonemap_mode = 3
@@ -321,31 +321,32 @@ script = ExtResource("1_world")
 environment = SubResource("Environment_4kbfs")
 camera_attributes = SubResource("CameraAttributesPractical_f17e3")
 script = ExtResource("5_sky3d")
-current_time = 17.642933333335964
+current_time = 20.96280000001188
 wind_direction = 2.35619451204804
 
 [node name="SunLight" type="DirectionalLight3D" parent="Sky3D" unique_id=946822099]
-transform = Transform3D(0.3768971, -0.033204623, -0.9256598, 0, 0.9993572, -0.03584825, 0.9262551, 0.013511101, 0.37665486, -0.9256598, -0.03584825, 0.37665486)
+transform = Transform3D(0.25926483, -0.7136744, -0.65073085, 0, 0.6737696, -0.73894155, 0.9658063, 0.19158155, 0.17468473, -0.65073085, -0.73894155, 0.17468473)
 light_color = Color(0.98, 0.523, 0.294, 1)
 light_energy = 0.0
 
 [node name="MoonLight" type="DirectionalLight3D" parent="Sky3D" unique_id=86044256]
-transform = Transform3D(0, -0.7208906, 0.69304895, -0.39016053, 0.6381227, 0.6637577, -0.92074686, -0.27040035, -0.28126302, 0.69304895, 0.6637577, -0.28126302)
+transform = Transform3D(0, -0.99871194, 0.050739728, -0.19619918, 0.049753554, 0.97930104, -0.98056406, -0.009955093, -0.19594647, 0.050739728, 0.97930104, -0.19594647)
 light_color = Color(0.572549, 0.776471, 0.956863, 1)
-light_energy = 0.0
+light_energy = 0.2937903
+shadow_enabled = true
 
 [node name="SkyDome" type="Node" parent="Sky3D" unique_id=1619291409]
 script = ExtResource("10_munwf")
-sun_azimuth = -4.325945
-sun_altitude = -1.6066523
-moon_azimuth = -1.1852705
-moon_altitude = -0.84496474
+sun_azimuth = -4.450128
+sun_altitude = -2.4022944
+moon_azimuth = -0.25338137
+moon_altitude = -0.20381756
 wind_direction = 2.35619451204804
 
 [node name="TimeOfDay" type="Node" parent="Sky3D" unique_id=348745801]
 script = ExtResource("11_ts3gi")
 dome_path = NodePath("../SkyDome")
-current_time = 17.642933333335964
+current_time = 20.96280000001188
 day = 10
 
 [node name="MultiplayerSpawner" type="MultiplayerSpawner" parent="." unique_id=1032412554]
@@ -580,7 +581,7 @@ transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 42.61449, 0.04, -7.951)
 transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 54.70202, 0.04, -7.951)
 
 [node name="SpawnPoint1" type="Marker3D" parent="." unique_id=981240101 groups=["spawn_points"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.5, 0.5, -6)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -14.289634, 0.5, -4.13443)
 
 [node name="SpawnPad1" type="CSGCylinder3D" parent="SpawnPoint1" unique_id=981240102]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.4, 0)
@@ -597,7 +598,7 @@ font_size = 28
 outline_size = 8
 
 [node name="SpawnPoint2" type="Marker3D" parent="." unique_id=981240104 groups=["spawn_points"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.5, 0.5, -6)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -14.926706, 0.5, -12.397048)
 
 [node name="SpawnPad2" type="CSGCylinder3D" parent="SpawnPoint2" unique_id=981240105]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.4, 0)
@@ -614,35 +615,31 @@ font_size = 28
 outline_size = 8
 
 [node name="Checkpoint1" type="Node3D" parent="." unique_id=981240107]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16, 0.5, -1)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9.136168, 0.5, -1)
 
 [node name="LabelCP1" type="Label3D" parent="Checkpoint1" unique_id=981240108]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.2, 0)
 billboard = 1
 modulate = Color(1, 0.8, 0.2, 1)
 text = "⚙️ КОНТРОЛЬНАЯ ТОЧКА №1 (СКОРО...)"
-font_size = 32
 outline_size = 10
 
 [node name="Checkpoint2" type="Node3D" parent="." unique_id=981240109]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15, 0.5, -1)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13.721538, 0.5, -1)
 
 [node name="LabelCP2" type="Label3D" parent="Checkpoint2" unique_id=981240110]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.2, 0)
 billboard = 1
 modulate = Color(1, 0.8, 0.2, 1)
 text = "⚙️ КОНТРОЛЬНАЯ ТОЧКА №2 (СКОРО...)"
-font_size = 32
 outline_size = 10
 
 [node name="Checkpoint3" type="Node3D" parent="." unique_id=981240111]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 32, 0.5, -1)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 32.40926, 0.5, -1)
 
 [node name="LabelCP3" type="Label3D" parent="Checkpoint3" unique_id=981240112]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.2, 0)
 billboard = 1
 modulate = Color(1, 0.8, 0.2, 1)
 text = "⚙️ КОНТРОЛЬНАЯ ТОЧКА №3 (СКОРО...)"
-font_size = 32
 outline_size = 10
-

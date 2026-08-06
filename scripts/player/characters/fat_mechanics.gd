@@ -489,7 +489,8 @@ func update_mechanics(delta: float) -> void:
 	if player and player.hud and player.hud.has_method("update_slingshot_cooldown"):
 		player.hud.update_slingshot_cooldown(_slingshot_cooldown, slingshot_cooldown_max)
 
-	var input_dir := player.get_movement_input()
+	var input_dir: Vector3 = player.get_movement_input()
+
 	if input_dir.length_squared() > 0.01:
 		var is_sprinting := (player.synced_state_name.to_lower() == "sprint")
 		var rate := stench_sprint_rate if is_sprinting else stench_walk_rate
