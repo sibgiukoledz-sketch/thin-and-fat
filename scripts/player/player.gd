@@ -91,6 +91,8 @@ var target_speed: float = WALK_SPEED
 var is_dead: bool = false
 var is_stamina_exhausted: bool = false
 var is_carrying_heavy_object: bool = false
+@export var melee_cooldown: float = 1.2
+var melee_cooldown_timer: float = 0.0
 var shift_must_be_released: bool = false
 var nausea_intensity: float = 0.0
 var _respawn_timer: float = 0.0
@@ -337,9 +339,10 @@ func _unhandled_input(event: InputEvent) -> void:
 		active_mechanics.handle_ability_input(event)
 
 func _perform_melee_attack() -> void:
-	if not is_multiplayer_authority() or not camera_3d:
+	if not is_multiplayer_authority() or not camera_3d or melee_cooldown_timer > 0.0:
 		return
 
+	melee_cooldown_timer = melee_cooldown
 	var space_state := get_world_3d().direct_space_state
 	var cam_pos := camera_3d.global_position
 	var ray_dir := -camera_3d.global_transform.basis.z
@@ -375,6 +378,12 @@ func _process(delta: float) -> void:
 
 	if active_mechanics:
 		active_mechanics.update_mechanics(delta)
+
+	if melee_cooldown_timer > 0.0:
+		melee_cooldown_timer = maxf(melee_cooldown_timer - delta, 0.0)
+
+	if hud and hud.has_method("update_melee_cooldown"):
+		hud.update_melee_cooldown(melee_cooldown_timer, melee_cooldown)
 
 	update_hud_display()
 

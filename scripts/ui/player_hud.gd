@@ -1,7 +1,7 @@
 class_name PlayerHUD
 extends CanvasLayer
 
-## Component script for managing HUD UI displays, status bars, and overlays.
+## Component script for managing HUD UI displays, status bars, and bottom-right cooldown indicators.
 
 @onready var state_label: Label = $MarginContainer/VBoxContainer/StateLabel
 @onready var authority_label: Label = $MarginContainer/VBoxContainer/AuthorityLabel
@@ -16,6 +16,11 @@ extends CanvasLayer
 @onready var nausea_overlay: ColorRect = $NauseaOverlay
 @onready var death_overlay: Control = $DeathOverlay
 @onready var respawn_label: Label = $DeathOverlay/VBox/RespawnLabel
+
+# Bottom-Right Cooldown Indicator Nodes
+@onready var melee_bar: ProgressBar = $ActionCooldownContainer/VBox/MeleeProgressBar
+@onready var melee_timer_label: Label = $ActionCooldownContainer/VBox/MeleeTimerLabel
+@onready var melee_title_label: Label = $ActionCooldownContainer/VBox/MeleeTitleLabel
 
 var player: Player
 
@@ -66,3 +71,22 @@ func update_display() -> void:
 func update_respawn_timer(seconds_left: float) -> void:
 	if respawn_label:
 		respawn_label.text = "ВОЗРОЖДЕНИЕ ЧЕРЕЗ %d СЕК..." % int(ceil(seconds_left))
+
+func update_melee_cooldown(cooldown_timer: float, max_cooldown: float) -> void:
+	if not melee_bar or not melee_timer_label:
+		return
+
+	if cooldown_timer <= 0.0:
+		melee_bar.max_value = max_cooldown
+		melee_bar.value = max_cooldown
+		melee_timer_label.text = "ГОТОВО"
+		melee_timer_label.modulate = Color(0.2, 1.0, 0.4)
+		if melee_title_label:
+			melee_title_label.modulate = Color(1.0, 1.0, 1.0)
+	else:
+		melee_bar.max_value = max_cooldown
+		melee_bar.value = max_cooldown - cooldown_timer
+		melee_timer_label.text = "КД: %.1f с" % cooldown_timer
+		melee_timer_label.modulate = Color(1.0, 0.6, 0.2)
+		if melee_title_label:
+			melee_title_label.modulate = Color(0.8, 0.8, 0.8)
