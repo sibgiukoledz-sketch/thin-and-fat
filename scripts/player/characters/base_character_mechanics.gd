@@ -2,13 +2,16 @@ class_name BaseCharacterMechanics
 extends Node
 
 ## Base class for unique character mechanics and abilities.
-## Developers can override this class to add custom abilities for specific characters.
 
 var player: Player
 
 func _ready() -> void:
-	await owner.ready
-	player = owner as Player
+	if owner:
+		if not owner.is_node_ready():
+			await owner.ready
+		player = owner as Player
+	elif get_parent() is Player:
+		player = get_parent() as Player
 
 func handle_ability_input(_event: InputEvent) -> void:
 	pass

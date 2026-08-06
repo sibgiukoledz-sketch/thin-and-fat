@@ -12,9 +12,9 @@ var current_state_name: String = "None"
 var states: Dictionary = {}
 
 func _ready() -> void:
-	# Wait for owner node to fully initialize
-	await owner.ready
-	
+	if owner and not owner.is_node_ready():
+		await owner.ready
+
 	# Register child states
 	for child in get_children():
 		if child is State:

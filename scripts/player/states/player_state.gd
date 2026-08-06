@@ -6,6 +6,11 @@ extends State
 var player: Player
 
 func _ready() -> void:
-	await owner.ready
-	player = owner as Player
-	assert(player != null, "PlayerState must be a child of a Player node or descendant of Player owner!")
+	if owner:
+		if not owner.is_node_ready():
+			await owner.ready
+		player = owner as Player
+	else:
+		var parent := get_parent()
+		if parent and parent.get_parent() is Player:
+			player = parent.get_parent() as Player
