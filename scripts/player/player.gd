@@ -44,8 +44,9 @@ var shift_must_be_released: bool = false
 @onready var camera_3d: Camera3D = $Head/SpringArm3D/Camera3D
 @onready var collision_shape: CollisionShape3D = $CollisionShape3D
 @onready var mesh_instance: MeshInstance3D = $MeshInstance3D
-@onready var state_machine: PlayerStateMachine = $StateMachine
-@onready var active_mechanics: CharacterMechanicsBase = $CharacterMechanics
+@onready var state_machine: StateMachine = $StateMachine
+@onready var active_mechanics: BaseCharacterMechanics = $CharacterMechanics
+
 @onready var vomit_component: VomitComponent = $VomitComponent
 @onready var hud: PlayerHUD = $HUD
 
@@ -167,7 +168,8 @@ func _attach_mechanics_component(script_path: String) -> void:
 		comp.name = "CharacterMechanics"
 		comp.set_script(scr)
 		add_child(comp)
-		active_mechanics = comp as CharacterMechanicsBase
+		active_mechanics = comp as BaseCharacterMechanics
+
 		if active_mechanics and active_mechanics.has_method("setup"):
 			active_mechanics.setup(self)
 
