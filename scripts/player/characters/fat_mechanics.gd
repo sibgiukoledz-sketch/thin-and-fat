@@ -282,8 +282,8 @@ func _create_procedural_fly_texture() -> ImageTexture:
 	var img: Image = Image.create(64, 64, false, Image.FORMAT_RGBA8)
 	img.fill(Color(0, 0, 0, 0))
 
-	var center: Vector2 = Vector2(32, 32)
 	for y in range(64):
+
 		for x in range(64):
 			var pos: Vector2 = Vector2(x, y)
 			var dx: float = (float(x) - 32.0) * 1.5

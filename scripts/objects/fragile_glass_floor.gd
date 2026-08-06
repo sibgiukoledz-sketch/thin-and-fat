@@ -41,8 +41,10 @@ signal glass_shattered
 @onready var collision_shape: CollisionShape3D = $CollisionShape3D
 @onready var mesh_instance: MeshInstance3D = $MeshInstance3D
 @onready var detection_area: Area3D = $DetectionArea
-@onready var shatter_particles: GPUParticles3D = $ShatterParticles
 @onready var type_label: Label3D = $TypeLabel3D
+
+var shatter_particles: GPUParticles3D
+
 
 var _is_breaking: bool = false
 var _step_count: int = 0
@@ -442,8 +444,11 @@ func rpc_restore_floor() -> void:
 		collision_shape.set_deferred("disabled", false)
 	if mesh_instance:
 		mesh_instance.show()
-	if type_label and show_editor_label:
+	if type_label and show_editor_label and Engine.is_editor_hint():
 		type_label.show()
+	elif type_label:
+		type_label.hide()
 
 	_setup_glass_material()
+
 	print("✨ GLASS FLOOR/WALL RESTORED!")

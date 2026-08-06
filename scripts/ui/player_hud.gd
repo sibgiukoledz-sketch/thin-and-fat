@@ -79,7 +79,8 @@ func update_respawn_timer(seconds_left: float) -> void:
 	if respawn_label:
 		respawn_label.text = "ВОЗРОЖДЕНИЕ ЧЕРЕЗ %d СЕК..." % int(ceil(seconds_left))
 
-func update_slingshot_cooldown(cooldown_timer: float, max_cooldown: float) -> void:
+func update_slingshot_cooldown(cooldown_timer: float, _max_cooldown: float) -> void:
+
 	if not slingshot_widget or not slingshot_timer_label:
 		return
 
