@@ -2,13 +2,14 @@ class_name SeesawCatapult
 extends Node3D
 
 ## Catapult Seesaw Mechanic ("Качели-катапульта"):
-## - Heavy slam by Fat ("Жирдяй") or Heavy Boulder ("HeavyBoulder") on one end of the plank
-##   instantly launches any Thin player ("Худой"), DummyNPC, or light object on the opposite end
-##   high into the sky / upper tier ("в открытый космос")!
+## - Normal walking/stepping simply tilts the seesaw plank smoothly without launching.
+## - Heavy impact slam by Fat ("Жирдяй") jumping/falling from height or Heavy Boulder ("HeavyBoulder")
+##   triggers the Catapult Launch, blasting any Thin player ("Худой"), DummyNPC, or light object
+##   on the opposite end high into orbit ("в открытый космос")!
 
 signal catapult_launched(launched_body: Node, launch_velocity: float)
 
-@export var max_tilt_angle: float = 11.5 # Max tilt in degrees (11.5 deg stops right on ground bumpers without floor clipping!)
+@export var max_tilt_angle: float = 11.5 # Max tilt in degrees (stops right on ground bumpers without floor clipping!)
 @export var base_launch_force: float = 30.0 # Base skyward velocity (m/s)
 @export var max_launch_force: float = 46.0 # Max skyward launch velocity for heavy falls
 
@@ -30,8 +31,6 @@ func _ready() -> void:
 
 func _on_side_impact(body: Node, side: int) -> void:
 	var now: float = Time.get_ticks_msec() / 1000.0
-	if now - _last_slam_time < 0.35:
-		return
 
 	var is_heavy_slam: bool = false
 	var downward_speed: float = 0.0
@@ -39,32 +38,48 @@ func _on_side_impact(body: Node, side: int) -> void:
 	if body is Player:
 		var p: Player = body as Player
 		if p.selected_character_id.to_lower() == "fat":
-			# Fat jumping, falling, or carrying heavy object onto the pad
-			if p.velocity.y < -0.4 or not p.is_on_floor() or p.is_carrying_heavy_object or p.velocity.length_squared() > 4.0:
+			# Only launch if Fat JUMPED / FELL from a height (velocity.y < -1.8 m/s) or carried heavy item
+			if p.velocity.y < -1.8 or p.is_carrying_heavy_object:
 				is_heavy_slam = true
-				downward_speed = maxf(absf(p.velocity.y), 4.0)
+				downward_speed = absf(p.velocity.y)
+			else:
+				# Normal stepping/walking: tilt seesaw gently WITHOUT launching!
+				_gently_tilt_seesaw(side)
+				return
 	elif body is HeavyBoulder or (body is RigidBody3D and (body as RigidBody3D).mass >= 30.0):
 		var rb: RigidBody3D = body as RigidBody3D
-		# Heavy Boulder rolling or landing onto pad ALWAYS triggers catapult!
-		is_heavy_slam = true
-		downward_speed = maxf(rb.linear_velocity.length(), 6.0)
+		if rb.linear_velocity.y < -0.8 or rb.linear_velocity.length_squared() > 10.0:
+			is_heavy_slam = true
+			downward_speed = maxf(rb.linear_velocity.length(), 6.0)
+		else:
+			_gently_tilt_seesaw(side)
+			return
 
 	if not is_heavy_slam:
 		return
 
+	if now - _last_slam_time < 0.35:
+		return
 	_last_slam_time = now
+
 	var impact_power: float = clampf(24.0 + downward_speed * 1.8, base_launch_force, max_launch_force)
 	rpc_trigger_catapult_slam.rpc(side, impact_power)
+
+func _gently_tilt_seesaw(side: int) -> void:
+	var target_angle_rad: float = deg_to_rad(max_tilt_angle if side == -1 else -max_tilt_angle)
+	if plank_pivot:
+		var tween: Tween = create_tween()
+		tween.tween_property(plank_pivot, "rotation:z", target_angle_rad, 0.45).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 
 @rpc("any_peer", "call_local", "reliable")
 func rpc_trigger_catapult_slam(slam_side: int, launch_force: float) -> void:
 	_current_side = slam_side
 	var target_angle_rad: float = deg_to_rad(max_tilt_angle if slam_side == -1 else -max_tilt_angle)
 
-	# 1. Smooth Mechanical Tilt Animation (Cubic ease out, soft bounce, and auto horizontal leveling)
+	# 1. Smooth Mechanical Tilt Animation
 	if plank_pivot:
 		var tween: Tween = create_tween()
-		tween.tween_property(plank_pivot, "rotation:z", target_angle_rad, 0.22).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+		tween.tween_property(plank_pivot, "rotation:z", target_angle_rad, 0.20).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 		tween.tween_property(plank_pivot, "rotation:z", target_angle_rad * 0.88, 0.12).set_trans(Tween.TRANS_SINE)
 		tween.tween_property(plank_pivot, "rotation:z", target_angle_rad, 0.10)
 
@@ -78,7 +93,7 @@ func rpc_trigger_catapult_slam(slam_side: int, launch_force: float) -> void:
 		target_particles.restart()
 		target_particles.emitting = true
 
-	# 3. Find All Entities on OPPOSITE Side (both Area3D overlap + 4.2m radius search around target pad)
+	# 3. Find All Entities on OPPOSITE Side (Area3D overlap + 4.2m radius search around target pad)
 	var opposite_area: Area3D = area_right if slam_side == -1 else area_left
 	var opposite_pad: GPUParticles3D = particles_right if slam_side == -1 else particles_left
 	var opp_pad_pos: Vector3 = opposite_pad.global_position if opposite_pad else global_position
