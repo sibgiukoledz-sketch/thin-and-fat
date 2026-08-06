@@ -1,14 +1,12 @@
-[gd_resource type="Resource" script_class="CharacterData" load_steps=2 format=3 uid="uid://c8thinchar01"]
+[gd_resource type="Resource" script_class="CharacterData" format=3 uid="uid://c8thinchar01"]
 
-[ext_resource type="Script" path="res://scripts/player/character_data.gd" id="1_data"]
+[ext_resource type="Script" uid="uid://d1l0bpw4g3oia" path="res://scripts/player/character_data.gd" id="1_data"]
 
 [resource]
 script = ExtResource("1_data")
-character_id = "thin"
 character_name = "Высокий (Худой)"
 description = "Высокий и очень худой. Быстрый бег, высокий прыжок, узкий хитбокс."
 max_health = 80.0
-max_stamina = 100.0
 stamina_drain_rate = 14.0
 stamina_regen_rate = 25.0
 walk_speed = 7.0
@@ -21,5 +19,5 @@ stand_height = 2.4
 crouch_height = 1.1
 stand_head_y = 2.1
 crouch_head_y = 0.95
-body_color = Color(0.15, 0.75, 1.0, 1.0)
+body_color = Color(0.15, 0.75, 1, 1)
 mesh_scale = Vector3(0.65, 1.35, 0.65)

@@ -1,6 +1,6 @@
-[gd_resource type="Resource" script_class="CharacterData" load_steps=2 format=3 uid="uid://c8fatchar01"]
+[gd_resource type="Resource" script_class="CharacterData" format=3 uid="uid://c8fatchar01"]
 
-[ext_resource type="Script" path="res://scripts/player/character_data.gd" id="1_data"]
+[ext_resource type="Script" uid="uid://d1l0bpw4g3oia" path="res://scripts/player/character_data.gd" id="1_data"]
 
 [resource]
 script = ExtResource("1_data")
@@ -8,7 +8,6 @@ character_id = "fat"
 character_name = "Жирный (Жирдяй)"
 description = "Массивный и широченный. Быстро устает при спринте."
 max_health = 160.0
-max_stamina = 100.0
 stamina_drain_rate = 35.0
 stamina_regen_rate = 30.0
 walk_speed = 3.8
@@ -21,5 +20,5 @@ stand_height = 1.5
 crouch_height = 0.95
 stand_head_y = 1.25
 crouch_head_y = 0.75
-body_color = Color(0.95, 0.4, 0.1, 1.0)
+body_color = Color(0.95, 0.4, 0.1, 1)
 mesh_scale = Vector3(1.8, 0.85, 1.8)
