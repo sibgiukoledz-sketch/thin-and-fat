@@ -351,11 +351,16 @@ func _spawn_3d_physical_shards() -> void:
 
 			var shard_rb: RigidBody3D = RigidBody3D.new()
 			shard_rb.name = "GlassShard3D"
-			shard_rb.mass = randf_range(0.15, 0.4) # Varied mass per shard!
-			shard_rb.global_position = shard_pos
-			shard_rb.rotation = Vector3(randf_range(-PI, PI), randf_range(-PI, PI), randf_range(-PI, PI)) # Random 3D initial orientation!
-			shard_rb.collision_layer = 4 # Debris layer (No Player collision!)
+			shard_rb.mass = randf_range(0.15, 0.4)
+			shard_rb.rotation = Vector3(randf_range(-PI, PI), randf_range(-PI, PI), randf_range(-PI, PI))
+			shard_rb.collision_layer = 4
 			shard_rb.collision_mask = 1
+
+			# Add to scene tree FIRST before setting global_position to prevent !is_inside_tree error
+			get_tree().root.add_child(shard_rb)
+			shard_rb.global_position = shard_pos
+			_active_shards.append(shard_rb)
+
 
 			var shard_mesh: MeshInstance3D = MeshInstance3D.new()
 			var shard_col: CollisionShape3D = CollisionShape3D.new()
@@ -394,11 +399,9 @@ func _spawn_3d_physical_shards() -> void:
 			shard_rb.add_child(shard_mesh)
 			shard_rb.add_child(shard_col)
 
-			get_tree().root.add_child(shard_rb)
-			_active_shards.append(shard_rb)
-
-			# Realistic Downward Gravity Collapse Physics
+			# Downward collapse physics
 			var nudge_x: float = randf_range(-0.5, 0.5)
+
 			var nudge_z: float = randf_range(-0.5, 0.5)
 			var drop_y: float = randf_range(-3.5, -0.8)
 			shard_rb.apply_central_impulse(Vector3(nudge_x, drop_y, nudge_z))

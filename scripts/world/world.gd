@@ -43,13 +43,18 @@ func _spawn_player_for_peer(id: int) -> void:
 func _custom_spawn(id: int) -> Node:
 	var player_inst := player_scene.instantiate() as Player
 	player_inst.name = str(id)
-	
-	# Select spawn point
+
+	# Select spawn point safely
 	var spawn_pos := Vector3(randf_range(-4.0, 4.0), 1.5, randf_range(-4.0, 4.0))
-	if spawn_points and spawn_points.get_child_count() > 0:
+	if spawn_points and spawn_points.is_inside_tree() and spawn_points.get_child_count() > 0:
 		var count := spawn_points.get_child_count()
 		var point_idx := (id % count)
-		spawn_pos = spawn_points.get_child(point_idx).global_position
+		var pt: Node3D = spawn_points.get_child(point_idx) as Node3D
+		if pt and pt.is_inside_tree():
+			spawn_pos = pt.global_position
+		elif pt:
+			spawn_pos = pt.position
 
-	player_inst.global_position = spawn_pos
+	player_inst.position = spawn_pos
 	return player_inst
+

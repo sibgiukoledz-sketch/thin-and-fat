@@ -38,8 +38,9 @@ func _apply_default_keys_to_action(action_name: String) -> void:
 	var keys: Array = DEFAULT_KEYBINDINGS.get(action_name, [])
 	for keycode in keys:
 		var event := InputEventKey.new()
-		event.physical_keycode = keycode
+		event.physical_keycode = keycode as Key
 		InputMap.action_add_event(action_name, event)
+
 
 ## Loads saved keybindings from user://input_config.json
 func load_keybindings() -> void:
@@ -69,8 +70,9 @@ func load_keybindings() -> void:
 		var keycodes: Array = data[action_name]
 		for keycode in keycodes:
 			var event := InputEventKey.new()
-			event.physical_keycode = int(keycode)
+			event.physical_keycode = int(keycode) as Key
 			InputMap.action_add_event(action_name, event)
+
 
 	keybindings_changed.emit()
 
