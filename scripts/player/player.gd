@@ -289,7 +289,7 @@ func _unhandled_input(event: InputEvent) -> void:
 
 	# Handle mouse look with nauseous sluggishness
 	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
-		var sens := mouse_sensitivity * (1.0 - nausea_intensity * 0.35)
+		var sens := mouse_sensitivity * (1.0 - nausea_intensity * 0.60)
 		rotate_y(-event.relative.x * sens)
 		head.rotate_x(-event.relative.y * sens)
 		head.rotation.x = clampf(head.rotation.x, deg_to_rad(-89.0), deg_to_rad(89.0))
@@ -348,8 +348,8 @@ func _update_nausea_effects(delta: float) -> void:
 			respawn()
 		return
 
-	# Slowly decay nausea when away from stench
-	nausea_intensity = maxf(nausea_intensity - 0.2 * delta, 0.0)
+	# Slowly decay nausea when away from stench (lasts ~12 seconds)
+	nausea_intensity = maxf(nausea_intensity - 0.08 * delta, 0.0)
 
 	# Update Shader Parameter for Nausea post-processing (Wave distortion, double vision & bile vignette)
 	if nausea_overlay and nausea_overlay.material:
@@ -359,12 +359,12 @@ func _update_nausea_effects(delta: float) -> void:
 	if camera_3d and head:
 		if nausea_intensity > 0.01:
 			var t := Time.get_ticks_msec() * 0.001
-			# Asymmetric Lissajous Vertigo Roll & Pitch
-			var roll_z := sin(t * 2.4) * deg_to_rad(10.0) * nausea_intensity
-			var pitch_sway := cos(t * 3.6) * deg_to_rad(4.5) * nausea_intensity
+			# Asymmetric Lissajous Vertigo Roll & Pitch (Stronger sway)
+			var roll_z := sin(t * 2.4) * deg_to_rad(15.0) * nausea_intensity
+			var pitch_sway := cos(t * 3.6) * deg_to_rad(6.0) * nausea_intensity
 
 			# Periodic gag heave (downward head jerk simulating stomach retch)
-			var gag_heave := -pow(maxf(sin(t * 3.2), 0.0), 6.0) * deg_to_rad(8.0) * nausea_intensity
+			var gag_heave := -pow(maxf(sin(t * 3.2), 0.0), 6.0) * deg_to_rad(10.0) * nausea_intensity
 
 			camera_3d.rotation.z = roll_z
 			head.rotation.x = clampf(head.rotation.x + gag_heave * delta * 4.0 + pitch_sway * delta * 2.0, deg_to_rad(-89.0), deg_to_rad(89.0))
@@ -455,11 +455,11 @@ func get_movement_input() -> Vector3:
 		if Input.is_physical_key_pressed(KEY_D) or Input.is_physical_key_pressed(KEY_RIGHT):
 			input_vec.x += 1.0
 
-	# Drunken/Nauseous Control Wobble & Stumble Drift
-	if nausea_intensity > 0.05 and input_vec != Vector2.ZERO:
+	# Drunken/Nauseous Control Wobble & Heavy Stumble Drift
+	if nausea_intensity > 0.05:
 		var t := Time.get_ticks_msec() * 0.003
-		var drift_x := sin(t * 1.8) * 0.55 * nausea_intensity
-		var drift_y := cos(t * 2.2) * 0.3 * nausea_intensity
+		var drift_x := sin(t * 2.2) * 1.6 * nausea_intensity
+		var drift_y := cos(t * 1.6) * 1.0 * nausea_intensity
 		input_vec.x += drift_x
 		input_vec.y += drift_y
 

@@ -13,7 +13,7 @@ signal stench_changed(current: float, max_stench: float)
 @export var stench_sprint_rate: float = 3.0
 
 @export var stench_damage_threshold: float = 75.0
-@export var stench_damage_per_sec: float = 20.0
+@export var stench_damage_per_sec: float = 5.0
 @export var stench_aura_radius: float = 8.0
 
 var _damage_timer: float = 0.0

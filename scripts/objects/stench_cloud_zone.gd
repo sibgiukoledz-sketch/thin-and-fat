@@ -3,8 +3,8 @@ extends Area3D
 
 ## Test Stench Cloud Zone that constantly inflicts Nausea and toxic damage to any player standing inside its volume.
 
-@export var damage_per_sec: float = 15.0
-@export var nausea_per_sec: float = 0.6
+@export var damage_per_sec: float = 5.0
+@export var nausea_per_sec: float = 0.45
 
 @onready var prompt_label: Label3D = $PromptLabel3D
 @onready var gas_particles: GPUParticles3D = $GasParticles
