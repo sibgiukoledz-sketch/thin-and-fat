@@ -84,6 +84,8 @@ const SPRINT_FOV: float = 88.0
 @onready var stench_label: Label = $HUD/MarginContainer/VBoxContainer/StenchLabel
 @onready var crosshair: Control = $HUD/Crosshair
 @onready var nausea_overlay: ColorRect = $HUD/NauseaOverlay
+@onready var death_overlay: Control = $HUD/DeathOverlay
+@onready var respawn_label: Label = $HUD/DeathOverlay/VBox/RespawnLabel
 
 # Runtime state
 var active_character_data: CharacterData
@@ -94,6 +96,7 @@ var target_speed: float = WALK_SPEED
 var is_dead: bool = false
 var is_stamina_exhausted: bool = false
 var nausea_intensity: float = 0.0
+var _respawn_timer: float = 0.0
 
 # Roblox-style Camera Zoom
 var target_camera_zoom: float = 0.0
@@ -232,15 +235,46 @@ func is_alive() -> bool:
 	return current_health > 0.0 and not is_dead
 
 func die() -> void:
+	if is_dead:
+		return
 	is_dead = true
+	_respawn_timer = 3.0
 	player_died.emit()
+
+	if collision_shape:
+		collision_shape.set_deferred("disabled", true)
+	if mesh_instance:
+		mesh_instance.hide()
+	if death_overlay and is_multiplayer_authority():
+		death_overlay.show()
+	print("💀 PLAYER DIED: %s" % name)
 
 func respawn() -> void:
 	current_health = max_health
 	current_stamina = max_stamina
 	is_stamina_exhausted = false
 	is_dead = false
-	global_position = Vector3(randf_range(-4.0, 4.0), 1.5, randf_range(-4.0, 4.0))
+	nausea_intensity = 0.0
+
+	if active_mechanics and active_mechanics.has_method("wash_stench"):
+		active_mechanics.wash_stench()
+
+	if collision_shape:
+		collision_shape.set_deferred("disabled", false)
+	if mesh_instance:
+		mesh_instance.show()
+	if death_overlay:
+		death_overlay.hide()
+
+	# Move to random spawn point in map
+	var sp_nodes := get_tree().get_nodes_in_group("spawn_points")
+	if sp_nodes.size() > 0:
+		var sp: Node3D = sp_nodes.pick_random()
+		global_position = sp.global_position
+	else:
+		global_position = Vector3(randf_range(-4.0, 4.0), 1.5, randf_range(-4.0, 4.0))
+
+	print("✨ PLAYER RESPAWNED: %s" % name)
 
 func _unhandled_input(event: InputEvent) -> void:
 	if not is_multiplayer_authority() or is_dead:
@@ -297,29 +331,30 @@ func _perform_melee_attack() -> void:
 			hit_collider.take_damage(dmg, hit_pos)
 
 func trigger_nausea(amount: float) -> void:
-	nausea_intensity = clampf(nausea_intensity + amount, 0.0, 1.0)
-
-var _nausea_heave_timer: float = 0.0
+	if not is_dead:
+		nausea_intensity = clampf(nausea_intensity + amount, 0.0, 1.0)
 
 func _update_nausea_effects(delta: float) -> void:
 	if not is_multiplayer_authority():
 		return
 
+	# Handle death screen countdown timer
+	if is_dead:
+		_respawn_timer -= delta
+		if respawn_label:
+			respawn_label.text = "ВОЗРОЖДЕНИЕ ЧЕРЕЗ %d СЕК..." % int(ceil(_respawn_timer))
+		if _respawn_timer <= 0.0:
+			respawn()
+		return
+
 	# Slowly decay nausea when away from stench
 	nausea_intensity = maxf(nausea_intensity - 0.2 * delta, 0.0)
 
-	# 1. Dark Murky Stomach-Bile Color (Dark sickly olive-brown, not chemical neon)
-	if nausea_overlay:
-		if nausea_intensity > 0.001:
-			var t := Time.get_ticks_msec() * 0.001
-			var retch_pulse := pow(maxf(sin(t * 3.2), 0.0), 4.0) * 0.25 # Periodic gag pulse
-			var alpha := clampf(nausea_intensity * 0.55 + retch_pulse * nausea_intensity, 0.0, 0.75)
-			# Dark sickly bile tone (olive brown-green)
-			nausea_overlay.color = Color(0.12, 0.16, 0.04, alpha)
-		else:
-			nausea_overlay.color.a = 0.0
+	# Update Shader Parameter for Nausea post-processing (Wave distortion, double vision & bile vignette)
+	if nausea_overlay and nausea_overlay.material:
+		nausea_overlay.material.set_shader_parameter("intensity", nausea_intensity)
 
-	# 2. Visceral Vertigo Camera Sway & Periodic Gag / Retch Heaves
+	# 1st Person Camera Vertigo Sway & Periodic Gag / Retch Heaves
 	if camera_3d and head:
 		if nausea_intensity > 0.01:
 			var t := Time.get_ticks_msec() * 0.001
