@@ -15,6 +15,15 @@ const ZOOM_STEP := 0.5
 const MIN_ZOOM := 0.0
 const MAX_ZOOM := 8.0
 
+# Movement constants used by FSM states
+const WALK_SPEED := 5.0
+const SPRINT_SPEED := 9.0
+const CROUCH_SPEED := 2.5
+const NORMAL_FOV := 75.0
+const SPRINT_FOV := 85.0
+const AIR_ACCEL_FACTOR := 0.35
+
+
 @export var peer_id: int = 1
 @export var selected_character_id: String = "fat"
 
@@ -38,6 +47,9 @@ var is_dead: bool = false
 var is_carrying_heavy_object: bool = false
 var is_stamina_exhausted: bool = false
 var shift_must_be_released: bool = false
+var target_speed: float = 0.0
+var synced_state_name: String = "idle"
+
 
 # Component & Node References
 @onready var head: Node3D = $Head
@@ -46,10 +58,10 @@ var shift_must_be_released: bool = false
 @onready var collision_shape: CollisionShape3D = $CollisionShape3D
 @onready var mesh_instance: MeshInstance3D = $MeshInstance3D
 @onready var state_machine: StateMachine = $StateMachine
-@onready var active_mechanics: BaseCharacterMechanics = $CharacterMechanics
-
-@onready var vomit_component: VomitComponent = $VomitComponent
+var active_mechanics: BaseCharacterMechanics = null
+var vomit_component: VomitComponent = null
 @onready var hud: PlayerHUD = $HUD
+
 
 # Health & Status overlay tracking
 var nausea_intensity: float = 0.0
@@ -360,8 +372,10 @@ func _physics_process(delta: float) -> void:
 
 func _handle_stamina_regen(delta: float) -> void:
 	if state_machine:
-		var cur_state: String = state_machine.current_state_name.to_lower()
+		synced_state_name = state_machine.current_state_name
+		var cur_state: String = synced_state_name.to_lower()
 		if cur_state == "sprint":
+
 			current_stamina = clampf(current_stamina - stamina_drain_rate * delta, 0.0, max_stamina)
 			if current_stamina <= 0.001:
 				is_stamina_exhausted = true
@@ -413,3 +427,39 @@ func is_crouch_requested() -> bool:
 
 func is_sprint_requested() -> bool:
 	return Input.is_action_pressed("sprint") and not is_stamina_exhausted
+
+func apply_gravity(delta: float) -> void:
+	if not is_on_floor():
+		velocity.y -= gravity * delta
+
+func apply_jump_impulse() -> void:
+	velocity.y = jump_velocity
+
+func set_target_fov(fov_val: float) -> void:
+	if camera_3d:
+		var tw: Tween = create_tween().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+		tw.tween_property(camera_3d, "fov", fov_val, 0.25)
+
+func set_crouch_state(crouching: bool) -> void:
+	var target_h: float = crouch_height if crouching else stand_height
+	var target_head_y: float = crouch_head_y if crouching else stand_head_y
+	if collision_shape and collision_shape.shape is CapsuleShape3D:
+		(collision_shape.shape as CapsuleShape3D).height = target_h
+		collision_shape.position.y = target_h * 0.5
+	if mesh_instance and mesh_instance.mesh is CapsuleMesh:
+		(mesh_instance.mesh as CapsuleMesh).height = target_h
+		mesh_instance.position.y = target_h * 0.5
+	if head:
+		head.position.y = target_head_y
+
+func can_uncrouch() -> bool:
+	if not head:
+		return true
+	var space_state: PhysicsDirectSpaceState3D = get_world_3d().direct_space_state
+	var from: Vector3 = global_position + Vector3(0, crouch_height, 0)
+	var to: Vector3 = global_position + Vector3(0, stand_height + 0.1, 0)
+	var query: PhysicsRayQueryParameters3D = PhysicsRayQueryParameters3D.create(from, to)
+	query.exclude = [self]
+	var result: Dictionary = space_state.intersect_ray(query)
+	return result.is_empty()
+
