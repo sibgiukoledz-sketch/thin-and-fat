@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3 uid="uid://c8playerfps01"]
+[gd_scene load_steps=13 format=3 uid="uid://c8playerfps01"]
 
 [ext_resource type="Script" path="res://scripts/player/player.gd" id="1_player"]
 [ext_resource type="Script" path="res://scripts/fsm/state_machine.gd" id="3_fsm"]
@@ -20,6 +20,9 @@ roughness = 0.4
 material = SubResource("StandardMaterial3D_body")
 radius = 0.4
 height = 1.8
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_cam"]
+radius = 0.15
 
 [sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_player"]
 properties/0/path = NodePath(".:position")
@@ -68,7 +71,12 @@ mesh = SubResource("CapsuleMesh_player")
 [node name="Head" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)
 
-[node name="Camera3D" type="Camera3D" parent="Head"]
+[node name="SpringArm3D" type="SpringArm3D" parent="Head"]
+collision_mask = 1
+shape = SubResource("SphereShape3D_cam")
+spring_length = 0.0
+
+[node name="Camera3D" type="Camera3D" parent="Head/SpringArm3D"]
 fov = 75.0
 
 [node name="UncrouchRay" type="RayCast3D" parent="."]

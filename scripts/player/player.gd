@@ -1,13 +1,18 @@
 class_name Player
 extends CharacterBody3D
 
-## FPS CharacterBody3D controller with extensible CharacterData & FSM support.
+## FPS / TPS CharacterBody3D controller with Roblox-style camera zoom, FSM & modular character mechanics.
 
 signal player_state_changed(state_name: String)
 
-# Preloaded Character Data Resources
+# Preloaded Character Data & Mechanics
 const CHAR_THIN := preload("res://resources/characters/thin_character.tres")
 const CHAR_FAT := preload("res://resources/characters/fat_character.tres")
+
+# Camera Zoom Constants
+const MIN_ZOOM: float = 0.0
+const MAX_ZOOM: float = 6.0
+const ZOOM_STEP: float = 0.5
 
 # Dynamic Movement Variables (populated from CharacterData)
 var WALK_SPEED: float = 5.0
@@ -31,7 +36,8 @@ const SPRINT_FOV: float = 88.0
 
 # Node references
 @onready var head: Node3D = $Head
-@onready var camera_3d: Camera3D = $Head/Camera3D
+@onready var spring_arm: SpringArm3D = $Head/SpringArm3D
+@onready var camera_3d: Camera3D = $Head/SpringArm3D/Camera3D
 @onready var state_machine: StateMachine = $StateMachine
 @onready var collision_shape: CollisionShape3D = $CollisionShape3D
 @onready var mesh_instance: MeshInstance3D = $MeshInstance3D
@@ -45,9 +51,14 @@ const SPRINT_FOV: float = 88.0
 
 # Runtime state
 var active_character_data: CharacterData
+var active_mechanics: BaseCharacterMechanics
 var mouse_sensitivity: float = 0.002
 var gravity: float = 12.0
 var target_speed: float = WALK_SPEED
+
+# Roblox-style Camera Zoom
+var target_camera_zoom: float = 0.0
+var current_camera_zoom: float = 0.0
 
 # Standing/Crouching height lerps
 var stand_height: float = 1.8
@@ -64,7 +75,7 @@ func _ready() -> void:
 		peer_id = id_from_name
 		set_multiplayer_authority(peer_id)
 
-	# Fetch chosen character from NetworkManager if local
+	# Fetch chosen character from NetworkManager if local authority
 	if is_multiplayer_authority() and NetworkManager:
 		selected_character_id = NetworkManager.local_character_id
 	else:
@@ -90,7 +101,7 @@ func apply_character_data(data: CharacterData) -> void:
 		return
 	active_character_data = data
 
-	# Apply stats
+	# Apply movement stats
 	WALK_SPEED = data.walk_speed
 	SPRINT_SPEED = data.sprint_speed
 	CROUCH_SPEED = data.crouch_speed
@@ -121,6 +132,8 @@ func apply_character_data(data: CharacterData) -> void:
 	if head:
 		head.position.y = data.stand_head_y
 
+	# Bind modular character mechanics component
+	_setup_character_mechanics(data.character_id)
 	update_hud_display()
 
 func _apply_character_by_id(id: String) -> void:
@@ -130,24 +143,77 @@ func _apply_character_by_id(id: String) -> void:
 		_:
 			apply_character_data(CHAR_THIN)
 
+func _setup_character_mechanics(id: String) -> void:
+	# Remove existing mechanics node if re-applying
+	if active_mechanics and is_instance_valid(active_mechanics):
+		active_mechanics.queue_free()
+		active_mechanics = null
+
+	if id.to_lower() == "fat":
+		active_mechanics = FatMechanics.new()
+		active_mechanics.name = "FatMechanics"
+	else:
+		active_mechanics = ThinMechanics.new()
+		active_mechanics.name = "ThinMechanics"
+
+	add_child(active_mechanics)
+
 func _unhandled_input(event: InputEvent) -> void:
 	if not is_multiplayer_authority():
 		return
 
+	# Handle mouse look
 	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 		rotate_y(-event.relative.x * mouse_sensitivity)
 		head.rotate_x(-event.relative.y * mouse_sensitivity)
 		head.rotation.x = clampf(head.rotation.x, deg_to_rad(-89.0), deg_to_rad(89.0))
 
+	# Roblox-style Camera Zoom on Mouse Wheel
+	if event is InputEventMouseButton and event.pressed:
+		if event.button_index == MOUSE_BUTTON_WHEEL_UP:
+			target_camera_zoom = clampf(target_camera_zoom - ZOOM_STEP, MIN_ZOOM, MAX_ZOOM)
+		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
+			target_camera_zoom = clampf(target_camera_zoom + ZOOM_STEP, MIN_ZOOM, MAX_ZOOM)
+
+	# Toggle mouse lock with Escape
 	if event.is_action_pressed("ui_cancel"):
 		if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 			Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 		else:
 			Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
+	# Delegate ability input to active mechanics script
+	if active_mechanics:
+		active_mechanics.handle_ability_input(event)
+
 func _process(delta: float) -> void:
+	# Smoothly interpolate Roblox-style camera distance
+	_update_camera_zoom(delta)
+
+	# Smoothly interpolate crouch height
 	_update_crouch_geometry(delta)
+
+	if active_mechanics:
+		active_mechanics.update_mechanics(delta)
+
 	update_hud_display()
+
+func _physics_process(delta: float) -> void:
+	if active_mechanics:
+		active_mechanics.physics_update_mechanics(delta)
+
+func _update_camera_zoom(delta: float) -> void:
+	current_camera_zoom = lerpf(current_camera_zoom, target_camera_zoom, 14.0 * delta)
+	if spring_arm:
+		spring_arm.spring_length = current_camera_zoom
+
+	# Toggle local mesh visibility: hide in 1st-person (< 0.25m) so camera inside head doesn't clip body
+	if is_multiplayer_authority():
+		if mesh_instance:
+			mesh_instance.visible = (current_camera_zoom >= 0.25)
+	else:
+		if mesh_instance:
+			mesh_instance.visible = true
 
 # Movement helpers
 func get_movement_input() -> Vector3:
@@ -246,4 +312,5 @@ func update_hud_display() -> void:
 	if authority_label:
 		authority_label.text = "PEER ID: %d (AUTHORITY)" % peer_id
 	if char_info_label and active_character_data:
-		char_info_label.text = "CHAR: %s (SPD: %.1f)" % [active_character_data.character_name, WALK_SPEED]
+		var view_mode := "1ST PERSON" if current_camera_zoom < 0.25 else "3RD PERSON (%.1fm)" % current_camera_zoom
+		char_info_label.text = "CHAR: %s | VIEW: %s" % [active_character_data.character_name, view_mode]
