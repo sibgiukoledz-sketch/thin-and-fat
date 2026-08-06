@@ -57,4 +57,3 @@ func _custom_spawn(id: int) -> Node:
 
 	player_inst.position = spawn_pos
 	return player_inst
-
