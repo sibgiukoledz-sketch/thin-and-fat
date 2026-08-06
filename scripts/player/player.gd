@@ -435,12 +435,14 @@ func _setup_vomit_particles() -> void:
 	cmat.scale_max = 0.22
 	cmat.color = Color(0.55, 0.42, 0.12, 1.0)
 
-	var cmesh := BoxMesh.new()
+	var cmesh := SphereMesh.new()
 	var cdraw := StandardMaterial3D.new()
 	cdraw.albedo_color = Color(0.55, 0.42, 0.12, 1.0)
-	cdraw.roughness = 0.3
+	cdraw.roughness = 0.15
+	cdraw.metallic = 0.1
 	cmesh.material = cdraw
-	cmesh.size = Vector3(0.12, 0.08, 0.12)
+	cmesh.radius = 0.06
+	cmesh.height = 0.12
 
 	chunks.process_material = cmat
 	chunks.draw_pass_1 = cmesh

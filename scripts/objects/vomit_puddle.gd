@@ -20,18 +20,18 @@ func _ready() -> void:
 	_decal = get_node_or_null("Decal") as Decal
 	_puddle_mesh = get_node_or_null("PuddleMesh") as MeshInstance3D
 
-	# 1. Setup Procedural Irregular Noise Decal for organic liquid splatter on ANY surface
+	# 1. Setup Procedural Circular Radial Alpha Splatter Decal (NO square box edges!)
 	_setup_procedural_decal()
 
-	# 2. Scatter 3D chunky food lumps
+	# 2. Scatter 3D organic food lumps
 	_scatter_food_chunks()
 
 	# 3. Create noxious steam & buzzing flies
 	_create_steam_particles()
 	_create_fly_particles()
 
-	# 4. Animated spreading expansion
-	var rand_radius := randf_range(0.9, 1.4)
+	# 4. Animated spreading expansion: Start small and expand smoothly
+	var rand_radius := randf_range(0.9, 1.3)
 	_target_scale = Vector3(rand_radius, rand_radius, rand_radius)
 	scale = Vector3(0.1, 0.1, 0.1)
 
@@ -59,30 +59,57 @@ func align_to_surface(hit_point: Vector3, normal: Vector3, parent_body: Node3D =
 		print("🤮 VOMIT SPLATTER: Attached onto %s!" % parent_body.name)
 
 func _setup_procedural_decal() -> void:
-	var noise := FastNoiseLite.new()
-	noise.seed = randi()
-	noise.frequency = 0.09
-	noise.fractal_octaves = 3
-
-	var noise_tex := NoiseTexture2D.new()
-	noise_tex.noise = noise
-	noise_tex.seamless = true
-	await noise_tex.changed
+	var splatter_tex := _generate_liquid_splatter_texture()
 
 	if _decal:
-		_decal.texture_albedo = noise_tex
-		_decal.modulate = Color(0.48, 0.58, 0.08, 0.95)
+		_decal.texture_albedo = splatter_tex
+		_decal.size = Vector3(1.6, 0.4, 1.6) # Shallow Y depth (0.4m) prevents stretch stripes on 3D boxes!
+		_decal.lower_fade = 0.1
+		_decal.upper_fade = 0.1
+		_decal.normal_fade = 0.5
 		_decal.cull_mask = 0xFFFFFFFF # Project onto EVERYTHING (World + Players)
 
 	if _puddle_mesh:
 		var mat := StandardMaterial3D.new()
-		mat.albedo_color = Color(0.42, 0.52, 0.08, 0.92)
+		mat.albedo_color = Color(0.48, 0.58, 0.08, 0.92)
 		mat.roughness = 0.04
 		mat.metallic = 0.12
 		mat.metallic_specular = 0.75
 		mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-		mat.albedo_texture = noise_tex
+		mat.albedo_texture = splatter_tex
 		_puddle_mesh.material_override = mat
+
+func _generate_liquid_splatter_texture() -> Texture2D:
+	var width := 128
+	var height := 128
+	var img := Image.create(width, height, false, Image.FORMAT_RGBA8)
+
+	var noise := FastNoiseLite.new()
+	noise.seed = randi()
+	noise.frequency = 0.08
+	noise.fractal_octaves = 3
+
+	var center := Vector2(width * 0.5, height * 0.5)
+	var max_radius := width * 0.46
+
+	for y in range(height):
+		for x in range(width):
+			var pos := Vector2(x, y)
+			var dist := pos.distance_to(center)
+			var norm_dist := dist / max_radius
+
+			var n_val := (noise.get_noise_2d(float(x), float(y)) + 1.0) * 0.5
+			# Organic liquid splash edge threshold
+			var threshold := 0.75 + (n_val - 0.5) * 0.35
+
+			if norm_dist < threshold:
+				var edge_alpha := smoothstep(threshold, threshold - 0.2, norm_dist)
+				var col := Color(0.48, 0.58, 0.08, edge_alpha * 0.95)
+				img.set_pixel(x, y, col)
+			else:
+				img.set_pixel(x, y, Color(0, 0, 0, 0))
+
+	return ImageTexture.create_from_image(img)
 
 func _scatter_food_chunks() -> void:
 	_chunks_node = Node3D.new()
@@ -91,21 +118,22 @@ func _scatter_food_chunks() -> void:
 
 	var chunk_mat := StandardMaterial3D.new()
 	chunk_mat.albedo_color = Color(0.55, 0.42, 0.12, 1.0)
-	chunk_mat.roughness = 0.2
+	chunk_mat.roughness = 0.25
 
-	var num_chunks := randi_range(5, 9)
+	var num_chunks := randi_range(6, 10)
 	for i in num_chunks:
 		var chunk := MeshInstance3D.new()
-		var box := BoxMesh.new()
-		var size_xz := randf_range(0.06, 0.16)
-		box.size = Vector3(size_xz, randf_range(0.03, 0.07), randf_range(0.06, 0.14))
-		box.material = chunk_mat
+		var sphere := SphereMesh.new()
+		var r := randf_range(0.04, 0.09)
+		sphere.radius = r
+		sphere.height = r * randf_range(0.6, 1.1)
+		sphere.material = chunk_mat
 
-		chunk.mesh = box
+		chunk.mesh = sphere
 		chunk.position = Vector3(
-			randf_range(-0.5, 0.5),
+			randf_range(-0.45, 0.45),
 			0.02,
-			randf_range(-0.5, 0.5)
+			randf_range(-0.45, 0.45)
 		)
 		chunk.rotation.y = randf() * TAU
 		_chunks_node.add_child(chunk)
