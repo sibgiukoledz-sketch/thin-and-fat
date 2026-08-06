@@ -8,9 +8,9 @@ signal stench_changed(current: float, max_stench: float)
 @export var max_stench: float = 100.0
 @export var stench_level: float = 0.0
 
-# Balanced Accumulation Rates
-@export var stench_walk_rate: float = 1.8
-@export var stench_sprint_rate: float = 7.5
+# Balanced Accumulation Rates (Slow & Realistic)
+@export var stench_walk_rate: float = 0.6
+@export var stench_sprint_rate: float = 3.0
 
 @export var stench_damage_threshold: float = 75.0
 @export var stench_damage_per_sec: float = 20.0
@@ -152,6 +152,11 @@ func update_mechanics(delta: float) -> void:
 
 func wash_stench() -> void:
 	stench_level = 0.0
+	stench_changed.emit(stench_level, max_stench)
+	_update_gas_visuals()
+
+func wash_stench_gradual(amount: float) -> void:
+	stench_level = clampf(stench_level - amount, 0.0, max_stench)
 	stench_changed.emit(stench_level, max_stench)
 	_update_gas_visuals()
 	print("🦛 FAT: Stench completely washed off in shower!")
