@@ -287,10 +287,11 @@ func _unhandled_input(event: InputEvent) -> void:
 		else:
 			_perform_melee_attack()
 
-	# Handle mouse look
+	# Handle mouse look with nauseous sluggishness
 	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
-		rotate_y(-event.relative.x * mouse_sensitivity)
-		head.rotate_x(-event.relative.y * mouse_sensitivity)
+		var sens := mouse_sensitivity * (1.0 - nausea_intensity * 0.35)
+		rotate_y(-event.relative.x * sens)
+		head.rotate_x(-event.relative.y * sens)
 		head.rotation.x = clampf(head.rotation.x, deg_to_rad(-89.0), deg_to_rad(89.0))
 
 	# Roblox-style Camera Zoom on Mouse Wheel
@@ -453,6 +454,14 @@ func get_movement_input() -> Vector3:
 			input_vec.x -= 1.0
 		if Input.is_physical_key_pressed(KEY_D) or Input.is_physical_key_pressed(KEY_RIGHT):
 			input_vec.x += 1.0
+
+	# Drunken/Nauseous Control Wobble & Stumble Drift
+	if nausea_intensity > 0.05 and input_vec != Vector2.ZERO:
+		var t := Time.get_ticks_msec() * 0.003
+		var drift_x := sin(t * 1.8) * 0.55 * nausea_intensity
+		var drift_y := cos(t * 2.2) * 0.3 * nausea_intensity
+		input_vec.x += drift_x
+		input_vec.y += drift_y
 
 	input_vec = input_vec.normalized()
 	var direction := (transform.basis * Vector3(input_vec.x, 0.0, input_vec.y)).normalized()
