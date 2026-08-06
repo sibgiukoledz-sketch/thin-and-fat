@@ -101,6 +101,8 @@ var _last_air_velocity_y: float = 0.0
 # Roblox-style Camera Zoom
 var target_camera_zoom: float = 0.0
 var current_camera_zoom: float = 0.0
+var is_first_person: bool = true
+
 
 # Standing/Crouching height lerps
 var stand_height: float = 1.8
@@ -428,8 +430,9 @@ func _update_camera_zoom(delta: float) -> void:
 	if camera_3d and camera_3d.fov < 74.9:
 		camera_3d.fov = lerpf(camera_3d.fov, 75.0, 4.0 * delta)
 
-	var is_first_person := (current_camera_zoom < 0.25)
+	is_first_person = (current_camera_zoom < 0.25)
 	var crosshair: Control = hud.crosshair if (hud and "crosshair" in hud) else null
+
 
 	if is_multiplayer_authority():
 		if mesh_instance:

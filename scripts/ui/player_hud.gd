@@ -111,8 +111,10 @@ func update_display() -> void:
 			stamina_label.text = "STAMINA: %d%%" % int((player.current_stamina / player.max_stamina) * 100.0)
 	if char_info_label:
 		var char_name: String = "ЖИРНЫЙ (ЖИРДЯЙ)" if player.selected_character_id.to_lower() == "fat" else "ХУДОЙ"
-		var view_str: String = "1ST PERSON" if player.is_first_person else "3RD PERSON"
+		var is_fp: bool = ("is_first_person" in player) and bool(player.is_first_person)
+		var view_str: String = "1ST PERSON" if is_fp else "3RD PERSON"
 		char_info_label.text = "CHAR: %s | VIEW: %s" % [char_name, view_str]
+
 
 	if stench_bar and stench_label:
 		if player.selected_character_id.to_lower() == "fat":
