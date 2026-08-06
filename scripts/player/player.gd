@@ -338,11 +338,15 @@ func _update_crouch_geometry(delta: float) -> void:
 	var target_h := crouch_height if is_crouching else stand_height
 	var target_head := crouch_head_y if is_crouching else stand_head_y
 
-	head.position.y = lerpf(head.position.y, target_head, 12.0 * delta)
+	head.position.y = lerpf(head.position.y, target_head, 14.0 * delta)
 
 	if collision_shape and collision_shape.shape is CapsuleShape3D:
 		var caps := collision_shape.shape as CapsuleShape3D
-		caps.height = lerpf(caps.height, target_h, 12.0 * delta)
+		caps.height = lerpf(caps.height, target_h, 14.0 * delta)
+		collision_shape.position.y = caps.height / 2.0
+
+	if mesh_instance:
+		mesh_instance.position.y = collision_shape.position.y
 
 func _on_state_changed(_from: String, to_state: String) -> void:
 	synced_state_name = to_state

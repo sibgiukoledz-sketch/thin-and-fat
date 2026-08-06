@@ -14,7 +14,7 @@ func physics_update(delta: float) -> void:
 	if not player:
 		return
 
-	if not player.is_on_floor():
+	if not player.is_on_floor() and player.velocity.y < -0.1:
 		state_machine.transition_to("Air")
 		return
 
