@@ -21,6 +21,7 @@ config/icon="res://icon.svg"
 
 [autoload]
 
+InputManager="*res://scripts/managers/input_manager.gd"
 NetworkManager="*res://scripts/network/network_manager.gd"
 
 [display]
