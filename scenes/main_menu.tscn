@@ -146,7 +146,7 @@ grow_vertical = 2
 [node name="LeftColumn" type="VBoxContainer" parent="OuterBorderFrame/MainPanel/ContentContainer"]
 custom_minimum_size = Vector2(340, 0)
 layout_mode = 2
-theme_override_constants/separation = 12
+theme_override_constants/separation = 14
 
 [node name="TitleContainer" type="VBoxContainer" parent="OuterBorderFrame/MainPanel/ContentContainer/LeftColumn"]
 layout_mode = 2
@@ -178,31 +178,19 @@ layout_mode = 2
 
 [node name="ButtonsStack" type="VBoxContainer" parent="OuterBorderFrame/MainPanel/ContentContainer/LeftColumn"]
 layout_mode = 2
-theme_override_constants/separation = 8
+theme_override_constants/separation = 10
 
-[node name="HostButton" type="Button" parent="OuterBorderFrame/MainPanel/ContentContainer/LeftColumn/ButtonsStack"]
+[node name="PlayButton" type="Button" parent="OuterBorderFrame/MainPanel/ContentContainer/LeftColumn/ButtonsStack"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 44)
+custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.18, 0.15, 0.12, 1)
 theme_override_colors/font_hover_color = Color(0.05, 0.05, 0.05, 1)
-theme_override_font_sizes/font_size = 15
+theme_override_font_sizes/font_size = 16
 theme_override_styles/normal = SubResource("StyleBoxFlat_bone_btn")
 theme_override_styles/hover = SubResource("StyleBoxFlat_bone_btn_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_bone_btn_pressed")
-text = "[ HOST NEW GAME ]"
-
-[node name="JoinButton" type="Button" parent="OuterBorderFrame/MainPanel/ContentContainer/LeftColumn/ButtonsStack"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 44)
-layout_mode = 2
-theme_override_colors/font_color = Color(0.18, 0.15, 0.12, 1)
-theme_override_colors/font_hover_color = Color(0.05, 0.05, 0.05, 1)
-theme_override_font_sizes/font_size = 15
-theme_override_styles/normal = SubResource("StyleBoxFlat_bone_btn")
-theme_override_styles/hover = SubResource("StyleBoxFlat_bone_btn_hover")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_bone_btn_pressed")
-text = "[ JOIN MULTIPLAYER ]"
+text = "[ PLAY MULTIPLAYER ]"
 
 [node name="CharSelectButton" type="Button" parent="OuterBorderFrame/MainPanel/ContentContainer/LeftColumn/ButtonsStack"]
 unique_name_in_owner = true
@@ -210,7 +198,7 @@ custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.18, 0.15, 0.12, 1)
 theme_override_colors/font_hover_color = Color(0.05, 0.05, 0.05, 1)
-theme_override_font_sizes/font_size = 15
+theme_override_font_sizes/font_size = 14
 theme_override_styles/normal = SubResource("StyleBoxFlat_bone_btn")
 theme_override_styles/hover = SubResource("StyleBoxFlat_bone_btn_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_bone_btn_pressed")
@@ -222,7 +210,7 @@ custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.18, 0.15, 0.12, 1)
 theme_override_colors/font_hover_color = Color(0.05, 0.05, 0.05, 1)
-theme_override_font_sizes/font_size = 15
+theme_override_font_sizes/font_size = 14
 theme_override_styles/normal = SubResource("StyleBoxFlat_stone_btn")
 text = "[ SETTINGS ]"
 
@@ -232,52 +220,11 @@ custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.18, 0.15, 0.12, 1)
 theme_override_colors/font_hover_color = Color(0.05, 0.05, 0.05, 1)
-theme_override_font_sizes/font_size = 15
+theme_override_font_sizes/font_size = 14
 theme_override_styles/normal = SubResource("StyleBoxFlat_bone_btn")
 theme_override_styles/hover = SubResource("StyleBoxFlat_bone_btn_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_bone_btn_pressed")
 text = "[ QUIT ]"
-
-[node name="HSeparator2" type="HSeparator" parent="OuterBorderFrame/MainPanel/ContentContainer/LeftColumn"]
-layout_mode = 2
-
-[node name="GridContainer" type="GridContainer" parent="OuterBorderFrame/MainPanel/ContentContainer/LeftColumn"]
-layout_mode = 2
-columns = 2
-
-[node name="IPLabel" type="Label" parent="OuterBorderFrame/MainPanel/ContentContainer/LeftColumn/GridContainer"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.25, 0.22, 0.18, 1)
-text = "IP Address:"
-
-[node name="IPInput" type="LineEdit" parent="OuterBorderFrame/MainPanel/ContentContainer/LeftColumn/GridContainer"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0.15, 0.12, 0.1, 1)
-theme_override_styles/normal = SubResource("StyleBoxFlat_input")
-text = "127.0.0.1"
-
-[node name="PortLabel" type="Label" parent="OuterBorderFrame/MainPanel/ContentContainer/LeftColumn/GridContainer"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.25, 0.22, 0.18, 1)
-text = "Port:"
-
-[node name="PortInput" type="LineEdit" parent="OuterBorderFrame/MainPanel/ContentContainer/LeftColumn/GridContainer"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0.15, 0.12, 0.1, 1)
-theme_override_styles/normal = SubResource("StyleBoxFlat_input")
-text = "8910"
-
-[node name="StatusLabel" type="Label" parent="OuterBorderFrame/MainPanel/ContentContainer/LeftColumn"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_colors/font_color = Color(0.4, 0.25, 0.1, 1)
-theme_override_font_sizes/font_size = 12
-text = "Status: Ready to play"
-horizontal_alignment = 1
 
 [node name="RightCharacterDisplayArea" type="Control" parent="OuterBorderFrame/MainPanel/ContentContainer"]
 layout_mode = 2

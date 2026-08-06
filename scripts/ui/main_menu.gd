@@ -1,14 +1,10 @@
 extends Control
 
-## Main menu script supporting Slender/Bone themed UI and multiplayer actions.
+## Main menu script supporting Slender/Bone themed UI and transition to Lobby menu.
 
-@onready var ip_input: LineEdit = %IPInput
-@onready var port_input: LineEdit = %PortInput
-@onready var host_btn: Button = %HostButton
-@onready var join_btn: Button = %JoinButton
+@onready var play_btn: Button = %PlayButton
 @onready var char_select_btn: Button = %CharSelectButton
 @onready var quit_btn: Button = %QuitButton
-@onready var status_label: Label = %StatusLabel
 
 @onready var char_name_label: Label = %CharNameLabel
 @onready var char_desc_label: Label = %CharDescLabel
@@ -16,16 +12,17 @@ extends Control
 var selected_character: String = "fat"
 
 func _ready() -> void:
-	if NetworkManager:
-		NetworkManager.connection_status_changed.connect(_on_connection_status_changed)
-
-	host_btn.pressed.connect(_on_host_pressed)
-	join_btn.pressed.connect(_on_join_pressed)
-	char_select_btn.pressed.connect(_on_toggle_character)
+	if play_btn:
+		play_btn.pressed.connect(_on_play_pressed)
+	if char_select_btn:
+		char_select_btn.pressed.connect(_on_toggle_character)
 	if quit_btn:
 		quit_btn.pressed.connect(func(): get_tree().quit())
 
 	_update_character_ui("fat")
+
+func _on_play_pressed() -> void:
+	get_tree().change_scene_to_file("res://scenes/lobby_menu.tscn")
 
 func _on_toggle_character() -> void:
 	if selected_character == "fat":
@@ -52,20 +49,3 @@ func _update_character_ui(id: String) -> void:
 			char_desc_label.text = "Узкий хитбокс (0.28m), рост 2.4m | 80 HP | Быстрый долгий спринт"
 		if char_select_btn:
 			char_select_btn.text = "[ CHARACTER: THIN (ХУДОЙ) ]"
-
-func _on_host_pressed() -> void:
-	var port := int(port_input.text) if port_input.text.is_valid_int() else NetworkManager.DEFAULT_PORT
-	status_label.text = "Starting server..."
-	NetworkManager.host_game(port)
-
-func _on_join_pressed() -> void:
-	var ip := ip_input.text.strip_edges()
-	if ip.is_empty():
-		ip = "127.0.0.1"
-	var port := int(port_input.text) if port_input.text.is_valid_int() else NetworkManager.DEFAULT_PORT
-	status_label.text = "Connecting..."
-	NetworkManager.join_game(ip, port)
-
-func _on_connection_status_changed(status_text: String) -> void:
-	if status_label:
-		status_label.text = status_text

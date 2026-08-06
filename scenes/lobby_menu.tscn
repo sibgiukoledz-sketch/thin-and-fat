@@ -1,0 +1,263 @@
+[gd_scene format=3 uid="uid://btrchkfuruibk"]
+
+[ext_resource type="Script" path="res://scripts/ui/lobby_menu.gd" id="1_lobby"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_parchment_bg"]
+bg_color = Color(0.84, 0.79, 0.7, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bone_frame"]
+bg_color = Color(0.88, 0.84, 0.76, 0.95)
+border_width_left = 6
+border_width_top = 6
+border_width_right = 6
+border_width_bottom = 6
+border_color = Color(0.95, 0.93, 0.88, 1)
+corner_radius_top_left = 18
+corner_radius_top_right = 18
+corner_radius_bottom_right = 18
+corner_radius_bottom_left = 18
+shadow_color = Color(0.25, 0.2, 0.15, 0.35)
+shadow_size = 12
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bone_btn"]
+bg_color = Color(0.78, 0.73, 0.64, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.94, 0.92, 0.86, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+shadow_color = Color(0.2, 0.16, 0.12, 0.3)
+shadow_size = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bone_btn_hover"]
+bg_color = Color(0.88, 0.83, 0.74, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.98, 0.96, 0.92, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_input"]
+bg_color = Color(0.92, 0.89, 0.82, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.6, 0.54, 0.44, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_player_panel"]
+bg_color = Color(0.82, 0.77, 0.68, 0.9)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.9, 0.86, 0.78, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[node name="LobbyMenu" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_lobby")
+
+[node name="Background" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_parchment_bg")
+
+[node name="OuterBorderFrame" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 24
+
+[node name="MainPanel" type="Panel" parent="OuterBorderFrame"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_bone_frame")
+
+[node name="HeaderContainer" type="VBoxContainer" parent="OuterBorderFrame/MainPanel"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 20.0
+offset_bottom = 70.0
+grow_horizontal = 2
+theme_override_constants/separation = 2
+
+[node name="LobbyTitle" type="Label" parent="OuterBorderFrame/MainPanel/HeaderContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.2, 0.16, 0.12, 1)
+theme_override_font_sizes/font_size = 24
+text = "🦴 MULTIPLAYER LOBBY ROOM 🦴"
+horizontal_alignment = 1
+
+[node name="SelectedCharLabel" type="Label" parent="OuterBorderFrame/MainPanel/HeaderContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.35, 0.28, 0.2, 1)
+theme_override_font_sizes/font_size = 13
+text = "Выбран персонаж: 🦛 2. Жирный (Жирдяй)"
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="OuterBorderFrame/MainPanel/HeaderContainer"]
+layout_mode = 2
+
+[node name="ContentContainer" type="HBoxContainer" parent="OuterBorderFrame/MainPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 32.0
+offset_top = 80.0
+offset_right = -32.0
+offset_bottom = -32.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 24
+
+[node name="LeftForm" type="VBoxContainer" parent="OuterBorderFrame/MainPanel/ContentContainer"]
+custom_minimum_size = Vector2(360, 0)
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="HostSectionLabel" type="Label" parent="OuterBorderFrame/MainPanel/ContentContainer/LeftForm"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.25, 0.2, 0.15, 1)
+theme_override_font_sizes/font_size = 16
+text = "1. СОЗДАТЬ СЕРВЕР (HOST):"
+
+[node name="HostButton" type="Button" parent="OuterBorderFrame/MainPanel/ContentContainer/LeftForm"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.18, 0.15, 0.12, 1)
+theme_override_font_sizes/font_size = 15
+theme_override_styles/normal = SubResource("StyleBoxFlat_bone_btn")
+theme_override_styles/hover = SubResource("StyleBoxFlat_bone_btn_hover")
+text = "[ CREATE ROOM / HOST GAME ]"
+
+[node name="HSeparator2" type="HSeparator" parent="OuterBorderFrame/MainPanel/ContentContainer/LeftForm"]
+layout_mode = 2
+
+[node name="JoinSectionLabel" type="Label" parent="OuterBorderFrame/MainPanel/ContentContainer/LeftForm"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.25, 0.2, 0.15, 1)
+theme_override_font_sizes/font_size = 16
+text = "2. ПОДКЛЮЧИТЬСЯ К ИГРОКУ (JOIN):"
+
+[node name="GridContainer" type="GridContainer" parent="OuterBorderFrame/MainPanel/ContentContainer/LeftForm"]
+layout_mode = 2
+theme_override_constants/h_separation = 10
+theme_override_constants/v_separation = 8
+columns = 2
+
+[node name="IPLabel" type="Label" parent="OuterBorderFrame/MainPanel/ContentContainer/LeftForm/GridContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.25, 0.2, 0.15, 1)
+text = "IP Address:"
+
+[node name="IPInput" type="LineEdit" parent="OuterBorderFrame/MainPanel/ContentContainer/LeftForm/GridContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.15, 0.12, 0.1, 1)
+theme_override_styles/normal = SubResource("StyleBoxFlat_input")
+text = "127.0.0.1"
+
+[node name="PortLabel" type="Label" parent="OuterBorderFrame/MainPanel/ContentContainer/LeftForm/GridContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.25, 0.2, 0.15, 1)
+text = "Port:"
+
+[node name="PortInput" type="LineEdit" parent="OuterBorderFrame/MainPanel/ContentContainer/LeftForm/GridContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.15, 0.12, 0.1, 1)
+theme_override_styles/normal = SubResource("StyleBoxFlat_input")
+text = "8910"
+
+[node name="JoinButton" type="Button" parent="OuterBorderFrame/MainPanel/ContentContainer/LeftForm"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.18, 0.15, 0.12, 1)
+theme_override_font_sizes/font_size = 15
+theme_override_styles/normal = SubResource("StyleBoxFlat_bone_btn")
+theme_override_styles/hover = SubResource("StyleBoxFlat_bone_btn_hover")
+text = "[ CONNECT TO ROOM ]"
+
+[node name="HSeparator3" type="HSeparator" parent="OuterBorderFrame/MainPanel/ContentContainer/LeftForm"]
+layout_mode = 2
+
+[node name="BackButton" type="Button" parent="OuterBorderFrame/MainPanel/ContentContainer/LeftForm"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.18, 0.15, 0.12, 1)
+theme_override_font_sizes/font_size = 14
+theme_override_styles/normal = SubResource("StyleBoxFlat_bone_btn")
+theme_override_styles/hover = SubResource("StyleBoxFlat_bone_btn_hover")
+text = "[ ← BACK TO MAIN MENU ]"
+
+[node name="RightList" type="VBoxContainer" parent="OuterBorderFrame/MainPanel/ContentContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
+
+[node name="StatusLabel" type="Label" parent="OuterBorderFrame/MainPanel/ContentContainer/RightList"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.45, 0.25, 0.1, 1)
+theme_override_font_sizes/font_size = 14
+text = "Status: Ready to host or connect"
+horizontal_alignment = 1
+
+[node name="PlayerListPanel" type="PanelContainer" parent="OuterBorderFrame/MainPanel/ContentContainer/RightList"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_player_panel")
+
+[node name="MarginContainer" type="MarginContainer" parent="OuterBorderFrame/MainPanel/ContentContainer/RightList/PlayerListPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 16
+
+[node name="PlayerListLabel" type="Label" parent="OuterBorderFrame/MainPanel/ContentContainer/RightList/PlayerListPanel/MarginContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 1
+theme_override_colors/font_color = Color(0.2, 0.16, 0.12, 1)
+theme_override_font_sizes/font_size = 14
+text = "Подключенные игроки (0):\nСоздайте комнату или подключитесь по IP..."
+autowrap_mode = 2
