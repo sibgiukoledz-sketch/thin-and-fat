@@ -1,0 +1,89 @@
+[gd_scene format=3 uid="uid://c8trashbin01"]
+
+[ext_resource type="Script" path="res://scripts/objects/trash_bin.gd" id="1_trash"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_trigger"]
+size = Vector3(2.0, 1.6, 2.0)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_metal"]
+albedo_color = Color(0.2, 0.35, 0.22, 1)
+roughness = 0.6
+
+[sub_resource type="BoxMesh" id="BoxMesh_container"]
+material = SubResource("StandardMaterial3D_metal")
+size = Vector3(1.6, 1.1, 1.6)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_garbage"]
+albedo_color = Color(0.3, 0.25, 0.15, 1)
+roughness = 0.9
+
+[sub_resource type="BoxMesh" id="BoxMesh_garbage"]
+material = SubResource("StandardMaterial3D_garbage")
+size = Vector3(1.4, 0.4, 1.4)
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_trash"]
+direction = Vector3(0, 1, 0)
+spread = 60.0
+initial_velocity_min = 1.5
+initial_velocity_max = 3.5
+gravity = Vector3(0, -4.0, 0)
+scale_min = 0.08
+scale_max = 0.22
+color = Color(0.4, 0.35, 0.2, 0.8)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_chip"]
+shading_mode = 0
+albedo_color = Color(0.35, 0.3, 0.15, 0.9)
+
+[sub_resource type="SphereMesh" id="SphereMesh_chip"]
+material = SubResource("StandardMaterial3D_chip")
+radius = 0.08
+height = 0.16
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_container"]
+size = Vector3(1.6, 1.1, 1.6)
+
+[node name="TrashBin" type="Area3D"]
+collision_layer = 8
+collision_mask = 2
+script = ExtResource("1_trash")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 0)
+shape = SubResource("BoxShape3D_trigger")
+
+[node name="PromptLabel3D" type="Label3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6, 0)
+billboard = 1
+double_sided = false
+text = "🗑️ МУСОРКА (+35% ВОНИ)"
+font_size = 26
+outline_size = 6
+
+[node name="TrashParticles" type="GPUParticles3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.0, 0)
+emitting = false
+amount = 20
+lifetime = 0.5
+one_shot = true
+explosiveness = 0.8
+process_material = SubResource("ParticleProcessMaterial_trash")
+draw_pass_1 = SubResource("SphereMesh_chip")
+
+[node name="Visuals" type="Node3D" parent="."]
+
+[node name="ContainerMesh" type="MeshInstance3D" parent="Visuals"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.55, 0)
+mesh = SubResource("BoxMesh_container")
+
+[node name="GarbagePileMesh" type="MeshInstance3D" parent="Visuals"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+mesh = SubResource("BoxMesh_garbage")
+
+[node name="StaticColliders" type="StaticBody3D" parent="."]
+collision_layer = 1
+collision_mask = 2
+
+[node name="ContainerCol" type="CollisionShape3D" parent="StaticColliders"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.55, 0)
+shape = SubResource("BoxShape3D_container")

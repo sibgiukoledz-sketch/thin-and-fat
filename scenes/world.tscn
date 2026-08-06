@@ -1,8 +1,9 @@
-[gd_scene load_steps=15 format=3 uid="uid://c8worldfps01"]
+[gd_scene load_steps=16 format=3 uid="uid://c8worldfps01"]
 
 [ext_resource type="Script" uid="uid://5ej66y8ce2gp" path="res://scripts/world/world.gd" id="1_world"]
 [ext_resource type="PackedScene" uid="uid://c8dummynpc01" path="res://scenes/dummy_npc.tscn" id="2_dummy"]
 [ext_resource type="PackedScene" uid="uid://c8showercabin01" path="res://scenes/shower_cabin.tscn" id="3_shower"]
+[ext_resource type="PackedScene" uid="uid://c8trashbin01" path="res://scenes/trash_bin.tscn" id="4_trash"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sky"]
 sky_top_color = Color(0.18, 0.45, 0.85, 1)
@@ -96,6 +97,15 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0, -3)
 
 [node name="ShowerCabin2" parent="Showers" instance=ExtResource("3_shower")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0, -3)
+
+[node name="TrashBins" type="Node3D" parent="."]
+
+[node name="TrashBinSingle" parent="TrashBins" instance=ExtResource("4_trash")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0, 0)
+
+[node name="TrashBinInfinite" parent="TrashBins" instance=ExtResource("4_trash")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 0, 0)
+is_infinite = true
 
 [node name="Level" type="Node3D" parent="." unique_id=1790019069]
 
