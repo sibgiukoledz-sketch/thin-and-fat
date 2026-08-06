@@ -2,8 +2,8 @@ class_name HeavyBoulder
 extends RigidBody3D
 
 ## Giant Rugged Boulder with native Godot 3D Rigid Body physics.
-## Rolls, bounces, and collides realistically with terrain and objects.
-## Only Fat character can lift and throw it. Crushes Thin player into a pancake if attempted!
+## Features 512x512 AAA procedural multi-layer granite textures, normal map displacement,
+## non-uniform roughness, and 4-tier cinematic impact particle systems (Plume, Shards, Shockwave, Friction Sparks).
 
 signal boulder_picked_up(by_player: Node3D)
 signal boulder_thrown(by_player: Node3D)
@@ -26,9 +26,12 @@ var _is_crushing: bool = false
 var _lift_progress: float = 1.0
 var _lift_start_pos: Vector3 = Vector3.ZERO
 
-# VFX nodes
+# 4-Tier AAA VFX Nodes
 var _dust_particles: GPUParticles3D
 var _debris_particles: GPUParticles3D
+var _shockwave_particles: GPUParticles3D
+var _spark_particles: GPUParticles3D
+
 var _warning_timer: float = 0.0
 var _warning_text: String = ""
 var _last_impact_time: float = 0.0
@@ -48,19 +51,19 @@ func _setup_boulder_visuals() -> void:
 		var sphere: SphereMesh = SphereMesh.new()
 		sphere.radius = 1.8
 		sphere.height = 3.4
-		sphere.radial_segments = 24
-		sphere.rings = 18
+		sphere.radial_segments = 32
+		sphere.rings = 24
 
-		# Generate rugged rock textures with normal map
-		var textures: Array[ImageTexture] = _generate_rugged_rock_textures()
+		# Generate 512x512 AAA multi-layered procedural rock textures (Albedo, Normal, Roughness)
+		var textures: Array[ImageTexture] = _generate_high_detail_rock_textures()
 		var mat: StandardMaterial3D = StandardMaterial3D.new()
 		mat.albedo_texture = textures[0]
 		mat.normal_enabled = true
 		mat.normal_texture = textures[1]
-		mat.normal_scale = 2.5
-		mat.roughness = 0.95
-		mat.metallic = 0.05
-		mat.uv1_scale = Vector3(3, 3, 3)
+		mat.normal_scale = 3.5
+		mat.roughness_texture = textures[2]
+		mat.metallic = 0.08
+		mat.uv1_scale = Vector3(2.5, 2.5, 2.5)
 		sphere.material = mat
 
 		mesh_instance.mesh = sphere
@@ -70,50 +73,73 @@ func _setup_boulder_visuals() -> void:
 		caps.radius = 1.8
 		collision_shape.shape = caps
 
-func _generate_rugged_rock_textures() -> Array[ImageTexture]:
-	var width: int = 256
-	var height: int = 256
+func _generate_high_detail_rock_textures() -> Array[ImageTexture]:
+	var width: int = 512
+	var height: int = 512
 	var albedo_img: Image = Image.create(width, height, false, Image.FORMAT_RGBA8)
 	var normal_img: Image = Image.create(width, height, false, Image.FORMAT_RGBA8)
+	var rough_img: Image = Image.create(width, height, false, Image.FORMAT_RGBA8)
 
-	var noise: FastNoiseLite = FastNoiseLite.new()
-	noise.seed = 12345
-	noise.noise_type = FastNoiseLite.TYPE_PERLIN
-	noise.frequency = 0.04
-	noise.fractal_octaves = 5
+	var noise_base: FastNoiseLite = FastNoiseLite.new()
+	noise_base.seed = 12345
+	noise_base.noise_type = FastNoiseLite.TYPE_PERLIN
+	noise_base.frequency = 0.02
+	noise_base.fractal_octaves = 6
 
-	var detail_noise: FastNoiseLite = FastNoiseLite.new()
-	detail_noise.seed = 67890
-	detail_noise.noise_type = FastNoiseLite.TYPE_CELLULAR
-	detail_noise.frequency = 0.12
+	var noise_cracks: FastNoiseLite = FastNoiseLite.new()
+	noise_cracks.seed = 99999
+	noise_cracks.noise_type = FastNoiseLite.TYPE_CELLULAR
+	noise_cracks.frequency = 0.06
+
+	var noise_lichen: FastNoiseLite = FastNoiseLite.new()
+	noise_lichen.seed = 77777
+	noise_lichen.noise_type = FastNoiseLite.TYPE_SIMPLEX_SMOOTH
+	noise_lichen.frequency = 0.09
 
 	for y in range(height):
 		for x in range(width):
-			var n: float = (noise.get_noise_2d(float(x), float(y)) + 1.0) * 0.5
-			var dn: float = (detail_noise.get_noise_2d(float(x), float(y)) + 1.0) * 0.5
-			var rock_val: float = clampf(n * 0.65 + dn * 0.35, 0.0, 1.0)
+			var fx: float = float(x)
+			var fy: float = float(y)
 
-			# Dark granite stone color with natural variation
-			var base_col: Color = Color(0.25, 0.22, 0.20, 1.0).lerp(Color(0.52, 0.47, 0.40, 1.0), rock_val)
-			albedo_img.set_pixel(x, y, base_col)
+			var n_base: float = (noise_base.get_noise_2d(fx, fy) + 1.0) * 0.5
+			var n_crack: float = (noise_cracks.get_noise_2d(fx, fy) + 1.0) * 0.5
+			var n_lichen: float = (noise_lichen.get_noise_2d(fx, fy) + 1.0) * 0.5
 
-			# Normal map displacement vector
-			var nx: float = (noise.get_noise_2d(float(x + 1), float(y)) - noise.get_noise_2d(float(x - 1), float(y))) * 5.0
-			var ny: float = (noise.get_noise_2d(float(x), float(y + 1)) - noise.get_noise_2d(float(x), float(y - 1))) * 5.0
+			# 1. Albedo Color Composition
+			var granite_col: Color = Color(0.20, 0.18, 0.16, 1.0).lerp(Color(0.55, 0.50, 0.42, 1.0), n_base)
+			# Weathered brown soil/clay seams
+			if n_crack < 0.35:
+				var crack_factor: float = smoothstep(0.35, 0.1, n_crack)
+				granite_col = granite_col.lerp(Color(0.12, 0.09, 0.07, 1.0), crack_factor * 0.85)
+			# Lichen moss flecks
+			if n_lichen > 0.62:
+				var moss_factor: float = smoothstep(0.62, 0.85, n_lichen)
+				granite_col = granite_col.lerp(Color(0.32, 0.38, 0.22, 1.0), moss_factor * 0.7)
+
+			albedo_img.set_pixel(x, y, granite_col)
+
+			# 2. High-Frequency Gradient Normal Map Calculation
+			var nx: float = (noise_base.get_noise_2d(fx + 1.0, fy) - noise_base.get_noise_2d(fx - 1.0, fy)) * 6.0
+			var ny: float = (noise_base.get_noise_2d(fx, fy + 1.0) - noise_base.get_noise_2d(fx, fy - 1.0)) * 6.0
 			var normal_vec: Vector3 = Vector3(-nx, -ny, 1.0).normalized()
 			var norm_col: Color = Color(normal_vec.x * 0.5 + 0.5, normal_vec.y * 0.5 + 0.5, normal_vec.z * 0.5 + 0.5, 1.0)
 			normal_img.set_pixel(x, y, norm_col)
 
+			# 3. Non-Uniform Specular Roughness Map (rough rock vs glossy quartz flecks)
+			var rough_val: float = clampf(0.85 + (n_base - 0.5) * 0.3 - (n_lichen * 0.25), 0.35, 0.98)
+			rough_img.set_pixel(x, y, Color(rough_val, rough_val, rough_val, 1.0))
+
 	var albedo_tex: ImageTexture = ImageTexture.create_from_image(albedo_img)
 	var normal_tex: ImageTexture = ImageTexture.create_from_image(normal_img)
-	return [albedo_tex, normal_tex]
+	var rough_tex: ImageTexture = ImageTexture.create_from_image(rough_img)
+	return [albedo_tex, normal_tex, rough_tex]
 
 func _setup_impact_vfx() -> void:
-	# Dust cloud explosion
+	# === 1. DUST PLUME CLOUD (Billowing volumetric dust) ===
 	_dust_particles = GPUParticles3D.new()
-	_dust_particles.name = "ImpactDust"
-	_dust_particles.amount = 60
-	_dust_particles.lifetime = 1.6
+	_dust_particles.name = "VFX_DustPlume"
+	_dust_particles.amount = 70
+	_dust_particles.lifetime = 1.8
 	_dust_particles.one_shot = true
 	_dust_particles.explosiveness = 0.96
 	_dust_particles.emitting = false
@@ -121,56 +147,143 @@ func _setup_impact_vfx() -> void:
 	var mat_proc: ParticleProcessMaterial = ParticleProcessMaterial.new()
 	mat_proc.direction = Vector3(0, 1, 0)
 	mat_proc.spread = 85.0
-	mat_proc.initial_velocity_min = 5.0
-	mat_proc.initial_velocity_max = 12.0
-	mat_proc.gravity = Vector3(0, -4.0, 0)
-	mat_proc.scale_min = 0.5
-	mat_proc.scale_max = 1.4
-	mat_proc.color = Color(0.52, 0.46, 0.38, 0.75)
+	mat_proc.initial_velocity_min = 6.0
+	mat_proc.initial_velocity_max = 14.0
+	mat_proc.gravity = Vector3(0, -3.5, 0)
+	mat_proc.scale_min = 0.6
+	mat_proc.scale_max = 1.8
+	mat_proc.color = Color(0.55, 0.48, 0.40, 0.8)
 
 	var draw_mat: StandardMaterial3D = StandardMaterial3D.new()
 	draw_mat.shading_mode = StandardMaterial3D.SHADING_MODE_UNSHADED
-	draw_mat.albedo_color = Color(0.52, 0.46, 0.38, 0.65)
+	draw_mat.albedo_color = Color(0.55, 0.48, 0.40, 0.7)
 	draw_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 
 	var sphere: SphereMesh = SphereMesh.new()
 	sphere.material = draw_mat
-	sphere.radius = 0.35
-	sphere.height = 0.7
+	sphere.radius = 0.4
+	sphere.height = 0.8
 
 	_dust_particles.process_material = mat_proc
 	_dust_particles.draw_pass_1 = sphere
 	add_child(_dust_particles)
 
-	# Rock Debris Shards
+	# === 2. ANGULAR ROCK SHARDS (Multi-angle flying stone debris) ===
 	_debris_particles = GPUParticles3D.new()
-	_debris_particles.name = "ImpactDebris"
-	_debris_particles.amount = 40
-	_debris_particles.lifetime = 1.2
+	_debris_particles.name = "VFX_RockShards"
+	_debris_particles.amount = 50
+	_debris_particles.lifetime = 1.4
 	_debris_particles.one_shot = true
 	_debris_particles.explosiveness = 0.98
 	_debris_particles.emitting = false
 
 	var dmat: ParticleProcessMaterial = ParticleProcessMaterial.new()
 	dmat.direction = Vector3(0, 1, 0)
-	dmat.spread = 70.0
-	dmat.initial_velocity_min = 8.0
-	dmat.initial_velocity_max = 15.0
-	dmat.gravity = Vector3(0, -22.0, 0)
-	dmat.scale_min = 0.12
-	dmat.scale_max = 0.38
-	dmat.color = Color(0.35, 0.32, 0.28, 1.0)
+	dmat.spread = 75.0
+	dmat.initial_velocity_min = 9.0
+	dmat.initial_velocity_max = 18.0
+	dmat.gravity = Vector3(0, -25.0, 0)
+	dmat.scale_min = 0.15
+	dmat.scale_max = 0.45
+	dmat.color = Color(0.35, 0.30, 0.26, 1.0)
 
-	var dmesh: BoxMesh = BoxMesh.new()
+	var dmesh: PrismMesh = PrismMesh.new()
 	var ddraw: StandardMaterial3D = StandardMaterial3D.new()
-	ddraw.albedo_color = Color(0.35, 0.32, 0.28, 1.0)
+	ddraw.albedo_color = Color(0.35, 0.30, 0.26, 1.0)
 	ddraw.roughness = 0.95
 	dmesh.material = ddraw
-	dmesh.size = Vector3(0.2, 0.2, 0.2)
+	dmesh.size = Vector3(0.25, 0.25, 0.25)
 
 	_debris_particles.process_material = dmat
 	_debris_particles.draw_pass_1 = dmesh
 	add_child(_debris_particles)
+
+	# === 3. EXPANDING HORIZONTAL SHOCKWAVE RING ===
+	_shockwave_particles = GPUParticles3D.new()
+	_shockwave_particles.name = "VFX_ShockwaveRing"
+	_shockwave_particles.amount = 25
+	_shockwave_particles.lifetime = 0.7
+	_shockwave_particles.one_shot = true
+	_shockwave_particles.explosiveness = 0.95
+	_shockwave_particles.emitting = false
+
+	var smat: ParticleProcessMaterial = ParticleProcessMaterial.new()
+	smat.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_RING
+	smat.emission_ring_radius = 1.2
+	smat.emission_ring_inner_radius = 0.4
+	smat.emission_ring_axis = Vector3(0, 1, 0)
+	smat.direction = Vector3(0, 0, 0)
+	smat.spread = 180.0
+	smat.initial_velocity_min = 12.0
+	smat.initial_velocity_max = 22.0
+	smat.gravity = Vector3(0, -2.0, 0)
+	smat.scale_min = 0.4
+	smat.scale_max = 0.9
+	smat.color = Color(0.65, 0.58, 0.48, 0.85)
+
+	var sw_draw: StandardMaterial3D = StandardMaterial3D.new()
+	sw_draw.shading_mode = StandardMaterial3D.SHADING_MODE_UNSHADED
+	sw_draw.albedo_color = Color(0.65, 0.58, 0.48, 0.75)
+	sw_draw.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+
+	var sw_mesh: SphereMesh = SphereMesh.new()
+	sw_mesh.material = sw_draw
+	sw_mesh.radius = 0.2
+	sw_mesh.height = 0.4
+
+	_shockwave_particles.process_material = smat
+	_shockwave_particles.draw_pass_1 = sw_mesh
+	add_child(_shockwave_particles)
+
+	# === 4. FRICTION SPARKS (Glowing orange-yellow mineral flecks) ===
+	_spark_particles = GPUParticles3D.new()
+	_spark_particles.name = "VFX_FrictionSparks"
+	_spark_particles.amount = 35
+	_spark_particles.lifetime = 0.6
+	_spark_particles.one_shot = true
+	_spark_particles.explosiveness = 0.99
+	_spark_particles.emitting = false
+
+	var spmat: ParticleProcessMaterial = ParticleProcessMaterial.new()
+	spmat.direction = Vector3(0, 1, 0)
+	spmat.spread = 90.0
+	spmat.initial_velocity_min = 10.0
+	spmat.initial_velocity_max = 20.0
+	spmat.gravity = Vector3(0, -18.0, 0)
+	spmat.scale_min = 0.04
+	spmat.scale_max = 0.12
+	spmat.color = Color(1.0, 0.7, 0.2, 1.0)
+
+	var spdraw: StandardMaterial3D = StandardMaterial3D.new()
+	spdraw.shading_mode = StandardMaterial3D.SHADING_MODE_UNSHADED
+	spdraw.albedo_color = Color(1.0, 0.75, 0.25, 1.0)
+
+	var spmesh: SphereMesh = SphereMesh.new()
+	spmesh.material = spdraw
+	spmesh.radius = 0.04
+	spmesh.height = 0.08
+
+	_spark_particles.process_material = spmat
+	_spark_particles.draw_pass_1 = spmesh
+	add_child(_spark_particles)
+
+func _trigger_all_impact_vfx(at_position: Vector3) -> void:
+	if _dust_particles:
+		_dust_particles.global_position = at_position
+		_dust_particles.restart()
+		_dust_particles.emitting = true
+	if _debris_particles:
+		_debris_particles.global_position = at_position
+		_debris_particles.restart()
+		_debris_particles.emitting = true
+	if _shockwave_particles:
+		_shockwave_particles.global_position = at_position
+		_shockwave_particles.restart()
+		_shockwave_particles.emitting = true
+	if _spark_particles:
+		_spark_particles.global_position = at_position
+		_spark_particles.restart()
+		_spark_particles.emitting = true
 
 func _update_prompt() -> void:
 	if not prompt_label:
@@ -198,7 +311,7 @@ func _process(delta: float) -> void:
 
 		if _lift_progress < 1.0:
 			_lift_progress = minf(_lift_progress + delta * 1.8, 1.0)
-			var ease_p: float = 1.0 - pow(1.0 - _lift_progress, 3.0) # Smooth heavy cubic lift
+			var ease_p: float = 1.0 - pow(1.0 - _lift_progress, 3.0)
 			global_position = _lift_start_pos.lerp(target_pos, ease_p)
 		else:
 			global_position = global_position.lerp(target_pos, 18.0 * delta)
@@ -217,7 +330,6 @@ func _unhandled_input(event: InputEvent) -> void:
 			if _carrier_player.camera_3d:
 				throw_dir = -_carrier_player.camera_3d.global_transform.basis.z
 			
-			# Arc upwards for massive heavy throw trajectory
 			throw_dir = (throw_dir + Vector3(0, 0.30, 0)).normalized()
 			rpc_throw_boulder.rpc(_carrier_player.global_position + Vector3(0, 2.5, 0), throw_dir * throw_force)
 			return
@@ -234,12 +346,10 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func _attempt_pick_up(player_node: Player) -> void:
 	if player_node.selected_character_id.to_lower() != "fat":
-		# THIN PLAYER TRIED TO LIFT -> CRUSH THIN PLAYER INTO A PANCAKE!
 		rpc_crush_player.rpc(player_node.get_path())
 		print("💥 THIN PLAYER SQUASHED BY BOULDER!")
 		return
 
-	# FAT PLAYER LIFTS BOULDER REALISTICALLY
 	rpc_pick_up_boulder.rpc(player_node.get_path())
 
 func _show_warning(msg: String) -> void:
@@ -257,21 +367,14 @@ func rpc_crush_player(player_path: NodePath) -> void:
 	freeze = true
 	_show_warning("💥 СЛИШКОМ ТЯЖЁЛЫЙ ВАЛУН!\nТонкого раздавило в лепёшку!")
 
-	# Dust and debris crushing explosion at Thin's feet
-	if _dust_particles:
-		_dust_particles.global_position = p.global_position
-		_dust_particles.restart()
-		_dust_particles.emitting = true
-	if _debris_particles:
-		_debris_particles.global_position = p.global_position
-		_debris_particles.restart()
-		_debris_particles.emitting = true
+	# Trigger full 4-tier impact VFX
+	_trigger_all_impact_vfx(p.global_position)
 
 	# Tilt physical boulder over onto Thin player
 	var tween: Tween = create_tween().set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
 	tween.tween_property(self, "global_position", p.global_position + Vector3(0, 0.8, 0), 0.4)
 
-	# Deal lethal crushing physical HP damage ONLY (NO NAUSEA!)
+	# Deal lethal crushing physical HP damage
 	p.take_damage(150.0, p.global_position)
 
 	get_tree().create_timer(1.2).timeout.connect(func():
@@ -288,7 +391,7 @@ func rpc_pick_up_boulder(player_path: NodePath) -> void:
 	_is_carried = true
 	_carrier_player = p
 	p.is_carrying_heavy_object = true
-	freeze = true # Disable rigid physics body while carried by Fat
+	freeze = true
 	linear_velocity = Vector3.ZERO
 	angular_velocity = Vector3.ZERO
 
@@ -296,11 +399,9 @@ func rpc_pick_up_boulder(player_path: NodePath) -> void:
 	_lift_start_pos = global_position
 	_update_prompt()
 
-	# Heavy lifting camera shudder for local player
 	if p.is_multiplayer_authority() and p.camera_3d:
 		p.camera_3d.rotation.z = deg_to_rad(8.0)
 
-	# Particle dust puff at feet on lift
 	if _dust_particles:
 		_dust_particles.global_position = p.global_position
 		_dust_particles.restart()
@@ -318,9 +419,8 @@ func rpc_throw_boulder(start_pos: Vector3, initial_velocity: Vector3) -> void:
 		_carrier_player = null
 
 	_is_carried = false
-	freeze = false # Enable full RigidBody3D 3D physics!
+	freeze = false
 
-	# Apply heavy linear velocity impulse & forward roll torque!
 	linear_velocity = initial_velocity
 	angular_velocity = Vector3(randf_range(-4.0, -7.0), randf_range(-1.5, 1.5), randf_range(-1.5, 1.5))
 
@@ -337,17 +437,9 @@ func _on_physics_body_entered(body: Node) -> void:
 		_last_impact_time = cur_time
 		var impact_pos: Vector3 = global_position
 
-		# Emit visual particles
-		if _dust_particles:
-			_dust_particles.global_position = impact_pos
-			_dust_particles.restart()
-			_dust_particles.emitting = true
-		if _debris_particles:
-			_debris_particles.global_position = impact_pos
-			_debris_particles.restart()
-			_debris_particles.emitting = true
+		# Trigger full 4-tier impact VFX
+		_trigger_all_impact_vfx(impact_pos)
 
-		# Deal physical crushing damage ONLY (NO NAUSEA!)
 		if body is Node3D and body != self and body != _carrier_player:
 			if body.has_method("take_damage"):
 				var dmg: float = clampf(speed * 3.5, 25.0, damage_on_impact)
@@ -372,7 +464,6 @@ func _damage_nodes_recursive(node: Node, center: Vector3, speed: float) -> void:
 			if node.has_method("take_damage"):
 				var falloff: float = 1.0 - (dist / impact_radius)
 				var final_dmg: float = maxf(damage_on_impact * (speed / 15.0) * falloff, 15.0)
-				# PHYSICAL DAMAGE ONLY (NO NAUSEA!)
 				node.take_damage(final_dmg, n3d.global_position)
 
 	for child in node.get_children():
