@@ -1,10 +1,11 @@
 class_name Player
 extends CharacterBody3D
 
-## FPS / TPS CharacterBody3D controller with health system, Roblox-style camera, FSM & modular character mechanics.
+## FPS / TPS CharacterBody3D controller with health, stamina, Roblox-style camera, FSM & modular character mechanics.
 
 signal player_state_changed(state_name: String)
 signal health_changed(current_hp: float, max_hp: float)
+signal stamina_changed(current_stm: float, max_stm: float)
 signal player_died
 
 # Preloaded Character Data & Mechanics
@@ -16,18 +17,21 @@ const MIN_ZOOM: float = 0.0
 const MAX_ZOOM: float = 6.0
 const ZOOM_STEP: float = 0.5
 
-# Dynamic Movement Variables (populated from CharacterData)
+# Dynamic Movement & Stamina Variables (populated from CharacterData)
 var WALK_SPEED: float = 5.0
 var SPRINT_SPEED: float = 8.5
 var CROUCH_SPEED: float = 2.5
 var JUMP_VELOCITY: float = 4.8
 var AIR_ACCEL_FACTOR: float = 0.4
 
+var stamina_drain_rate: float = 20.0
+var stamina_regen_rate: float = 20.0
+
 const NORMAL_FOV: float = 75.0
 const SPRINT_FOV: float = 88.0
 
 # Exported / Synced Variables for Networking
-@export var selected_character_id: String = "thin":
+@export var selected_character_id: String = "fat":
 	set(val):
 		selected_character_id = val
 		_apply_character_by_id(selected_character_id)
@@ -42,6 +46,17 @@ const SPRINT_FOV: float = 88.0
 	set(val):
 		current_health = clampf(val, 0.0, max_health)
 		health_changed.emit(current_health, max_health)
+
+@export var max_stamina: float = 100.0:
+	set(val):
+		max_stamina = maxf(val, 1.0)
+		current_stamina = clampf(current_stamina, 0.0, max_stamina)
+		stamina_changed.emit(current_stamina, max_stamina)
+
+@export var current_stamina: float = 100.0:
+	set(val):
+		current_stamina = clampf(val, 0.0, max_stamina)
+		stamina_changed.emit(current_stamina, max_stamina)
 
 @export var synced_state_name: String = "Idle"
 @export var is_crouching: bool = false
@@ -63,6 +78,8 @@ const SPRINT_FOV: float = 88.0
 @onready var char_info_label: Label = $HUD/MarginContainer/VBoxContainer/CharInfoLabel
 @onready var health_bar: ProgressBar = $HUD/MarginContainer/VBoxContainer/HealthBar
 @onready var health_label: Label = $HUD/MarginContainer/VBoxContainer/HealthLabel
+@onready var stamina_bar: ProgressBar = $HUD/MarginContainer/VBoxContainer/StaminaBar
+@onready var stamina_label: Label = $HUD/MarginContainer/VBoxContainer/StaminaLabel
 
 # Runtime state
 var active_character_data: CharacterData
@@ -71,6 +88,7 @@ var mouse_sensitivity: float = 0.002
 var gravity: float = 12.0
 var target_speed: float = WALK_SPEED
 var is_dead: bool = false
+var is_stamina_exhausted: bool = false
 
 # Roblox-style Camera Zoom
 var target_camera_zoom: float = 0.0
@@ -120,10 +138,17 @@ func apply_character_data(data: CharacterData) -> void:
 		return
 	active_character_data = data
 
-	# Apply health & movement stats
+	# Apply health stats
 	max_health = data.max_health
 	current_health = max_health
 
+	# Apply stamina stats
+	max_stamina = data.max_stamina
+	current_stamina = max_stamina
+	stamina_drain_rate = data.stamina_drain_rate
+	stamina_regen_rate = data.stamina_regen_rate
+
+	# Apply movement stats
 	WALK_SPEED = data.walk_speed
 	SPRINT_SPEED = data.sprint_speed
 	CROUCH_SPEED = data.crouch_speed
@@ -160,22 +185,22 @@ func apply_character_data(data: CharacterData) -> void:
 
 func _apply_character_by_id(id: String) -> void:
 	match id.to_lower():
-		"fat":
-			apply_character_data(CHAR_FAT)
-		_:
+		"thin":
 			apply_character_data(CHAR_THIN)
+		_:
+			apply_character_data(CHAR_FAT)
 
 func _setup_character_mechanics(id: String) -> void:
 	if active_mechanics and is_instance_valid(active_mechanics):
 		active_mechanics.queue_free()
 		active_mechanics = null
 
-	if id.to_lower() == "fat":
-		active_mechanics = FatMechanics.new()
-		active_mechanics.name = "FatMechanics"
-	else:
+	if id.to_lower() == "thin":
 		active_mechanics = ThinMechanics.new()
 		active_mechanics.name = "ThinMechanics"
+	else:
+		active_mechanics = FatMechanics.new()
+		active_mechanics.name = "FatMechanics"
 
 	add_child(active_mechanics)
 
@@ -205,6 +230,8 @@ func die() -> void:
 
 func respawn() -> void:
 	current_health = max_health
+	current_stamina = max_stamina
+	is_stamina_exhausted = false
 	is_dead = false
 	global_position = Vector3(randf_range(-4.0, 4.0), 1.5, randf_range(-4.0, 4.0))
 
@@ -232,13 +259,13 @@ func _unhandled_input(event: InputEvent) -> void:
 		else:
 			Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
-	# Delegate ability input to active mechanics script
 	if active_mechanics:
 		active_mechanics.handle_ability_input(event)
 
 func _process(delta: float) -> void:
 	_update_camera_zoom(delta)
 	_update_crouch_geometry(delta)
+	_update_stamina_logic(delta)
 
 	if active_mechanics:
 		active_mechanics.update_mechanics(delta)
@@ -248,6 +275,26 @@ func _process(delta: float) -> void:
 func _physics_process(delta: float) -> void:
 	if active_mechanics:
 		active_mechanics.physics_update_mechanics(delta)
+
+func _update_stamina_logic(delta: float) -> void:
+	if not is_multiplayer_authority() or is_dead:
+		return
+
+	var is_currently_sprinting := (synced_state_name.to_lower() == "sprint")
+
+	if is_currently_sprinting:
+		current_stamina -= stamina_drain_rate * delta
+		if current_stamina <= 0.0:
+			current_stamina = 0.0
+			is_stamina_exhausted = true
+			# Force state transition out of Sprint if exhausted
+			if state_machine:
+				state_machine.transition_to("Walk")
+	else:
+		current_stamina += stamina_regen_rate * delta
+		# Recover from exhaustion when stamina reaches 25%
+		if is_stamina_exhausted and current_stamina >= (max_stamina * 0.25):
+			is_stamina_exhausted = false
 
 func _update_camera_zoom(delta: float) -> void:
 	current_camera_zoom = lerpf(current_camera_zoom, target_camera_zoom, 14.0 * delta)
@@ -290,7 +337,7 @@ func is_jump_requested() -> bool:
 	return Input.is_action_just_pressed("jump") or Input.is_physical_key_pressed(KEY_SPACE)
 
 func is_sprint_requested() -> bool:
-	if not is_multiplayer_authority() or is_dead:
+	if not is_multiplayer_authority() or is_dead or is_stamina_exhausted or current_stamina <= 1.0:
 		return false
 	return Input.is_action_pressed("sprint") or Input.is_physical_key_pressed(KEY_SHIFT)
 
@@ -307,10 +354,8 @@ func apply_movement(direction: Vector3, speed: float, delta: float, accel_factor
 	var rate: float
 
 	if direction.length_squared() > 0.01:
-		# Acceleration when driving input
 		rate = 9.0 * accel_factor
 	else:
-		# Inertia / Sliding friction when releasing input
 		rate = 4.5 * accel_factor
 
 	velocity.x = lerpf(velocity.x, target_vel.x, rate * delta)
@@ -373,6 +418,14 @@ func update_hud_display() -> void:
 		health_bar.value = current_health
 	if health_label:
 		health_label.text = "HP: %d / %d" % [int(current_health), int(max_health)]
+	if stamina_bar:
+		stamina_bar.max_value = max_stamina
+		stamina_bar.value = current_stamina
+	if stamina_label:
+		if is_stamina_exhausted:
+			stamina_label.text = "STAMINA: EXHAUSTED!"
+		else:
+			stamina_label.text = "STAMINA: %d%%" % int((current_stamina / max_stamina) * 100.0)
 	if char_info_label and active_character_data:
 		var view_mode := "1ST PERSON" if current_camera_zoom < 0.25 else "3RD PERSON (%.1fm)" % current_camera_zoom
 		char_info_label.text = "CHAR: %s | VIEW: %s" % [active_character_data.character_name, view_mode]

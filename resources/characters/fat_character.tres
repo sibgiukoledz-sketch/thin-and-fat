@@ -6,8 +6,11 @@
 script = ExtResource("1_data")
 character_id = "fat"
 character_name = "Жирный (Жирдяй)"
-description = "Массивный и широченный. Широкий хитбокс, низкая скорость, плотный корпус."
+description = "Массивный и широченный. Быстро устает при спринте."
 max_health = 160.0
+max_stamina = 100.0
+stamina_drain_rate = 50.0
+stamina_regen_rate = 15.0
 walk_speed = 3.8
 sprint_speed = 6.2
 crouch_speed = 1.8

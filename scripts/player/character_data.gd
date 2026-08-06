@@ -10,6 +10,11 @@ extends Resource
 @export_group("Health & Combat")
 @export var max_health: float = 100.0
 
+@export_group("Stamina Stats")
+@export var max_stamina: float = 100.0
+@export var stamina_drain_rate: float = 20.0
+@export var stamina_regen_rate: float = 20.0
+
 @export_group("Movement Stats")
 @export var walk_speed: float = 6.0
 @export var sprint_speed: float = 9.5
