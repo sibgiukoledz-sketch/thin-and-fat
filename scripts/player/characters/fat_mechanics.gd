@@ -40,77 +40,75 @@ func _setup_visual_nodes() -> void:
 	var smoke_texture := _create_procedural_smoke_texture()
 	var fly_texture := _create_procedural_fly_texture()
 
-	# 1. Realistic Volumetric Gas Clouds (Proximity Fade & Quad Billboards)
+	# 1. Realistic Compact Volumetric Gas Clouds (Proximity Fade & Animated Wisps)
 	if not _gas_particles:
 		_gas_particles = GPUParticles3D.new()
 		_gas_particles.name = "VFX_StenchGasClouds"
 		_gas_particles.emitting = false
-		_gas_particles.amount = 55
-		_gas_particles.lifetime = 2.2
-		_gas_particles.speed_scale = 0.9
+		_gas_particles.amount = 28
+		_gas_particles.lifetime = 1.4
+		_gas_particles.speed_scale = 1.2
 
 		var mat_proc := ParticleProcessMaterial.new()
 		mat_proc.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_SPHERE
-		mat_proc.emission_sphere_radius = 1.3
+		mat_proc.emission_sphere_radius = 0.35
 		mat_proc.direction = Vector3(0, 1, 0)
-		mat_proc.spread = 45.0
-		mat_proc.initial_velocity_min = 0.3
-		mat_proc.initial_velocity_max = 1.1
-		mat_proc.gravity = Vector3(0, 0.25, 0)
-		mat_proc.scale_min = 0.8
-		mat_proc.scale_max = 1.6
-		mat_proc.color = Color(0.38, 0.85, 0.22, 0.55) # Realistic Toxic Green
+		mat_proc.spread = 35.0
+		mat_proc.initial_velocity_min = 0.8
+		mat_proc.initial_velocity_max = 2.2
+		mat_proc.gravity = Vector3(0, 0.4, 0)
+		mat_proc.scale_min = 0.3
+		mat_proc.scale_max = 0.7
+		mat_proc.color = Color(0.4, 0.85, 0.2, 0.5) # Soft Vivid Green
 
-		# Realistic turbulence for organic billows
+		# Dynamic organic turbulence wisps
 		mat_proc.turbulence_enabled = true
-		mat_proc.turbulence_noise_strength = 1.8
-		mat_proc.turbulence_noise_scale = 1.4
+		mat_proc.turbulence_noise_strength = 2.5
+		mat_proc.turbulence_noise_scale = 2.0
 
 		var draw_mat := StandardMaterial3D.new()
 		draw_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 		draw_mat.albedo_texture = smoke_texture
-		draw_mat.albedo_color = Color(0.4, 0.9, 0.22, 0.6)
+		draw_mat.albedo_color = Color(0.4, 0.85, 0.2, 0.55)
 		draw_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 		draw_mat.billboard_mode = BaseMaterial3D.BILLBOARD_PARTICLES
 		draw_mat.billboard_keep_scale = true
-
-		# Enable Proximity Fade so gas puffs softly blend with ground, walls and player
 		draw_mat.proximity_fade_enabled = true
-		draw_mat.proximity_fade_distance = 0.8
+		draw_mat.proximity_fade_distance = 0.4
 
 		var quad_mesh := QuadMesh.new()
 		quad_mesh.material = draw_mat
-		quad_mesh.size = Vector2(1.2, 1.2)
+		quad_mesh.size = Vector2(0.45, 0.45)
 
 		_gas_particles.process_material = mat_proc
 		_gas_particles.draw_pass_1 = quad_mesh
 		_gas_particles.position = Vector3(0, 0.9, 0)
 		parent_3d.add_child(_gas_particles)
 
-	# 2. Realistic Buzzing Flies Swarm with Wing Texture & Erratic Brownian Motion
+	# 2. Tight Buzzing Flies Swarm around Head & Back
 	if not _flies_particles:
 		_flies_particles = GPUParticles3D.new()
 		_flies_particles.name = "VFX_BuzzingFliesSwarm"
 		_flies_particles.emitting = false
-		_flies_particles.amount = 40
-		_flies_particles.lifetime = 1.0
-		_flies_particles.speed_scale = 1.6
+		_flies_particles.amount = 20
+		_flies_particles.lifetime = 0.8
+		_flies_particles.speed_scale = 1.8
 
 		var mat_proc := ParticleProcessMaterial.new()
 		mat_proc.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_SPHERE
-		mat_proc.emission_sphere_radius = 1.5
+		mat_proc.emission_sphere_radius = 0.55
 		mat_proc.direction = Vector3(0, 1, 0)
 		mat_proc.spread = 180.0
-		mat_proc.initial_velocity_min = 2.5
-		mat_proc.initial_velocity_max = 5.0
+		mat_proc.initial_velocity_min = 2.0
+		mat_proc.initial_velocity_max = 4.2
 		mat_proc.gravity = Vector3(0, 0, 0)
-		mat_proc.scale_min = 0.12
-		mat_proc.scale_max = 0.22
+		mat_proc.scale_min = 0.05
+		mat_proc.scale_max = 0.1
 
 		# Fast turbulence for erratic buzzing trajectories
 		mat_proc.turbulence_enabled = true
-		mat_proc.turbulence_noise_strength = 5.0
-		mat_proc.turbulence_noise_scale = 3.5
+		mat_proc.turbulence_noise_strength = 5.5
+		mat_proc.turbulence_noise_scale = 4.0
 
 		var draw_mat := StandardMaterial3D.new()
 		draw_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
@@ -121,42 +119,42 @@ func _setup_visual_nodes() -> void:
 
 		var fly_quad := QuadMesh.new()
 		fly_quad.material = draw_mat
-		fly_quad.size = Vector2(0.18, 0.18)
+		fly_quad.size = Vector2(0.08, 0.08)
 
 		_flies_particles.process_material = mat_proc
 		_flies_particles.draw_pass_1 = fly_quad
 		_flies_particles.position = Vector3(0, 1.3, 0)
 		parent_3d.add_child(_flies_particles)
 
-	# 3. Glowing Toxic Spores (Rising embers)
+	# 3. Micro Glowing Toxic Spores
 	if not _spore_particles:
 		_spore_particles = GPUParticles3D.new()
 		_spore_particles.name = "VFX_ToxicSpores"
 		_spore_particles.emitting = false
-		_spore_particles.amount = 30
-		_spore_particles.lifetime = 2.2
+		_spore_particles.amount = 16
+		_spore_particles.lifetime = 1.8
 
 		var mat_proc := ParticleProcessMaterial.new()
 		mat_proc.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_BOX
-		mat_proc.emission_box_extents = Vector3(1.3, 0.2, 1.3)
+		mat_proc.emission_box_extents = Vector3(0.4, 0.1, 0.4)
 		mat_proc.direction = Vector3(0, 1, 0)
 		mat_proc.spread = 35.0
-		mat_proc.initial_velocity_min = 0.7
-		mat_proc.initial_velocity_max = 1.5
+		mat_proc.initial_velocity_min = 0.6
+		mat_proc.initial_velocity_max = 1.4
 		mat_proc.gravity = Vector3(0, 0.2, 0)
-		mat_proc.scale_min = 0.08
-		mat_proc.scale_max = 0.16
+		mat_proc.scale_min = 0.04
+		mat_proc.scale_max = 0.1
 
 		var draw_mat := StandardMaterial3D.new()
 		draw_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-		draw_mat.albedo_color = Color(0.75, 1.0, 0.25, 0.9)
+		draw_mat.albedo_color = Color(0.7, 0.95, 0.2, 0.85)
 		draw_mat.proximity_fade_enabled = true
-		draw_mat.proximity_fade_distance = 0.5
+		draw_mat.proximity_fade_distance = 0.4
 
 		var spore_mesh := SphereMesh.new()
 		spore_mesh.material = draw_mat
-		spore_mesh.radius = 0.06
-		spore_mesh.height = 0.12
+		spore_mesh.radius = 0.04
+		spore_mesh.height = 0.08
 
 		_spore_particles.process_material = mat_proc
 		_spore_particles.draw_pass_1 = spore_mesh
