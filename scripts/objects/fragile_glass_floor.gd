@@ -2,7 +2,7 @@ class_name FragileGlassFloor
 extends StaticBody3D
 
 ## Realistic AAA Fragile Glass Floor panel.
-## Safely supports Thin characters, but shatters into real 3D physical glass shards that scatter,
+## Safely supports Thin characters, but shatters into small 3D physical micro glass shards that scatter,
 ## fall with gravity, and fade away over time when Fat (or a Heavy Boulder) steps on it!
 
 signal glass_shattered
@@ -75,7 +75,7 @@ func _create_procedural_glass_texture(has_cracks: bool) -> ImageTexture:
 				var ring_crack: bool = (int(dist) % 45 < 3) and dist > 30.0
 
 				if radial_crack or ring_crack:
-					img.set_pixel(x, y, Color(1.0, 1.0, 1.0, 0.9))
+					img.set_pixel(x, y, Color(1.0, 1.0, 1.0, 0.95))
 
 	return ImageTexture.create_from_image(img)
 
@@ -134,10 +134,10 @@ func _start_shatter_sequence() -> void:
 		return
 	_is_breaking = true
 
-	# Phase 1: Instant Spiderweb Crack Animation & Red Tint Flash
+	# Phase 1: Instant White Spiderweb Crack Animation (No red tint!)
 	if _glass_material:
 		_glass_material.albedo_texture = _cracked_texture
-		_glass_material.albedo_color = Color(1.0, 0.5, 0.5, 0.7)
+		_glass_material.albedo_color = Color(0.92, 0.96, 1.0, 0.65)
 
 	get_tree().create_timer(break_delay_fat).timeout.connect(shatter)
 
@@ -160,21 +160,20 @@ func rpc_shatter() -> void:
 		shatter_particles.restart()
 		shatter_particles.emitting = true
 
-	# 2. Spawn Real 3D Physical Glass Shards that fall, scatter and fade!
+	# 2. Spawn Small 3D Physical Glass Micro-Shards (No Player Collision to prevent launching!)
 	_spawn_3d_physical_shards()
 
 	glass_shattered.emit()
-	print("💥 GLASS FLOOR SHATTERED! Spawned physical 3D glass shards!")
+	print("💥 GLASS FLOOR SHATTERED! Spawned 36 small 3D physical glass shards!")
 
 	if respawn_time > 0.0:
 		get_tree().create_timer(respawn_time).timeout.connect(restore_floor)
 
 func _spawn_3d_physical_shards() -> void:
-	# Clear any previous shards
 	_clear_shards()
 
-	# Create a 4x4 grid of 16 distinct 3D glass shard RigidBodies
-	var grid_count: int = 4
+	# Create a 6x6 grid of 36 small 3D glass micro-shards
+	var grid_count: int = 6
 	var tile_size: float = 3.0 / float(grid_count)
 
 	var draw_mat: StandardMaterial3D = StandardMaterial3D.new()
@@ -185,25 +184,28 @@ func _spawn_3d_physical_shards() -> void:
 
 	for gx in range(grid_count):
 		for gz in range(grid_count):
-			var offset_x: float = (float(gx) - float(grid_count - 1) * 0.5) * tile_size + randf_range(-0.1, 0.1)
-			var offset_z: float = (float(gz) - float(grid_count - 1) * 0.5) * tile_size + randf_range(-0.1, 0.1)
+			var offset_x: float = (float(gx) - float(grid_count - 1) * 0.5) * tile_size + randf_range(-0.05, 0.05)
+			var offset_z: float = (float(gz) - float(grid_count - 1) * 0.5) * tile_size + randf_range(-0.05, 0.05)
 			var shard_pos: Vector3 = global_position + Vector3(offset_x, randf_range(-0.05, 0.05), offset_z)
 
-			# Create 3D RigidBody for each glass shard
+			# Create 3D RigidBody for each small glass shard
 			var shard_rb: RigidBody3D = RigidBody3D.new()
 			shard_rb.name = "GlassShard3D"
-			shard_rb.mass = 3.5
+			shard_rb.mass = 0.4 # Lightweight micro-shard
 			shard_rb.global_position = shard_pos
-			shard_rb.collision_layer = 1
+
+			# CRITICAL FIX: Set collision_layer = 4 (debris) and collision_mask = 1 (world floor ONLY).
+			# NO collision with Player (layer 2) so players NEVER get flung into the air when shards spawn!
+			shard_rb.collision_layer = 4
 			shard_rb.collision_mask = 1
 
-			# Shard Mesh (Sharp triangular prism or box)
+			# Small Shard Mesh
 			var shard_mesh: MeshInstance3D = MeshInstance3D.new()
 			var p_mesh: PrismMesh = PrismMesh.new()
 			p_mesh.material = draw_mat
-			var s_x: float = randf_range(0.3, 0.65)
-			var s_y: float = randf_range(0.12, 0.25)
-			var s_z: float = randf_range(0.3, 0.65)
+			var s_x: float = randf_range(0.12, 0.26)
+			var s_y: float = randf_range(0.04, 0.10)
+			var s_z: float = randf_range(0.12, 0.26)
 			p_mesh.size = Vector3(s_x, s_y, s_z)
 			shard_mesh.mesh = p_mesh
 
@@ -220,10 +222,10 @@ func _spawn_3d_physical_shards() -> void:
 			_active_shards.append(shard_rb)
 
 			# Explosive scatter impulse outwards & downwards
-			var scatter_dir: Vector3 = Vector3(offset_x, randf_range(-0.5, 0.5), offset_z).normalized()
-			var impulse_y: float = randf_range(-8.0, 6.0)
-			shard_rb.apply_central_impulse(Vector3(scatter_dir.x * randf_range(6.0, 14.0), impulse_y, scatter_dir.z * randf_range(6.0, 14.0)))
-			shard_rb.apply_torque_impulse(Vector3(randf_range(-30.0, 30.0), randf_range(-30.0, 30.0), randf_range(-30.0, 30.0)))
+			var scatter_dir: Vector3 = Vector3(offset_x, randf_range(-0.4, 0.3), offset_z).normalized()
+			var impulse_y: float = randf_range(-4.0, 3.0)
+			shard_rb.apply_central_impulse(Vector3(scatter_dir.x * randf_range(3.0, 7.0), impulse_y, scatter_dir.z * randf_range(3.0, 7.0)))
+			shard_rb.apply_torque_impulse(Vector3(randf_range(-15.0, 15.0), randf_range(-15.0, 15.0), randf_range(-15.0, 15.0)))
 
 			# Schedule smooth fade-out and destruction after 4.5 seconds
 			_fade_and_free_shard(shard_rb, draw_mat)
