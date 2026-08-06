@@ -59,7 +59,9 @@ func _on_side_impact(body: Node, side: int) -> void:
 @rpc("any_peer", "call_local", "reliable")
 func rpc_trigger_catapult_slam(slam_side: int, launch_force: float) -> void:
 	_current_side = slam_side
-	var target_angle_rad: float = deg_to_rad(-max_tilt_angle if slam_side == -1 else max_tilt_angle)
+	# Correct physical tilt: slam_side == -1 (Left) tilts +20 deg (Left down, Right up)
+	var target_angle_rad: float = deg_to_rad(max_tilt_angle if slam_side == -1 else -max_tilt_angle)
+
 
 	# 1. Animate Plank Tilt
 	if plank_pivot:
