@@ -1,14 +1,16 @@
 class_name FatMechanics
 extends BaseCharacterMechanics
 
-## Controller for "Fat / Жирдяй" character mechanics: AAA Realistic Volumetric Stench VFX & Buzzing Flies System.
+## Controller for "Fat / Жирдяй" character mechanics:
+## 1. AAA Volumetric Stench & Buzzing Flies System.
+## 2. Low Heavy Leap + Seismic Earthquake Landing (Pops items, RigidBodies, and teammates into the air!).
 
 signal stench_changed(current: float, max_stench: float)
 
 @export var max_stench: float = 100.0
 @export var stench_level: float = 0.0
 
-# Balanced Accumulation Rates (Slow & Realistic)
+# Balanced Accumulation Rates
 @export var stench_walk_rate: float = 0.6
 @export var stench_sprint_rate: float = 3.0
 
@@ -22,25 +24,29 @@ var _damage_timer: float = 0.0
 var _gas_particles: GPUParticles3D
 var _flies_particles: GPUParticles3D
 var _spore_particles: GPUParticles3D
-var _toxic_ring_mesh: MeshInstance3D
-var _ring_material: StandardMaterial3D
+var _seismic_shockwave_particles: GPUParticles3D
 
 func _ready() -> void:
 	super._ready()
 	if not player and get_parent() is Player:
 		player = get_parent() as Player
+
+	if player:
+		if not player.player_landed.is_connected(_on_player_landed):
+			player.player_landed.connect(_on_player_landed)
+
 	_setup_visual_nodes()
+	_setup_seismic_vfx()
 
 func _setup_visual_nodes() -> void:
 	var parent_3d: Node3D = player if player else (get_parent() as Node3D)
 	if not parent_3d:
 		return
 
-	# Generate realistic smoke texture procedurally
-	var smoke_texture := _create_procedural_smoke_texture()
-	var fly_texture := _create_procedural_fly_texture()
+	var smoke_texture: ImageTexture = _create_procedural_smoke_texture()
+	var fly_texture: ImageTexture = _create_procedural_fly_texture()
 
-	# 1. Realistic Compact Volumetric Gas Clouds (Proximity Fade & Animated Wisps)
+	# 1. Volumetric Gas Clouds
 	if not _gas_particles:
 		_gas_particles = GPUParticles3D.new()
 		_gas_particles.name = "VFX_StenchGasClouds"
@@ -49,7 +55,7 @@ func _setup_visual_nodes() -> void:
 		_gas_particles.lifetime = 1.4
 		_gas_particles.speed_scale = 1.2
 
-		var mat_proc := ParticleProcessMaterial.new()
+		var mat_proc: ParticleProcessMaterial = ParticleProcessMaterial.new()
 		mat_proc.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_SPHERE
 		mat_proc.emission_sphere_radius = 0.35
 		mat_proc.direction = Vector3(0, 1, 0)
@@ -59,14 +65,13 @@ func _setup_visual_nodes() -> void:
 		mat_proc.gravity = Vector3(0, 0.4, 0)
 		mat_proc.scale_min = 0.3
 		mat_proc.scale_max = 0.7
-		mat_proc.color = Color(0.4, 0.85, 0.2, 0.5) # Soft Vivid Green
+		mat_proc.color = Color(0.4, 0.85, 0.2, 0.5)
 
-		# Dynamic organic turbulence wisps
 		mat_proc.turbulence_enabled = true
 		mat_proc.turbulence_noise_strength = 2.5
 		mat_proc.turbulence_noise_scale = 2.0
 
-		var draw_mat := StandardMaterial3D.new()
+		var draw_mat: StandardMaterial3D = StandardMaterial3D.new()
 		draw_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 		draw_mat.albedo_texture = smoke_texture
 		draw_mat.albedo_color = Color(0.4, 0.85, 0.2, 0.55)
@@ -76,7 +81,7 @@ func _setup_visual_nodes() -> void:
 		draw_mat.proximity_fade_enabled = true
 		draw_mat.proximity_fade_distance = 0.4
 
-		var quad_mesh := QuadMesh.new()
+		var quad_mesh: QuadMesh = QuadMesh.new()
 		quad_mesh.material = draw_mat
 		quad_mesh.size = Vector2(0.45, 0.45)
 
@@ -85,7 +90,7 @@ func _setup_visual_nodes() -> void:
 		_gas_particles.position = Vector3(0, 0.9, 0)
 		parent_3d.add_child(_gas_particles)
 
-	# 2. Tight Buzzing Flies Swarm around Head & Back
+	# 2. Buzzing Flies Swarm
 	if not _flies_particles:
 		_flies_particles = GPUParticles3D.new()
 		_flies_particles.name = "VFX_BuzzingFliesSwarm"
@@ -94,7 +99,7 @@ func _setup_visual_nodes() -> void:
 		_flies_particles.lifetime = 0.8
 		_flies_particles.speed_scale = 1.8
 
-		var mat_proc := ParticleProcessMaterial.new()
+		var mat_proc: ParticleProcessMaterial = ParticleProcessMaterial.new()
 		mat_proc.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_SPHERE
 		mat_proc.emission_sphere_radius = 0.55
 		mat_proc.direction = Vector3(0, 1, 0)
@@ -105,19 +110,18 @@ func _setup_visual_nodes() -> void:
 		mat_proc.scale_min = 0.05
 		mat_proc.scale_max = 0.1
 
-		# Fast turbulence for erratic buzzing trajectories
 		mat_proc.turbulence_enabled = true
 		mat_proc.turbulence_noise_strength = 5.5
 		mat_proc.turbulence_noise_scale = 4.0
 
-		var draw_mat := StandardMaterial3D.new()
+		var draw_mat: StandardMaterial3D = StandardMaterial3D.new()
 		draw_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 		draw_mat.albedo_texture = fly_texture
 		draw_mat.albedo_color = Color(0.1, 0.1, 0.1, 0.95)
 		draw_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 		draw_mat.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
 
-		var fly_quad := QuadMesh.new()
+		var fly_quad: QuadMesh = QuadMesh.new()
 		fly_quad.material = draw_mat
 		fly_quad.size = Vector2(0.08, 0.08)
 
@@ -126,7 +130,7 @@ func _setup_visual_nodes() -> void:
 		_flies_particles.position = Vector3(0, 1.3, 0)
 		parent_3d.add_child(_flies_particles)
 
-	# 3. Micro Glowing Toxic Spores
+	# 3. Glowing Toxic Spores
 	if not _spore_particles:
 		_spore_particles = GPUParticles3D.new()
 		_spore_particles.name = "VFX_ToxicSpores"
@@ -134,7 +138,7 @@ func _setup_visual_nodes() -> void:
 		_spore_particles.amount = 16
 		_spore_particles.lifetime = 1.8
 
-		var mat_proc := ParticleProcessMaterial.new()
+		var mat_proc: ParticleProcessMaterial = ParticleProcessMaterial.new()
 		mat_proc.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_BOX
 		mat_proc.emission_box_extents = Vector3(0.4, 0.1, 0.4)
 		mat_proc.direction = Vector3(0, 1, 0)
@@ -145,13 +149,13 @@ func _setup_visual_nodes() -> void:
 		mat_proc.scale_min = 0.04
 		mat_proc.scale_max = 0.1
 
-		var draw_mat := StandardMaterial3D.new()
+		var draw_mat: StandardMaterial3D = StandardMaterial3D.new()
 		draw_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 		draw_mat.albedo_color = Color(0.7, 0.95, 0.2, 0.85)
 		draw_mat.proximity_fade_enabled = true
 		draw_mat.proximity_fade_distance = 0.4
 
-		var spore_mesh := SphereMesh.new()
+		var spore_mesh: SphereMesh = SphereMesh.new()
 		spore_mesh.material = draw_mat
 		spore_mesh.radius = 0.04
 		spore_mesh.height = 0.08
@@ -161,64 +165,166 @@ func _setup_visual_nodes() -> void:
 		_spore_particles.position = Vector3(0, 0.2, 0)
 		parent_3d.add_child(_spore_particles)
 
+func _setup_seismic_vfx() -> void:
+	var parent_3d: Node3D = player if player else (get_parent() as Node3D)
+	if not parent_3d or _seismic_shockwave_particles:
+		return
+
+	_seismic_shockwave_particles = GPUParticles3D.new()
+	_seismic_shockwave_particles.name = "VFX_SeismicLandingShockwave"
+	_seismic_shockwave_particles.top_level = true
+	_seismic_shockwave_particles.amount = 45
+	_seismic_shockwave_particles.lifetime = 0.8
+	_seismic_shockwave_particles.one_shot = true
+	_seismic_shockwave_particles.explosiveness = 0.96
+	_seismic_shockwave_particles.emitting = false
+
+	var mat_proc: ParticleProcessMaterial = ParticleProcessMaterial.new()
+	mat_proc.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_RING
+	mat_proc.emission_ring_radius = 1.5
+	mat_proc.emission_ring_inner_radius = 0.2
+	mat_proc.emission_ring_axis = Vector3(0, 1, 0)
+	mat_proc.direction = Vector3(0, 0.2, 0)
+	mat_proc.spread = 180.0
+	mat_proc.initial_velocity_min = 7.0
+	mat_proc.initial_velocity_max = 16.0
+	mat_proc.gravity = Vector3(0, -2.0, 0)
+	mat_proc.scale_min = 0.08
+	mat_proc.scale_max = 0.25
+	mat_proc.color = Color(0.65, 0.55, 0.42, 0.8)
+
+	var draw_mat: StandardMaterial3D = StandardMaterial3D.new()
+	draw_mat.shading_mode = StandardMaterial3D.SHADING_MODE_UNSHADED
+	draw_mat.albedo_color = Color(0.65, 0.55, 0.42, 0.7)
+	draw_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+
+	var quad: QuadMesh = QuadMesh.new()
+	quad.material = draw_mat
+	quad.size = Vector2(0.2, 0.2)
+
+	_seismic_shockwave_particles.process_material = mat_proc
+	_seismic_shockwave_particles.draw_pass_1 = quad
+	parent_3d.add_child(_seismic_shockwave_particles)
+
 func _create_procedural_smoke_texture() -> ImageTexture:
-	var img := Image.create(128, 128, false, Image.FORMAT_RGBA8)
-	var noise := FastNoiseLite.new()
+	var img: Image = Image.create(128, 128, false, Image.FORMAT_RGBA8)
+	var noise: FastNoiseLite = FastNoiseLite.new()
 	noise.noise_type = FastNoiseLite.TYPE_SIMPLEX_SMOOTH
 	noise.frequency = 0.025
 	noise.fractal_octaves = 4
 
-	var center := Vector2(64, 64)
-	var max_radius := 60.0
+	var center: Vector2 = Vector2(64, 64)
+	var max_radius: float = 60.0
 
 	for y in range(128):
 		for x in range(128):
-			var pos := Vector2(x, y)
-			var dist := pos.distance_to(center)
+			var pos: Vector2 = Vector2(x, y)
+			var dist: float = pos.distance_to(center)
 			if dist >= max_radius:
 				img.set_pixel(x, y, Color(0, 0, 0, 0))
 				continue
 
-			var n_val := (noise.get_noise_2d(x, y) + 1.0) * 0.5
-			var falloff := 1.0 - (dist / max_radius)
+			var n_val: float = (noise.get_noise_2d(float(x), float(y)) + 1.0) * 0.5
+			var falloff: float = 1.0 - (dist / max_radius)
 			falloff = smoothstep(0.0, 1.0, falloff)
-			var alpha := clampf(n_val * falloff * 0.9, 0.0, 1.0)
+			var alpha: float = clampf(n_val * falloff * 0.9, 0.0, 1.0)
 
 			img.set_pixel(x, y, Color(1.0, 1.0, 1.0, alpha))
 
 	return ImageTexture.create_from_image(img)
 
 func _create_procedural_fly_texture() -> ImageTexture:
-	var img := Image.create(64, 64, false, Image.FORMAT_RGBA8)
+	var img: Image = Image.create(64, 64, false, Image.FORMAT_RGBA8)
 	img.fill(Color(0, 0, 0, 0))
 
-	# Draw fly body & wings
-	var center := Vector2(32, 32)
+	var center: Vector2 = Vector2(32, 32)
 	for y in range(64):
 		for x in range(64):
-			var pos := Vector2(x, y)
-			var body_dist := pos.distance_to(center)
-			# Oval body
-			var dx := (x - 32) * 1.5
-			var dy := (y - 32) * 0.8
-			var body_val := sqrt(dx * dx + dy * dy)
+			var pos: Vector2 = Vector2(x, y)
+			var dx: float = (float(x) - 32.0) * 1.5
+			var dy: float = (float(y) - 32.0) * 0.8
+			var body_val: float = sqrt(dx * dx + dy * dy)
 			if body_val <= 10.0:
 				img.set_pixel(x, y, Color(0.08, 0.08, 0.08, 0.95))
 				continue
 
-			# Wings
-			var wing_left := pos.distance_to(Vector2(22, 24))
-			var wing_right := pos.distance_to(Vector2(42, 24))
+			var wing_left: float = pos.distance_to(Vector2(22, 24))
+			var wing_right: float = pos.distance_to(Vector2(42, 24))
 			if wing_left <= 8.0 or wing_right <= 8.0:
 				img.set_pixel(x, y, Color(0.7, 0.8, 0.9, 0.6))
 
 	return ImageTexture.create_from_image(img)
 
+func _on_player_landed(downward_vel: float) -> void:
+	if not _ensure_player_ref() or not player.is_multiplayer_authority() or player.is_dead:
+		return
+
+	# If Fat landed with downward speed (e.g. downward_vel < -1.8 m/s)
+	if downward_vel < -1.8:
+		var impact_speed: float = absf(downward_vel)
+		rpc_seismic_earthquake.rpc(player.global_position, impact_speed)
+
+@rpc("any_peer", "call_local", "reliable")
+func rpc_seismic_earthquake(center_pos: Vector3, impact_speed: float) -> void:
+	# 1. Trigger Seismic Ground Shockwave VFX
+	if _seismic_shockwave_particles:
+		_seismic_shockwave_particles.global_position = center_pos + Vector3(0, 0.1, 0)
+		_seismic_shockwave_particles.restart()
+		_seismic_shockwave_particles.emitting = true
+
+	# 2. Local Camera Shudder for Fat & Nearby Local Players
+	if player and player.is_multiplayer_authority() and player.camera_3d:
+		player.camera_3d.rotation.z = deg_to_rad(randf_range(-12.0, 12.0))
+
+	# 3. Pop Upward Physical Objects & Teammates within 6.5m Radius
+	var radius: float = 6.5
+	var root: Node = get_tree().root
+	_pop_seismic_nodes_recursive(root, center_pos, radius, impact_speed)
+
+	print("💥 SEISMIC EARTHQUAKE: Fat landed! Popped items & players within %.1fm radius." % radius)
+
+func _pop_seismic_nodes_recursive(node: Node, center: Vector3, radius: float, impact_speed: float) -> void:
+	if not node:
+		return
+
+	if node is Node3D and node != player:
+		var n3d: Node3D = node as Node3D
+		var dist: float = center.distance_to(n3d.global_position)
+		if dist <= radius:
+			var falloff: float = 1.0 - (dist / radius)
+
+			# Case A: RigidBody3D physical objects (Heavy Boulder, barrels, crates, items) -> POP UPWARD!
+			if node is RigidBody3D:
+				var rb: RigidBody3D = node as RigidBody3D
+				if not rb.freeze:
+					var pop_y: float = clampf(140.0 * (impact_speed / 3.5) * falloff, 70.0, 260.0)
+					var dir_xz: Vector3 = (rb.global_position - center)
+					dir_xz.y = 0
+					dir_xz = dir_xz.normalized()
+					rb.apply_central_impulse(Vector3(dir_xz.x * 40.0 * falloff, pop_y, dir_xz.z * 40.0 * falloff))
+					print("💥 SEISMIC POP: Launched RigidBody %s into the air!" % rb.name)
+
+			# Case B: Teammates / Other Players -> POP UPWARD IN THE AIR!
+			elif node is Player:
+				var target_player: Player = node as Player
+				if not target_player.is_dead:
+					var pop_y_vel: float = clampf(6.5 * (impact_speed / 3.5) * falloff, 4.2, 9.2)
+					target_player.velocity.y = pop_y_vel
+					if target_player.camera_3d:
+						target_player.camera_3d.rotation.z = deg_to_rad(randf_range(-14.0, 14.0))
+					print("💥 SEISMIC POP: Launched teammate %s into the air! (y_vel: %.1f)" % [target_player.name, pop_y_vel])
+
+			# Case C: Dummy NPC
+			elif node.has_method("take_damage"):
+				node.take_damage(12.0 * falloff, n3d.global_position)
+
+	for child in node.get_children():
+		_pop_seismic_nodes_recursive(child, center, radius, impact_speed)
+
 func handle_ability_input(event: InputEvent) -> void:
 	if not _ensure_player_ref() or not player.is_multiplayer_authority():
 		return
 
-	# Quick Test Key K or G: Instantly add +35% Stench
 	if event is InputEventKey and event.pressed and not event.echo:
 		if event.keycode == KEY_K or event.keycode == KEY_G:
 			add_stench(35.0)
@@ -233,7 +339,6 @@ func update_mechanics(delta: float) -> void:
 	if not _ensure_player_ref() or not player.is_multiplayer_authority() or player.is_dead:
 		return
 
-	# Accumulate stench when moving
 	var input_dir := player.get_movement_input()
 	if input_dir.length_squared() > 0.01:
 		var is_sprinting := (player.synced_state_name.to_lower() == "sprint")
@@ -257,7 +362,6 @@ func wash_stench_gradual(amount: float) -> void:
 func _update_gas_visuals() -> void:
 	var intensity := stench_level / max_stench
 
-	# 1. Volumetric Gas Clouds
 	if _gas_particles:
 		var should_emit := (stench_level >= 20.0)
 		if _gas_particles.emitting != should_emit:
@@ -265,7 +369,6 @@ func _update_gas_visuals() -> void:
 		if should_emit:
 			_gas_particles.amount = int(lerpf(20.0, 55.0, intensity))
 
-	# 2. Buzzing Flies Swarm
 	if _flies_particles:
 		var should_flies := (stench_level >= 35.0)
 		if _flies_particles.emitting != should_flies:
@@ -273,7 +376,6 @@ func _update_gas_visuals() -> void:
 		if should_flies:
 			_flies_particles.amount = int(lerpf(15.0, 40.0, intensity))
 
-	# 3. Glowing Toxic Spores
 	if _spore_particles:
 		var should_spores := (stench_level >= 50.0)
 		if _spore_particles.emitting != should_spores:

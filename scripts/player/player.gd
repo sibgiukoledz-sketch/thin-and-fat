@@ -7,6 +7,7 @@ signal player_state_changed(state_name: String)
 signal health_changed(current_hp: float, max_hp: float)
 signal stamina_changed(current_stm: float, max_stm: float)
 signal player_died
+signal player_landed(downward_velocity: float)
 
 # Preloaded Character Data Resources
 const CHAR_THIN := preload("res://resources/characters/thin_character.tres")
@@ -93,6 +94,8 @@ var is_carrying_heavy_object: bool = false
 var shift_must_be_released: bool = false
 var nausea_intensity: float = 0.0
 var _respawn_timer: float = 0.0
+var _was_in_air: bool = false
+var _last_air_velocity_y: float = 0.0
 
 # Roblox-style Camera Zoom
 var target_camera_zoom: float = 0.0
@@ -376,6 +379,13 @@ func _process(delta: float) -> void:
 	update_hud_display()
 
 func _physics_process(delta: float) -> void:
+	if not is_on_floor():
+		_was_in_air = true
+		_last_air_velocity_y = velocity.y
+	elif _was_in_air:
+		_was_in_air = false
+		player_landed.emit(_last_air_velocity_y)
+
 	if active_mechanics:
 		active_mechanics.physics_update_mechanics(delta)
 
