@@ -1,5 +1,7 @@
+@tool
 class_name FragileGlassFloor
 extends StaticBody3D
+
 
 ## Realistic AAA Fragile Glass Floor / Wall panel supporting multiple types & formats:
 ## - Formats: Horizontal Floor panel or Vertical Wall / Window format (is_vertical_wall).
@@ -69,18 +71,24 @@ func _setup_geometry() -> void:
 	var detect_col: CollisionShape3D = detection_area.get_node_or_null("CollisionShape3D") as CollisionShape3D
 
 	if is_vertical_wall:
-		# Vertical Wall / Window format (3.2m width x 3.2m height x 0.15m thickness)
+		# Standing Vertical Wall / Window format (3.2m width x 3.2m height x 0.15m thickness) centered at Y = 1.6
 		box_shape.size = Vector3(3.2, 3.2, 0.15)
 		box_mesh.size = Vector3(3.2, 3.2, 0.15)
 		detect_shape.size = Vector3(3.2, 3.2, 0.6)
-		detection_area.position = Vector3(0, 0, 0)
+
+		mesh_instance.position = Vector3(0, 1.6, 0)
+		collision_shape.position = Vector3(0, 1.6, 0)
+		detection_area.position = Vector3(0, 1.6, 0)
 		if type_label:
-			type_label.position = Vector3(0, 1.8, 0)
+			type_label.position = Vector3(0, 3.4, 0)
 	else:
-		# Horizontal Floor Format (3.2m width x 0.15m height x 3.2m depth)
+		# Horizontal Flat Floor Format (3.2m width x 0.15m height x 3.2m depth) centered at Y = 0
 		box_shape.size = Vector3(3.2, 0.15, 3.2)
 		box_mesh.size = Vector3(3.2, 0.15, 3.2)
 		detect_shape.size = Vector3(3.1, 0.4, 3.1)
+
+		mesh_instance.position = Vector3(0, 0, 0)
+		collision_shape.position = Vector3(0, 0, 0)
 		detection_area.position = Vector3(0, 0.25, 0)
 		if type_label:
 			type_label.position = Vector3(0, 0.4, 0)
@@ -89,6 +97,7 @@ func _setup_geometry() -> void:
 	mesh_instance.mesh = box_mesh
 	if detect_col:
 		detect_col.shape = detect_shape
+
 
 func _update_type_label() -> void:
 	if not is_node_ready() or not type_label:
