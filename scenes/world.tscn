@@ -18,9 +18,8 @@
 [ext_resource type="PackedScene" uid="uid://c7testroom01" path="res://scenes/objects/test_room.tscn" id="9_room_scene"]
 [ext_resource type="Script" uid="uid://b4tkplvh7fq40" path="res://addons/sky_3d/src/SkyDome.gd" id="10_munwf"]
 [ext_resource type="PackedScene" uid="uid://2m1chvw4v441" path="res://scenes/objects/road_segment.tscn" id="10_road_scene"]
-[ext_resource type="PackedScene" uid="uid://c7seesawcatapult01" path="res://scenes/objects/seesaw_catapult.tscn" id="11_seesaw_scene"]
+[ext_resource type="PackedScene" uid="uid://bfjw80nfoixcq" path="res://scenes/objects/seesaw_catapult.tscn" id="11_seesaw_scene"]
 [ext_resource type="Script" uid="uid://cjmkcj8hwm7ts" path="res://addons/sky_3d/src/TimeOfDay.gd" id="11_ts3gi"]
-
 [ext_resource type="Texture2D" uid="uid://cxn2xyrsehric" path="res://addons/lowpolytrees/tex3.png" id="16_0nbtd"]
 [ext_resource type="Texture2D" uid="uid://dk3sax7qgv6cy" path="res://addons/lowpolytrees/tex1.png" id="17_37qwj"]
 [ext_resource type="Texture2D" uid="uid://dev8auypr0qs5" path="res://addons/lowpolytrees/tex4.png" id="18_navra"]
@@ -41,7 +40,7 @@ shader_parameter/atm_level_params = Vector3(1, 0, 0)
 shader_parameter/atm_thickness = 0.7
 shader_parameter/atm_beta_ray = Vector3(5.804544e-06, 1.3562913e-05, 3.311258e-05)
 shader_parameter/atm_beta_mie = Vector3(3.038e-08, 3.038e-08, 3.038e-08)
-shader_parameter/sun_light_color = Color(1, 1, 1, 1)
+shader_parameter/sun_light_color = Color(0.99548435, 0.8923023, 0.84059834, 1)
 shader_parameter/sun_disk_color = Color(0.996094, 0.541334, 0.140076, 1)
 shader_parameter/sun_disk_intensity = 30.0
 shader_parameter/sun_disk_size = 0.02
@@ -63,7 +62,7 @@ shader_parameter/starmap_flip_u = false
 shader_parameter/starmap_flip_v = false
 shader_parameter/starmap_alignment = Vector3(2.68288, -0.25891, 0.40101)
 shader_parameter/star_rotation_offset = 9.38899
-shader_parameter/star_rotation = -12.132199006410556
+shader_parameter/star_rotation = -12.375330983140728
 shader_parameter/star_tilt = -1.2915436464758039
 shader_parameter/star_field_color = Color(1, 1, 1, 1)
 shader_parameter/star_field_texture = ExtResource("7_ctatt")
@@ -79,8 +78,8 @@ shader_parameter/cirrus_absorption = 2.0
 shader_parameter/cirrus_sky_tint_fade = 0.5
 shader_parameter/cirrus_size = 1.0
 shader_parameter/cirrus_uv = Vector2(0.16, 0.11)
-shader_parameter/cirrus_position1 = Vector2(0.119037114, 0.119037114)
-shader_parameter/cirrus_position2 = Vector2(0.119037114, 0.119037114)
+shader_parameter/cirrus_position1 = Vector2(0.04954408, 0.04954408)
+shader_parameter/cirrus_position2 = Vector2(0.04954408, 0.04954408)
 shader_parameter/cirrus_texture = ExtResource("3_2lf6f")
 shader_parameter/cumulus_visible = true
 shader_parameter/cumulus_intensity = 0.6
@@ -90,7 +89,7 @@ shader_parameter/cumulus_absorption = 2.0
 shader_parameter/cumulus_noise_freq = 2.7
 shader_parameter/cumulus_sky_tint_fade = 0.0
 shader_parameter/cumulus_size = 0.5
-shader_parameter/cumulus_position = Vector2(0.59511393, 0.59511393)
+shader_parameter/cumulus_position = Vector2(0.2477261, 0.2477261)
 shader_parameter/cumulus_texture = ExtResource("4_7iits")
 shader_parameter/cumulus_partial_mie_phase = Vector3(0.957564, 1.042436, 0.412)
 shader_parameter/cumulus_mie_intensity = 1.0
@@ -100,7 +99,7 @@ shader_parameter/azimuthal_grid_rotation_offset = 0.03
 shader_parameter/show_equatorial_grid = false
 shader_parameter/equatorial_grid_color = Color(0, 0.75, 1, 1)
 shader_parameter/equatorial_grid_rotation_offset = 0.03
-shader_parameter/moon_matrix = Basis(-0.038208757, -0.9605597, -0.27543607, -0.44828126, 0.26282167, -0.85438204, 0.8930755, 0.09082798, -0.44064307)
+shader_parameter/moon_matrix = Basis(0.19315958, -0.9431587, -0.27044642, -0.4417019, 0.16253906, -0.8823156, 0.8761215, 0.28988436, -0.38519895)
 
 [sub_resource type="Sky" id="Sky_rup4s"]
 sky_material = SubResource("ShaderMaterial_fh13f")
@@ -109,7 +108,7 @@ sky_material = SubResource("ShaderMaterial_fh13f")
 background_mode = 2
 sky = SubResource("Sky_rup4s")
 ambient_light_source = 3
-ambient_light_color = Color(0.9517635, 0.9517635, 0.9517635, 1)
+ambient_light_color = Color(0.78355503, 0.7023394, 0.6616428, 1)
 reflected_light_source = 2
 tonemap_mode = 3
 tonemap_white = 6.0
@@ -312,30 +311,31 @@ script = ExtResource("1_world")
 environment = SubResource("Environment_4kbfs")
 camera_attributes = SubResource("CameraAttributesPractical_f17e3")
 script = ExtResource("5_sky3d")
-current_time = 14.782746666666522
+current_time = 15.70890666666643
 wind_direction = 2.35619451204804
 
 [node name="SunLight" type="DirectionalLight3D" parent="Sky3D" unique_id=946822099]
-transform = Transform3D(0.6540279, 0.4173928, -0.6308968, 0, 0.8340006, 0.55176353, 0.75647044, -0.36086872, 0.5454596, -0.6308968, 0.55176353, 0.5454596)
+transform = Transform3D(0.5402683, 0.32574973, -0.77588487, 0, 0.9220339, 0.38710934, 0.8414928, -0.20914291, 0.4981457, -0.7758848, 0.3871093, 0.49814567)
+light_color = Color(0.99548435, 0.8923023, 0.84059834, 1)
 shadow_enabled = true
 
 [node name="MoonLight" type="DirectionalLight3D" parent="Sky3D" unique_id=86044256]
-transform = Transform3D(0, -0.44990668, 0.89307564, -0.97940993, 0.18029572, 0.090827964, -0.2018818, -0.87468714, -0.44064304, 0.8930756, 0.09082796, -0.440643)
+transform = Transform3D(0, -0.48209038, 0.8761215, -0.7990181, 0.52681804, 0.28988433, -0.60130703, -0.70003694, -0.38519892, 0.8761215, 0.28988433, -0.38519892)
 light_color = Color(0.572549, 0.776471, 0.956863, 1)
 light_energy = 0.0
 
 [node name="SkyDome" type="Node" parent="Sky3D" unique_id=1619291409]
 script = ExtResource("10_munwf")
-sun_azimuth = -3.9994922
-sun_altitude = -0.986319
-moon_azimuth = -1.1124431
-moon_altitude = -1.479843
+sun_azimuth = -4.141633
+sun_altitude = -1.1733019
+moon_azimuth = -1.1565711
+moon_altitude = -1.2766904
 wind_direction = 2.35619451204804
 
 [node name="TimeOfDay" type="Node" parent="Sky3D" unique_id=348745801]
 script = ExtResource("11_ts3gi")
 dome_path = NodePath("../SkyDome")
-current_time = 14.782746666666522
+current_time = 15.70890666666643
 day = 10
 
 [node name="MultiplayerSpawner" type="MultiplayerSpawner" parent="." unique_id=1032412554]
@@ -519,21 +519,34 @@ transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 6.825611, 0.04, -7.9513035)
 transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 18.852835, 0.04, -7.9513035)
 
 [node name="TestRoom_Catapult" parent="." unique_id=384910295 instance=ExtResource("9_room_scene")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -26, 0.08, 5.5)
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 10.231262, 0.08, 5.5)
 room_title = "КАМЕРА №5: КАЧЕЛИ-КАТАПУЛЬТА"
 room_color = Color(1, 0.8, 0.2, 1)
 
 [node name="SeesawCatapult" parent="." unique_id=384910296 instance=ExtResource("11_seesaw_scene")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -26, 0.18, 5.5)
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 10.231262, 0.18, 5.5)
 
 [node name="CatapultTestDummy" parent="." unique_id=384910297 instance=ExtResource("2_dummy")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -22.7, 1.48, 5.5)
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 6.431263, 1.48, 5.5)
 
 [node name="CatapultJumpTower" type="CSGBox3D" parent="." unique_id=384910298]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -29.3, 2.5, 5.5)
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 15.031261, 2.25, 5.5)
 use_collision = true
-size = Vector3(2.5, 5, 2.5)
+size = Vector3(2.5, 4.5, 3.5)
+
+[node name="CatapultStairs" type="CSGBox3D" parent="." unique_id=384910299]
+transform = Transform3D(0.866025, 0, -0.5, 0, 1, 0, 0.5, 0, 0.866025, 15.031261, 1.15, 8.5)
+use_collision = true
+size = Vector3(2.0, 2.3, 4.0)
+
+[node name="BoulderRollRamp" type="CSGBox3D" parent="." unique_id=384910300]
+transform = Transform3D(0.939693, 0.34202, 0, -0.34202, 0.939693, 0, 0, 0, 1, 14.5, 2.8, 5.5)
+use_collision = true
+size = Vector3(3.5, 0.25, 2.2)
+
+[node name="CatapultBoulder" parent="." unique_id=384910301 instance=ExtResource("7_boulder")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15.2, 4.1, 5.5)
+
 
 [node name="Road_ToCatapult" parent="." unique_id=1812790651 instance=ExtResource("10_road_scene")]
 transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -29, 0.04, -7.951)
-
