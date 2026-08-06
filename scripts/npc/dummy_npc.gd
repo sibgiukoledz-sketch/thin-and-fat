@@ -112,11 +112,13 @@ func _spawn_floating_damage_text(amount: float, _hit_pos: Vector3) -> void:
 	label_3d.outline_size = 8
 	label_3d.modulate = Color(1.0, 0.2, 0.2, 1.0)
 	label_3d.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+
+	# Add to scene tree FIRST before setting global_position to prevent !is_inside_tree error
+	get_tree().root.add_child(label_3d)
 	label_3d.global_position = text_pos
 
-	get_tree().root.add_child(label_3d)
-
 	var tween := get_tree().create_tween()
+
 	tween.tween_property(label_3d, "global_position:y", text_pos.y + 1.0, 0.75)
 	tween.parallel().tween_property(label_3d, "modulate:a", 0.0, 0.75)
 	tween.tween_callback(label_3d.queue_free)
