@@ -7,6 +7,7 @@ script = ExtResource("1_data")
 character_id = "thin"
 character_name = "Высокий (Худой)"
 description = "Высокий и очень худой. Быстрый бег, высокий прыжок, узкий хитбокс."
+max_health = 80.0
 walk_speed = 7.0
 sprint_speed = 11.5
 crouch_speed = 3.5

@@ -7,6 +7,9 @@ extends Resource
 @export var character_name: String = "Thin Character"
 @export_multiline var description: String = "Fast and agile FPS character."
 
+@export_group("Health & Combat")
+@export var max_health: float = 100.0
+
 @export_group("Movement Stats")
 @export var walk_speed: float = 6.0
 @export var sprint_speed: float = 9.5

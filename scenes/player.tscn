@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3 uid="uid://c8playerfps01"]
+[gd_scene load_steps=15 format=3 uid="uid://c8playerfps01"]
 
 [ext_resource type="Script" path="res://scripts/player/player.gd" id="1_player"]
 [ext_resource type="Script" path="res://scripts/fsm/state_machine.gd" id="3_fsm"]
@@ -43,6 +43,12 @@ properties/4/replication_mode = 1
 properties/5/path = NodePath(".:selected_character_id")
 properties/5/spawn = true
 properties/5/replication_mode = 1
+properties/6/path = NodePath(".:current_health")
+properties/6/spawn = true
+properties/6/replication_mode = 1
+properties/7/path = NodePath(".:max_health")
+properties/7/spawn = true
+properties/7/replication_mode = 1
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hud"]
 bg_color = Color(0.05, 0.07, 0.1, 0.65)
@@ -54,6 +60,13 @@ expand_margin_left = 12.0
 expand_margin_top = 12.0
 expand_margin_right = 12.0
 expand_margin_bottom = 12.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hp_fill"]
+bg_color = Color(0.2, 0.85, 0.4, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
 
 [node name="Player" type="CharacterBody3D"]
 collision_layer = 2
@@ -112,7 +125,7 @@ anchors_preset = 0
 offset_left = 20.0
 offset_top = 20.0
 offset_right = 320.0
-offset_bottom = 130.0
+offset_bottom = 160.0
 
 [node name="Panel" type="Panel" parent="HUD/MarginContainer"]
 layout_mode = 2
@@ -131,6 +144,17 @@ text = "PEER ID: 1 (LOCAL)"
 layout_mode = 2
 theme_override_colors/font_color = Color(0.3, 0.95, 0.6, 1)
 text = "CHAR: THIN (SPD: 6.5)"
+
+[node name="HealthLabel" type="Label" parent="HUD/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.4, 0.4, 1)
+text = "HP: 100 / 100"
+
+[node name="HealthBar" type="ProgressBar" parent="HUD/MarginContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 14)
+layout_mode = 2
+theme_override_styles/fill = SubResource("StyleBoxFlat_hp_fill")
+value = 100.0
 
 [node name="StateLabel" type="Label" parent="HUD/MarginContainer/VBoxContainer"]
 layout_mode = 2

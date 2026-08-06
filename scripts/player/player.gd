@@ -1,9 +1,11 @@
 class_name Player
 extends CharacterBody3D
 
-## FPS / TPS CharacterBody3D controller with Roblox-style camera zoom, FSM & modular character mechanics.
+## FPS / TPS CharacterBody3D controller with health system, Roblox-style camera, FSM & modular character mechanics.
 
 signal player_state_changed(state_name: String)
+signal health_changed(current_hp: float, max_hp: float)
+signal player_died
 
 # Preloaded Character Data & Mechanics
 const CHAR_THIN := preload("res://resources/characters/thin_character.tres")
@@ -24,11 +26,22 @@ var AIR_ACCEL_FACTOR: float = 0.4
 const NORMAL_FOV: float = 75.0
 const SPRINT_FOV: float = 88.0
 
-# Exported / Synced Variables
+# Exported / Synced Variables for Networking
 @export var selected_character_id: String = "thin":
 	set(val):
 		selected_character_id = val
 		_apply_character_by_id(selected_character_id)
+
+@export var max_health: float = 100.0:
+	set(val):
+		max_health = maxf(val, 1.0)
+		current_health = clampf(current_health, 0.0, max_health)
+		health_changed.emit(current_health, max_health)
+
+@export var current_health: float = 100.0:
+	set(val):
+		current_health = clampf(val, 0.0, max_health)
+		health_changed.emit(current_health, max_health)
 
 @export var synced_state_name: String = "Idle"
 @export var is_crouching: bool = false
@@ -48,6 +61,8 @@ const SPRINT_FOV: float = 88.0
 @onready var state_label: Label = $HUD/MarginContainer/VBoxContainer/StateLabel
 @onready var authority_label: Label = $HUD/MarginContainer/VBoxContainer/AuthorityLabel
 @onready var char_info_label: Label = $HUD/MarginContainer/VBoxContainer/CharInfoLabel
+@onready var health_bar: ProgressBar = $HUD/MarginContainer/VBoxContainer/HealthBar
+@onready var health_label: Label = $HUD/MarginContainer/VBoxContainer/HealthLabel
 
 # Runtime state
 var active_character_data: CharacterData
@@ -55,6 +70,7 @@ var active_mechanics: BaseCharacterMechanics
 var mouse_sensitivity: float = 0.002
 var gravity: float = 12.0
 var target_speed: float = WALK_SPEED
+var is_dead: bool = false
 
 # Roblox-style Camera Zoom
 var target_camera_zoom: float = 0.0
@@ -101,7 +117,10 @@ func apply_character_data(data: CharacterData) -> void:
 		return
 	active_character_data = data
 
-	# Apply movement stats
+	# Apply health & movement stats
+	max_health = data.max_health
+	current_health = max_health
+
 	WALK_SPEED = data.walk_speed
 	SPRINT_SPEED = data.sprint_speed
 	CROUCH_SPEED = data.crouch_speed
@@ -144,7 +163,6 @@ func _apply_character_by_id(id: String) -> void:
 			apply_character_data(CHAR_THIN)
 
 func _setup_character_mechanics(id: String) -> void:
-	# Remove existing mechanics node if re-applying
 	if active_mechanics and is_instance_valid(active_mechanics):
 		active_mechanics.queue_free()
 		active_mechanics = null
@@ -158,8 +176,37 @@ func _setup_character_mechanics(id: String) -> void:
 
 	add_child(active_mechanics)
 
+# Health & Combat System Methods
+func take_damage(amount: float) -> void:
+	rpc_take_damage.rpc(amount)
+
+@rpc("any_peer", "call_local", "reliable")
+func rpc_take_damage(amount: float) -> void:
+	current_health -= amount
+	if current_health <= 0.0 and not is_dead:
+		die()
+
+func heal(amount: float) -> void:
+	rpc_heal.rpc(amount)
+
+@rpc("any_peer", "call_local", "reliable")
+func rpc_heal(amount: float) -> void:
+	current_health += amount
+
+func is_alive() -> bool:
+	return current_health > 0.0 and not is_dead
+
+func die() -> void:
+	is_dead = true
+	player_died.emit()
+
+func respawn() -> void:
+	current_health = max_health
+	is_dead = false
+	global_position = Vector3(randf_range(-4.0, 4.0), 1.5, randf_range(-4.0, 4.0))
+
 func _unhandled_input(event: InputEvent) -> void:
-	if not is_multiplayer_authority():
+	if not is_multiplayer_authority() or is_dead:
 		return
 
 	# Handle mouse look
@@ -187,10 +234,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		active_mechanics.handle_ability_input(event)
 
 func _process(delta: float) -> void:
-	# Smoothly interpolate Roblox-style camera distance
 	_update_camera_zoom(delta)
-
-	# Smoothly interpolate crouch height
 	_update_crouch_geometry(delta)
 
 	if active_mechanics:
@@ -207,7 +251,6 @@ func _update_camera_zoom(delta: float) -> void:
 	if spring_arm:
 		spring_arm.spring_length = current_camera_zoom
 
-	# Toggle local mesh visibility: hide in 1st-person (< 0.25m) so camera inside head doesn't clip body
 	if is_multiplayer_authority():
 		if mesh_instance:
 			mesh_instance.visible = (current_camera_zoom >= 0.25)
@@ -217,7 +260,7 @@ func _update_camera_zoom(delta: float) -> void:
 
 # Movement helpers
 func get_movement_input() -> Vector3:
-	if not is_multiplayer_authority():
+	if not is_multiplayer_authority() or is_dead:
 		return Vector3.ZERO
 
 	var input_vec := Vector2.ZERO
@@ -239,22 +282,22 @@ func get_movement_input() -> Vector3:
 	return direction
 
 func is_jump_requested() -> bool:
-	if not is_multiplayer_authority():
+	if not is_multiplayer_authority() or is_dead:
 		return false
 	return Input.is_action_just_pressed("jump") or Input.is_physical_key_pressed(KEY_SPACE)
 
 func is_sprint_requested() -> bool:
-	if not is_multiplayer_authority():
+	if not is_multiplayer_authority() or is_dead:
 		return false
 	return Input.is_action_pressed("sprint") or Input.is_physical_key_pressed(KEY_SHIFT)
 
 func is_crouch_requested() -> bool:
-	if not is_multiplayer_authority():
+	if not is_multiplayer_authority() or is_dead:
 		return false
 	return Input.is_action_pressed("crouch") or Input.is_physical_key_pressed(KEY_CTRL)
 
 func apply_movement(direction: Vector3, speed: float, delta: float, accel_factor: float = 1.0) -> void:
-	if not is_multiplayer_authority():
+	if not is_multiplayer_authority() or is_dead:
 		return
 
 	var accel := 10.0 * accel_factor
@@ -266,13 +309,13 @@ func apply_movement(direction: Vector3, speed: float, delta: float, accel_factor
 	move_and_slide()
 
 func apply_gravity(delta: float) -> void:
-	if not is_multiplayer_authority():
+	if not is_multiplayer_authority() or is_dead:
 		return
 	if not is_on_floor():
 		velocity.y -= gravity * delta
 
 func apply_jump_impulse() -> void:
-	if is_multiplayer_authority():
+	if is_multiplayer_authority() and not is_dead:
 		velocity.y = JUMP_VELOCITY
 
 func set_target_fov(target_fov: float) -> void:
@@ -311,6 +354,11 @@ func update_hud_display() -> void:
 		state_label.text = "FSM STATE: %s" % state_machine.current_state_name.to_upper()
 	if authority_label:
 		authority_label.text = "PEER ID: %d (AUTHORITY)" % peer_id
+	if health_bar:
+		health_bar.max_value = max_health
+		health_bar.value = current_health
+	if health_label:
+		health_label.text = "HP: %d / %d" % [int(current_health), int(max_health)]
 	if char_info_label and active_character_data:
 		var view_mode := "1ST PERSON" if current_camera_zoom < 0.25 else "3RD PERSON (%.1fm)" % current_camera_zoom
 		char_info_label.text = "CHAR: %s | VIEW: %s" % [active_character_data.character_name, view_mode]
