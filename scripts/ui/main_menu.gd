@@ -26,7 +26,7 @@ func _ready() -> void:
 	if btn_fat:
 		btn_fat.pressed.connect(func(): _select_character("fat"))
 
-	_select_character("thin")
+	_select_character("fat")
 
 func _select_character(id: String) -> void:
 	selected_character = id

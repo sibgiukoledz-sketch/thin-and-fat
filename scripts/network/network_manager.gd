@@ -12,7 +12,7 @@ var peer: ENetMultiplayerPeer
 var connected_players: Dictionary = {} # peer_id -> Player Info dict
 var player_character_choices: Dictionary = {} # peer_id -> character_id ("thin" / "fat")
 
-var local_character_id: String = "thin"
+var local_character_id: String = "fat"
 var current_ip: String = "127.0.0.1"
 var current_port: int = DEFAULT_PORT
 
