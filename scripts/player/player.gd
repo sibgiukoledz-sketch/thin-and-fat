@@ -110,7 +110,9 @@ var crouch_head_y: float = 0.8
 
 # Vomit Mechanics Runtime State
 var _vomit_particles: GPUParticles3D
+var _vomit_splatter: GPUParticles3D
 var _vomit_cooldown_timer: float = 0.0
+var _vomit_anim_timer: float = 0.0
 var _severe_nausea_duration: float = 0.0
 
 func _ready() -> void:
@@ -342,56 +344,105 @@ func _setup_vomit_particles() -> void:
 	if not head or _vomit_particles:
 		return
 
+	# === MAIN VOMIT STREAM (thick chunky jet) ===
 	_vomit_particles = GPUParticles3D.new()
-	_vomit_particles.name = "VomitParticles"
-	_vomit_particles.amount = 45
-	_vomit_particles.lifetime = 0.8
+	_vomit_particles.name = "VomitStream"
+	_vomit_particles.amount = 80
+	_vomit_particles.lifetime = 1.4
 	_vomit_particles.one_shot = true
-	_vomit_particles.explosiveness = 0.85
+	_vomit_particles.explosiveness = 0.65
 	_vomit_particles.emitting = false
 
 	var mat := ParticleProcessMaterial.new()
-	mat.direction = Vector3(0, -0.3, -1.0) # Forward and slightly down out of mouth
-	mat.spread = 22.0
-	mat.initial_velocity_min = 3.5
-	mat.initial_velocity_max = 6.0
-	mat.gravity = Vector3(0, -9.8, 0)
-	mat.scale_min = 0.15
-	mat.scale_max = 0.4
-	mat.color = Color(0.65, 0.75, 0.15, 0.95)
+	mat.direction = Vector3(0, -0.4, -1.0)
+	mat.spread = 15.0
+	mat.initial_velocity_min = 4.0
+	mat.initial_velocity_max = 7.5
+	mat.gravity = Vector3(0, -12.0, 0)
+	mat.damping_min = 1.0
+	mat.damping_max = 3.0
+	mat.scale_min = 0.08
+	mat.scale_max = 0.25
+	mat.color = Color(0.55, 0.65, 0.12, 0.95)
 
 	var mesh := SphereMesh.new()
 	var draw_mat := StandardMaterial3D.new()
 	draw_mat.shading_mode = StandardMaterial3D.SHADING_MODE_UNSHADED
-	draw_mat.albedo_color = Color(0.6, 0.75, 0.15, 0.95)
+	draw_mat.albedo_color = Color(0.5, 0.62, 0.1, 0.92)
+	draw_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	mesh.material = draw_mat
-	mesh.radius = 0.1
-	mesh.height = 0.2
+	mesh.radius = 0.07
+	mesh.height = 0.14
 
 	_vomit_particles.process_material = mat
 	_vomit_particles.draw_pass_1 = mesh
-	_vomit_particles.transform.origin = Vector3(0, -0.15, -0.35)
+	_vomit_particles.transform.origin = Vector3(0, -0.15, -0.4)
 	head.add_child(_vomit_particles)
+
+	# === SPLATTER DROPLETS (small fast side spray) ===
+	var splatter := GPUParticles3D.new()
+	splatter.name = "VomitSplatter"
+	splatter.amount = 35
+	splatter.lifetime = 0.9
+	splatter.one_shot = true
+	splatter.explosiveness = 0.9
+	splatter.emitting = false
+
+	var smat := ParticleProcessMaterial.new()
+	smat.direction = Vector3(0, -0.2, -1.0)
+	smat.spread = 40.0
+	smat.initial_velocity_min = 2.0
+	smat.initial_velocity_max = 5.0
+	smat.gravity = Vector3(0, -15.0, 0)
+	smat.scale_min = 0.03
+	smat.scale_max = 0.08
+	smat.color = Color(0.7, 0.8, 0.2, 0.85)
+
+	var smesh := SphereMesh.new()
+	var sdraw := StandardMaterial3D.new()
+	sdraw.shading_mode = StandardMaterial3D.SHADING_MODE_UNSHADED
+	sdraw.albedo_color = Color(0.7, 0.78, 0.2, 0.85)
+	sdraw.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	smesh.material = sdraw
+	smesh.radius = 0.04
+	smesh.height = 0.08
+
+	splatter.process_material = smat
+	splatter.draw_pass_1 = smesh
+	splatter.transform.origin = Vector3(0, -0.15, -0.4)
+	head.add_child(splatter)
+
+	# Store references
+	_vomit_splatter = splatter
 
 func trigger_vomit() -> void:
 	_severe_nausea_duration = 0.0
-	_vomit_cooldown_timer = 5.0
+	_vomit_cooldown_timer = 8.0
+	_vomit_anim_timer = 1.8 # Duration of full retch animation
 
-	# Relief after vomiting reduces nausea slightly
-	nausea_intensity = maxf(nausea_intensity - 0.25, 0.2)
+	# Relief after vomiting
+	nausea_intensity = maxf(nausea_intensity - 0.3, 0.15)
 
+	# Emit all particle systems
 	if _vomit_particles:
 		_vomit_particles.restart()
 		_vomit_particles.emitting = true
+	if _vomit_splatter:
+		_vomit_splatter.restart()
+		_vomit_splatter.emitting = true
 
-	# Sudden violent retch head pitch down
+	# Violent head retch downward
 	if head:
-		head.rotation.x = clampf(head.rotation.x + deg_to_rad(35.0), deg_to_rad(-89.0), deg_to_rad(89.0))
+		head.rotation.x = clampf(head.rotation.x + deg_to_rad(40.0), deg_to_rad(-89.0), deg_to_rad(89.0))
 
-	# Spawn Vomit Puddle floor hazard in front of player
+	# Screen flash green bile burst
+	if nausea_overlay and nausea_overlay.material:
+		nausea_overlay.material.set_shader_parameter("intensity", 1.0)
+
+	# Spawn Vomit Puddle on floor
 	if is_multiplayer_authority():
 		var forward := -global_transform.basis.z
-		rpc_spawn_vomit_puddle.rpc(global_position + forward * 1.5)
+		rpc_spawn_vomit_puddle.rpc(global_position + forward * 1.2)
 
 	print("🤮 VOMIT BURST: %s vomited!" % name)
 

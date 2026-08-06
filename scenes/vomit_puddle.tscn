@@ -1,21 +1,22 @@
-[gd_scene load_steps=6 format=3 uid="uid://c8vomitpuddle01"]
+[gd_scene load_steps=5 format=3 uid="uid://fwhg835gsxke"]
 
 [ext_resource type="Script" path="res://scripts/objects/vomit_puddle.gd" id="1_vomit"]
 
 [sub_resource type="CylinderShape3D" id="CylinderShape3D_puddle"]
-height = 0.3
-radius = 1.0
+height = 0.4
+radius = 1.2
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_slimy_vomit"]
-albedo_color = Color(0.55, 0.65, 0.1, 0.88)
-roughness = 0.08
-metallic = 0.1
+albedo_color = Color(0.48, 0.58, 0.08, 0.92)
+roughness = 0.05
+metallic = 0.15
+metallic_specular = 0.6
 transparency = 1
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_puddle"]
 material = SubResource("StandardMaterial3D_slimy_vomit")
 top_radius = 1.0
-bottom_radius = 0.95
+bottom_radius = 0.85
 height = 0.02
 
 [node name="VomitPuddle" type="Area3D"]
@@ -24,17 +25,9 @@ collision_mask = 2
 script = ExtResource("1_vomit")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.15, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0)
 shape = SubResource("CylinderShape3D_puddle")
 
 [node name="PuddleMesh" type="MeshInstance3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.01, 0)
 mesh = SubResource("CylinderMesh_puddle")
-
-[node name="Label3D" type="Label3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
-billboard = 1
-double_sided = false
-text = "🤮 ЛУЖА РВОТЫ"
-font_size = 20
-outline_size = 4
