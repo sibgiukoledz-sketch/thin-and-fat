@@ -12,7 +12,9 @@
 [ext_resource type="PackedScene" uid="uid://bf3hj2indasb5" path="res://scenes/stench_cloud_zone.tscn" id="6_cloud"]
 [ext_resource type="Texture2D" uid="uid://djpfuyxkryegn" path="res://addons/sky_3d/assets/textures/noise.jpg" id="6_kpybi"]
 [ext_resource type="PackedScene" uid="uid://c8boulder001" path="res://scenes/boulder.tscn" id="7_boulder"]
+[ext_resource type="PackedScene" uid="uid://c8glassfloor01" path="res://scenes/objects/fragile_glass_floor.tscn" id="8_glass_scene"]
 [ext_resource type="Texture2D" uid="uid://bm7dot7t7u1q4" path="res://addons/sky_3d/assets/thirdparty/textures/milkyway/StarField.jpg" id="7_ctatt"]
+
 [ext_resource type="Texture2D" uid="uid://c1vwcdcdvb74a" path="res://addons/sky_3d/assets/thirdparty/textures/milkyway/Milkyway.jpg" id="8_xgqkh"]
 [ext_resource type="Script" uid="uid://b4tkplvh7fq40" path="res://addons/sky_3d/src/SkyDome.gd" id="10_munwf"]
 [ext_resource type="Script" uid="uid://cjmkcj8hwm7ts" path="res://addons/sky_3d/src/TimeOfDay.gd" id="11_ts3gi"]
@@ -509,3 +511,13 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -22.87988, 0, -11.913544)
 material_override = SubResource("StandardMaterial3D_rga7q")
 mesh = SubResource("ArrayMesh_8u370")
 skeleton = NodePath("")
+
+[node name="FragileGlassFloor1" parent="." instance=ExtResource("8_glass_scene")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, 0.08, 0)
+
+[node name="FragileGlassFloor2" parent="." instance=ExtResource("8_glass_scene")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.2, 0.08, 0)
+
+[node name="FragileGlassFloor3" parent="." instance=ExtResource("8_glass_scene")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, 0.08, 3.2)
+
