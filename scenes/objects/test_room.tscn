@@ -1,11 +1,11 @@
-[gd_scene format=3 uid="uid://c7testroom01"]
+[gd_scene load_steps=12 format=3 uid="uid://c7testroom01"]
 
 [ext_resource type="Script" path="res://scripts/objects/test_room.gd" id="1_room"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_floor"]
-albedo_color = Color(0.18, 0.2, 0.24, 1)
-roughness = 0.3
-metallic = 0.2
+albedo_color = Color(0.15, 0.17, 0.22, 1)
+roughness = 0.25
+metallic = 0.3
 
 [sub_resource type="BoxMesh" id="BoxMesh_floor"]
 material = SubResource("StandardMaterial3D_floor")
@@ -14,25 +14,39 @@ size = Vector3(16, 0.2, 12)
 [sub_resource type="BoxShape3D" id="BoxShape3D_floor"]
 size = Vector3(16, 0.2, 12)
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_wall"]
-albedo_color = Color(0.32, 0.35, 0.4, 1)
-roughness = 0.6
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_glass_wall"]
+transparency = 1
+albedo_color = Color(0.35, 0.65, 0.95, 0.28)
+roughness = 0.1
+metallic = 0.2
+refraction_enabled = true
+refraction_scale = 0.03
 
 [sub_resource type="BoxMesh" id="BoxMesh_wall_back"]
-material = SubResource("StandardMaterial3D_wall")
-size = Vector3(16, 5, 0.3)
+material = SubResource("StandardMaterial3D_glass_wall")
+size = Vector3(16, 5, 0.15)
 
 [sub_resource type="BoxMesh" id="BoxMesh_wall_side"]
-material = SubResource("StandardMaterial3D_wall")
-size = Vector3(0.3, 5, 12)
+material = SubResource("StandardMaterial3D_glass_wall")
+size = Vector3(0.15, 5, 12)
 
 [sub_resource type="BoxMesh" id="BoxMesh_wall_front"]
-material = SubResource("StandardMaterial3D_wall")
-size = Vector3(5, 5, 0.3)
+material = SubResource("StandardMaterial3D_glass_wall")
+size = Vector3(5, 5, 0.15)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_frame"]
+albedo_color = Color(0.2, 0.25, 0.35, 1)
+emission_enabled = true
+emission = Color(0.15, 0.5, 0.85, 1)
+emission_energy_multiplier = 0.8
+
+[sub_resource type="BoxMesh" id="BoxMesh_pillar"]
+material = SubResource("StandardMaterial3D_frame")
+size = Vector3(0.4, 5, 0.4)
 
 [sub_resource type="BoxMesh" id="BoxMesh_arch"]
-material = SubResource("StandardMaterial3D_wall")
-size = Vector3(6, 1.2, 0.3)
+material = SubResource("StandardMaterial3D_frame")
+size = Vector3(6, 0.8, 0.3)
 
 [node name="TestRoom" type="Node3D"]
 script = ExtResource("1_room")
@@ -71,18 +85,34 @@ mesh = SubResource("BoxMesh_wall_front")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.5, 2.5, 6)
 mesh = SubResource("BoxMesh_wall_front")
 
+[node name="PillarBL" type="MeshInstance3D" parent="Walls"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 2.5, -6)
+mesh = SubResource("BoxMesh_pillar")
+
+[node name="PillarBR" type="MeshInstance3D" parent="Walls"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 2.5, -6)
+mesh = SubResource("BoxMesh_pillar")
+
+[node name="PillarFL" type="MeshInstance3D" parent="Walls"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 2.5, 6)
+mesh = SubResource("BoxMesh_pillar")
+
+[node name="PillarFR" type="MeshInstance3D" parent="Walls"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 2.5, 6)
+mesh = SubResource("BoxMesh_pillar")
+
 [node name="DoorArch" type="MeshInstance3D" parent="Walls"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.4, 6)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.6, 6)
 mesh = SubResource("BoxMesh_arch")
 
 [node name="CeilingLight" type="OmniLight3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.2, 0)
 light_color = Color(0.9, 0.95, 1, 1)
-light_energy = 2.2
+light_energy = 2.5
 omni_range = 16.0
 
 [node name="TitleLabel3D" type="Label3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.4, 6.2)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.6, 6.2)
 double_sided = false
 font_size = 42
 outline_size = 12

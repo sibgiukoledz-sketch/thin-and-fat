@@ -1,0 +1,55 @@
+[gd_scene format=3 uid="uid://2m1chvw4v441"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_asphalt"]
+albedo_color = Color(0.12, 0.13, 0.15, 1)
+roughness = 0.85
+
+[sub_resource type="BoxMesh" id="BoxMesh_asphalt"]
+material = SubResource("StandardMaterial3D_asphalt")
+size = Vector3(4, 0.08, 12)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_road"]
+size = Vector3(4, 0.08, 12)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_line_yellow"]
+albedo_color = Color(0.95, 0.8, 0.15, 1)
+emission_enabled = true
+emission = Color(0.85, 0.7, 0.1, 1)
+emission_energy_multiplier = 0.5
+
+[sub_resource type="BoxMesh" id="BoxMesh_yellow_stripe"]
+material = SubResource("StandardMaterial3D_line_yellow")
+size = Vector3(0.2, 0.09, 3)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_curb"]
+albedo_color = Color(0.7, 0.75, 0.8, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_curb"]
+material = SubResource("StandardMaterial3D_curb")
+size = Vector3(0.25, 0.14, 12)
+
+[node name="RoadSegment" type="StaticBody3D"]
+collision_layer = 1
+collision_mask = 3
+
+[node name="AsphaltMesh" type="MeshInstance3D" parent="."]
+mesh = SubResource("BoxMesh_asphalt")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("BoxShape3D_road")
+
+[node name="CenterStripe1" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.01, -3)
+mesh = SubResource("BoxMesh_yellow_stripe")
+
+[node name="CenterStripe2" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.01, 3)
+mesh = SubResource("BoxMesh_yellow_stripe")
+
+[node name="CurbLeft" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 0.03, 0)
+mesh = SubResource("BoxMesh_curb")
+
+[node name="CurbRight" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0.03, 0)
+mesh = SubResource("BoxMesh_curb")

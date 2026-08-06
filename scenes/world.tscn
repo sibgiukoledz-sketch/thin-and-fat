@@ -15,10 +15,11 @@
 [ext_resource type="Texture2D" uid="uid://bm7dot7t7u1q4" path="res://addons/sky_3d/assets/thirdparty/textures/milkyway/StarField.jpg" id="7_ctatt"]
 [ext_resource type="PackedScene" uid="uid://xynhci10f1b5" path="res://scenes/objects/fragile_glass_floor.tscn" id="8_glass_scene"]
 [ext_resource type="Texture2D" uid="uid://c1vwcdcdvb74a" path="res://addons/sky_3d/assets/thirdparty/textures/milkyway/Milkyway.jpg" id="8_xgqkh"]
-[ext_resource type="Script" uid="uid://b4tkplvh7fq40" path="res://addons/sky_3d/src/SkyDome.gd" id="10_munwf"]
 [ext_resource type="PackedScene" uid="uid://c7testroom01" path="res://scenes/objects/test_room.tscn" id="9_room_scene"]
-[ext_resource type="Script" uid="uid://cjmkcj8hwm7ts" path="res://addons/sky_3d/src/TimeOfDay.gd" id="11_ts3gi"]
+[ext_resource type="PackedScene" uid="uid://c7roadsegment01" path="res://scenes/objects/road_segment.tscn" id="10_road_scene"]
+[ext_resource type="Script" uid="uid://b4tkplvh7fq40" path="res://addons/sky_3d/src/SkyDome.gd" id="10_munwf"]
 
+[ext_resource type="Script" uid="uid://cjmkcj8hwm7ts" path="res://addons/sky_3d/src/TimeOfDay.gd" id="11_ts3gi"]
 [ext_resource type="Texture2D" uid="uid://cxn2xyrsehric" path="res://addons/lowpolytrees/tex3.png" id="16_0nbtd"]
 [ext_resource type="Texture2D" uid="uid://dk3sax7qgv6cy" path="res://addons/lowpolytrees/tex1.png" id="17_37qwj"]
 [ext_resource type="Texture2D" uid="uid://dev8auypr0qs5" path="res://addons/lowpolytrees/tex4.png" id="18_navra"]
@@ -61,7 +62,7 @@ shader_parameter/starmap_flip_u = false
 shader_parameter/starmap_flip_v = false
 shader_parameter/starmap_alignment = Vector3(2.68288, -0.25891, 0.40101)
 shader_parameter/star_rotation_offset = 9.38899
-shader_parameter/star_rotation = -11.82755424054292
+shader_parameter/star_rotation = -11.542328670882119
 shader_parameter/star_tilt = -1.2915436464758039
 shader_parameter/star_field_color = Color(1, 1, 1, 1)
 shader_parameter/star_field_texture = ExtResource("7_ctatt")
@@ -77,8 +78,8 @@ shader_parameter/cirrus_absorption = 2.0
 shader_parameter/cirrus_sky_tint_fade = 0.5
 shader_parameter/cirrus_size = 1.0
 shader_parameter/cirrus_uv = Vector2(0.16, 0.11)
-shader_parameter/cirrus_position1 = Vector2(0.24482603, 0.24482603)
-shader_parameter/cirrus_position2 = Vector2(0.24482603, 0.24482603)
+shader_parameter/cirrus_position1 = Vector2(0.4226891, 0.4226891)
+shader_parameter/cirrus_position2 = Vector2(0.4226891, 0.4226891)
 shader_parameter/cirrus_texture = ExtResource("3_2lf6f")
 shader_parameter/cumulus_visible = true
 shader_parameter/cumulus_intensity = 0.6
@@ -88,7 +89,7 @@ shader_parameter/cumulus_absorption = 2.0
 shader_parameter/cumulus_noise_freq = 2.7
 shader_parameter/cumulus_sky_tint_fade = 0.0
 shader_parameter/cumulus_size = 0.5
-shader_parameter/cumulus_position = Vector2(1.2240129, 1.2240129)
+shader_parameter/cumulus_position = Vector2(2.1134384, 2.1134384)
 shader_parameter/cumulus_texture = ExtResource("4_7iits")
 shader_parameter/cumulus_partial_mie_phase = Vector3(0.957564, 1.042436, 0.412)
 shader_parameter/cumulus_mie_intensity = 1.0
@@ -98,7 +99,7 @@ shader_parameter/azimuthal_grid_rotation_offset = 0.03
 shader_parameter/show_equatorial_grid = false
 shader_parameter/equatorial_grid_color = Color(0, 0.75, 1, 1)
 shader_parameter/equatorial_grid_rotation_offset = 0.03
-shader_parameter/moon_matrix = Basis(-0.3237413, -0.9094937, -0.2607931, -0.4225303, 0.38560066, -0.82023203, 0.8465577, -0.15534995, -0.5091234)
+shader_parameter/moon_matrix = Basis(-0.5667712, -0.79195964, -0.22709075, -0.3663125, 0.48913005, -0.79155976, 0.7379604, -0.36544713, -0.5673296)
 
 [sub_resource type="Sky" id="Sky_rup4s"]
 sky_material = SubResource("ShaderMaterial_fh13f")
@@ -120,31 +121,16 @@ roughness = 0.8
 
 [sub_resource type="BoxMesh" id="BoxMesh_floor"]
 material = SubResource("StandardMaterial3D_floor")
-size = Vector3(60, 1, 60)
+size = Vector3(154.66687, 1, 60)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_floor"]
 size = Vector3(60, 1, 60)
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_box"]
-albedo_color = Color(0.85, 0.4, 0.15, 1)
-roughness = 0.5
-
-[sub_resource type="BoxMesh" id="BoxMesh_box"]
-material = SubResource("StandardMaterial3D_box")
-size = Vector3(3, 2, 3)
-
-[sub_resource type="BoxShape3D" id="BoxShape3D_box"]
-size = Vector3(3, 2, 3)
 
 [sub_resource type="PrismMesh" id="PrismMesh_hafkd"]
 left_to_right = 0.0
 
 [sub_resource type="ConcavePolygonShape3D" id="ConcavePolygonShape3D_nnsk1"]
 data = PackedVector3Array(-0.5, 0.5, 0.5, 0.5, -0.5, 0.5, -0.5, -0.5, 0.5, -0.5, 0.5, -0.5, -0.5, -0.5, -0.5, 0.5, -0.5, -0.5, -0.5, 0.5, 0.5, -0.5, 0.5, -0.5, 0.5, -0.5, 0.5, -0.5, 0.5, -0.5, 0.5, -0.5, -0.5, 0.5, -0.5, 0.5, -0.5, 0.5, -0.5, -0.5, 0.5, 0.5, -0.5, -0.5, -0.5, -0.5, 0.5, 0.5, -0.5, -0.5, 0.5, -0.5, -0.5, -0.5, -0.5, -0.5, 0.5, 0.5, -0.5, 0.5, -0.5, -0.5, -0.5, 0.5, -0.5, 0.5, 0.5, -0.5, -0.5, -0.5, -0.5, -0.5)
-
-[sub_resource type="BoxMesh" id="BoxMesh_tunnel"]
-material = SubResource("StandardMaterial3D_box")
-size = Vector3(6, 0.3, 4)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_x2olw"]
 albedo_texture = ExtResource("16_0nbtd")
@@ -325,30 +311,30 @@ script = ExtResource("1_world")
 environment = SubResource("Environment_4kbfs")
 camera_attributes = SubResource("CameraAttributesPractical_f17e3")
 script = ExtResource("5_sky3d")
-current_time = 13.622266666666064
+current_time = 12.535760000000202
 wind_direction = 2.35619451204804
 
 [node name="SunLight" type="DirectionalLight3D" parent="Sky3D" unique_id=946822099]
-transform = Transform3D(0.8283014, 0.39394382, -0.39840314, 0, 0.7110752, 0.70311606, 0.56028277, -0.58239204, 0.58898455, -0.39840314, 0.70311606, 0.58898455)
+transform = Transform3D(0.9721393, 0.18239547, -0.14723125, 0, 0.62810946, 0.778125, 0.23440382, -0.7564459, 0.6106099, -0.14723125, 0.778125, 0.6106099)
 shadow_enabled = true
 
 [node name="MoonLight" type="DirectionalLight3D" parent="Sky3D" unique_id=86044256]
-transform = Transform3D(0, -0.53229713, 0.8465576, -0.95646465, -0.2470663, -0.15534995, 0.29184818, -0.80970246, -0.5091234, 0.8465576, -0.15534995, -0.5091234)
+transform = Transform3D(0, -0.674844, 0.7379604, -0.8406825, -0.39962643, -0.36544713, 0.5415283, -0.6203904, -0.5673296, 0.7379604, -0.36544713, -0.5673296)
 light_color = Color(0.572549, 0.776471, 0.956863, 1)
 light_energy = 0.0
 
 [node name="SkyDome" type="Node" parent="Sky3D" unique_id=1619291409]
 script = ExtResource("10_munwf")
-sun_azimuth = -3.7363198
-sun_altitude = -0.7910261
-moon_azimuth = -1.0293449
-moon_altitude = -1.726778
+sun_azimuth = -3.378198
+sun_altitude = -0.6791212
+moon_azimuth = -0.91538364
+moon_altitude = -1.9449095
 wind_direction = 2.35619451204804
 
 [node name="TimeOfDay" type="Node" parent="Sky3D" unique_id=348745801]
 script = ExtResource("11_ts3gi")
 dome_path = NodePath("../SkyDome")
-current_time = 13.622266666666064
+current_time = 12.535760000000202
 day = 10
 
 [node name="MultiplayerSpawner" type="MultiplayerSpawner" parent="." unique_id=1032412554]
@@ -374,33 +360,33 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 1, 8)
 [node name="Dummies" type="Node3D" parent="." unique_id=774522860]
 
 [node name="Dummy1" parent="Dummies" unique_id=1481578306 instance=ExtResource("2_dummy")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 4)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.5857, 0, -23.971758)
 
 [node name="Dummy2" parent="Dummies" unique_id=276207846 instance=ExtResource("2_dummy")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0, 4)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.463773, 0, -24.146254)
 
 [node name="Showers" type="Node3D" parent="." unique_id=2014093469]
 
 [node name="ShowerCabin1" parent="Showers" unique_id=497547698 instance=ExtResource("3_shower")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.81278, 0, -3)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.25390244, 0, -24.268372)
 
 [node name="ShowerCabin2" parent="Showers" unique_id=2024819724 instance=ExtResource("3_shower")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -13.432534, 0, -3)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.4954605, 0, -24.21654)
 
 [node name="TrashBins" type="Node3D" parent="." unique_id=767295644]
 
 [node name="TrashBinSingle" parent="TrashBins" unique_id=1552527766 instance=ExtResource("4_trash")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.956371, 0, -2.8226674)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.74267, 0, -15.091537)
 
 [node name="TrashBinInfinite" parent="TrashBins" unique_id=1583342589 instance=ExtResource("4_trash")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9.820063, 0, -2.8136413)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.2237587, 0, -14.966383)
 is_infinite = true
 
 [node name="StenchCloudZone" parent="." unique_id=836244747 instance=ExtResource("6_cloud")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -2)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.9800582, 0, -24.623182)
 
 [node name="HeavyBoulder" parent="." unique_id=987654321 instance=ExtResource("7_boulder")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.935026, -0.42135286, 1.5)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16.909124, -0.42135286, -24.24262)
 
 [node name="Level" type="Node3D" parent="." unique_id=1790019069]
 
@@ -408,59 +394,33 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.935026, -0.42135286, 1.5)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Level/Floor" unique_id=407296277]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 47.333435, 0, 0)
 mesh = SubResource("BoxMesh_floor")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Level/Floor" unique_id=328728455]
 shape = SubResource("BoxShape3D_floor")
 
-[node name="Obstacle1" type="StaticBody3D" parent="Level" unique_id=2078620617]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 1, -3)
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Level/Obstacle1" unique_id=500997275]
-mesh = SubResource("BoxMesh_box")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Level/Obstacle1" unique_id=1391962437]
-shape = SubResource("BoxShape3D_box")
-
 [node name="Side" type="StaticBody3D" parent="Level" unique_id=1640473438]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 1, 5.187292)
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Level/Side" unique_id=2077805256]
-transform = Transform3D(3.6300912, 0, 0, 0, 0.89136755, 0, 0, 0, 5.642502, 0, -0.6181389, 0)
+transform = Transform3D(0.009603642, 0, 5.642482, 0, 0.8913675, 0, -3.6300783, 0, 0.014927605, -2.8932753, -0.6181389, -2.833817)
 mesh = SubResource("PrismMesh_hafkd")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Level/Side" unique_id=1708140500]
-transform = Transform3D(3.6300912, 0, 0, 0, 0.89136755, 0, 0, 0, 5.642502, 0, -0.6181389, 0)
+transform = Transform3D(0.009603642, 0, 5.642482, 0, 0.8913675, 0, -3.6300783, 0, 0.014927605, -2.8932753, -0.6181389, -2.833817)
 shape = SubResource("ConcavePolygonShape3D_nnsk1")
-
-[node name="Obstacle2" type="StaticBody3D" parent="Level" unique_id=2035928717]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12.087603, 1, 10.092598)
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Level/Obstacle2" unique_id=573166789]
-mesh = SubResource("BoxMesh_box")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Level/Obstacle2" unique_id=1555326889]
-shape = SubResource("BoxShape3D_box")
-
-[node name="CrouchTunnelOverhead" type="StaticBody3D" parent="Level" unique_id=689733097]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.4, -6)
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Level/CrouchTunnelOverhead" unique_id=717077770]
-mesh = SubResource("BoxMesh_tunnel")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Level/CrouchTunnelOverhead" unique_id=1458372696]
-shape = SubResource("BoxShape3D_box")
 
 [node name="Trees" type="Node3D" parent="." unique_id=595684660]
 
 [node name="Tree1" type="MeshInstance3D" parent="Trees" unique_id=1162031309]
-transform = Transform3D(0.53655535, 0, -0.8438651, 0, 1, 0, 0.8438651, 0, 0.53655535, 25.072731, 0, -10.204397)
+transform = Transform3D(0.53655535, 0, -0.8438651, 0, 1, 0, 0.8438651, 0, 0.53655535, 25.072731, 0, -30.25207)
 material_override = SubResource("StandardMaterial3D_x2olw")
 mesh = SubResource("ArrayMesh_gld7d")
 skeleton = NodePath("")
 
 [node name="Tree2" type="MeshInstance3D" parent="Trees" unique_id=504339815]
-transform = Transform3D(0.53655535, 0, -0.8438651, 0, 1, 0, 0.8438651, 0, 0.53655535, 8.520515, 0, -25.155891)
+transform = Transform3D(0.53655535, 0, -0.8438651, 0, 1, 0, 0.8438651, 0, 0.53655535, 118.60941, 0, -25.155891)
 mesh = SubResource("ArrayMesh_gld7d")
 skeleton = NodePath("")
 
@@ -475,7 +435,7 @@ mesh = SubResource("ArrayMesh_gld7d")
 skeleton = NodePath("")
 
 [node name="Tree5" type="MeshInstance3D" parent="Trees" unique_id=1311078455]
-transform = Transform3D(0.53655535, 0, -0.8438651, 0, 1, 0, 0.8438651, 0, 0.53655535, -15.451776, 0, 13.125624)
+transform = Transform3D(0.53655535, 0, -0.8438651, 0, 1, 0, 0.8438651, 0, 0.53655535, -15.451776, 0, 16.903345)
 material_override = SubResource("StandardMaterial3D_817gm")
 mesh = SubResource("ArrayMesh_gld7d")
 skeleton = NodePath("")
@@ -486,17 +446,17 @@ mesh = SubResource("ArrayMesh_gld7d")
 skeleton = NodePath("")
 
 [node name="Tree7" type="MeshInstance3D" parent="Trees" unique_id=1603274839]
-transform = Transform3D(0.53655535, 0, -0.8438651, 0, 1, 0, 0.8438651, 0, 0.53655535, 21.09491, 0, 15.349546)
+transform = Transform3D(0.53655535, 0, -0.8438651, 0, 1, 0, 0.8438651, 0, 0.53655535, 53.428898, 0, 24.235605)
 mesh = SubResource("ArrayMesh_gld7d")
 skeleton = NodePath("")
 
 [node name="Tree8" type="MeshInstance3D" parent="Trees" unique_id=1626679550]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 21.400455, 0, 0.89848614)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 21.400455, 0, 22.118732)
 mesh = SubResource("ArrayMesh_ggc52")
 skeleton = NodePath("")
 
 [node name="Tree9" type="MeshInstance3D" parent="Trees" unique_id=588100176]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.960911, 0, 13.265182)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 108.24068, 0, 13.265182)
 material_override = SubResource("StandardMaterial3D_l8ah6")
 mesh = SubResource("ArrayMesh_e75v4")
 skeleton = NodePath("")
@@ -513,40 +473,44 @@ mesh = SubResource("ArrayMesh_8u370")
 skeleton = NodePath("")
 
 [node name="FragileGlassFloor1" parent="." unique_id=849501231 instance=ExtResource("8_glass_scene")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11.617773, 0.7804297, 3.9543476)
-glass_type = 0
+transform = Transform3D(0.002645565, 0, 0.9999965, 0, 1, 0, -0.9999965, 0, 0.002645565, -9.143723, 0.7804297, 8.967963)
 
 [node name="FragileGlassFloor2" parent="." unique_id=1207644796 instance=ExtResource("8_glass_scene")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.417773, 0.7804297, 3.9543476)
+transform = Transform3D(0.002645565, 0, 0.9999965, 0, 1, 0, -0.9999965, 0, 0.002645565, -9.135257, 0.7804297, 5.7679744)
 glass_type = 1
 
 [node name="FragileGlassFloor3" parent="." unique_id=1530845664 instance=ExtResource("8_glass_scene")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11.617773, 0.7804297, 7.1543474)
+transform = Transform3D(0.002645565, 0, 0.9999965, 0, 1, 0, -0.9999965, 0, 0.002645565, -5.943734, 0.7804297, 8.976429)
 glass_type = 2
 
 [node name="FragileGlassFloor4" parent="." unique_id=1948203912 instance=ExtResource("8_glass_scene")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.417773, 0.7804297, 7.1543474)
+transform = Transform3D(0.002645565, 0, 0.9999965, 0, 1, 0, -0.9999965, 0, 0.002645565, -5.9352684, 0.7804297, 5.77644)
 glass_type = 3
 
 [node name="FragileGlassWall1" parent="." unique_id=2084910291 instance=ExtResource("8_glass_scene")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.0, 0.08, 3.954)
-glass_type = 0
+transform = Transform3D(0.002645565, 0, 0.9999965, 0, 1, 0, -0.9999965, 0, 0.002645565, -9.126563, 0.07999998, 2.3502123)
 is_vertical_wall = true
 
 [node name="TestRoom_Glass" parent="." unique_id=384910291 instance=ExtResource("9_room_scene")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 0.08, 5.5)
+transform = Transform3D(-1.0000001, 0, -8.940697e-08, 0, 1, 0, 8.940697e-08, 0, -1.0000001, -8.727995, 0.08, 5.5)
 room_title = "КАМЕРА №1: ХРУПКОЕ СТЕКЛО И СТЕНЫ"
 
-[node name="TestRoom_Boulder" parent="." unique_id=384910292 instance=ExtResource("9_room_scene")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 0.08, 5.5)
-room_title = "КАМЕРА №2: ОГРОМНЫЙ ВАЛУН И СЕЙСМИКА"
-room_color = Color(1, 0.6, 0.2, 1)
-
 [node name="TestRoom_Dummies" parent="." unique_id=384910293 instance=ExtResource("9_room_scene")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.08, -18)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.9296355, 0.08, -21.580284)
 room_title = "КАМЕРА №3: МАНЕКЕНЫ И ТОЛЧОК РОГАТКА"
 room_color = Color(0.3, 1, 0.5, 1)
 
+[node name="TestRoom_kamen" parent="." unique_id=636908840 instance=ExtResource("9_room_scene")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16.312828, 0.27091223, -21.598648)
+room_title = "КАМЕРА №4: КАМЕНЬ"
+room_color = Color(1, 1, 1, 1)
 
+[node name="Road_CentralHub" parent="." unique_id=892301921 instance=ExtResource("10_road_scene")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.04, -8)
 
+[node name="Road_ToGlass" parent="." unique_id=892301922 instance=ExtResource("10_road_scene")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -5, 0.04, -2)
+
+[node name="Road_ToBoulder" parent="." unique_id=892301923 instance=ExtResource("10_road_scene")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 8, 0.04, -16)
 
