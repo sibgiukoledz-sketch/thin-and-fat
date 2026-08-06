@@ -366,6 +366,12 @@ func _pop_seismic_nodes_recursive(node: Node, center: Vector3, radius: float, im
 				dummy.take_damage(15.0 * falloff, n3d.global_position)
 				print("💥 SEISMIC POP: Launched DummyNPC %s into the air!" % dummy.name)
 
+			# Case D: Fragile Glass Floor -> Shatter from nearby seismic earthquake landing!
+			elif node is FragileGlassFloor:
+				var glass: FragileGlassFloor = node as FragileGlassFloor
+				glass.trigger_seismic_break()
+
+
 	for child in node.get_children():
 		_pop_seismic_nodes_recursive(child, center, radius, impact_speed)
 

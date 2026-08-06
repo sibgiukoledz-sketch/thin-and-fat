@@ -8,8 +8,9 @@ extends StaticBody3D
 signal glass_shattered
 
 @export var is_broken: bool = false
-@export var break_delay_fat: float = 0.18 # Spiderweb crack animation delay before shatter
+@export var break_delay_fat: float = 0.70 # Extended crack spreading phase (0.7s) before collapse!
 @export var respawn_time: float = 8.0 # Auto-restore floor after 8 seconds
+
 
 @onready var collision_shape: CollisionShape3D = $CollisionShape3D
 @onready var mesh_instance: MeshInstance3D = $MeshInstance3D
@@ -135,6 +136,12 @@ func _on_body_entered(body: Node) -> void:
 			_start_shatter_sequence()
 	elif body is HeavyBoulder:
 		_start_shatter_sequence()
+
+func trigger_seismic_break() -> void:
+	if is_broken or _is_breaking:
+		return
+	_start_shatter_sequence()
+
 
 func _start_shatter_sequence() -> void:
 	if _is_breaking or is_broken:
