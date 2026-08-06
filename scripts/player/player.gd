@@ -108,6 +108,11 @@ var crouch_height: float = 1.0
 var stand_head_y: float = 1.5
 var crouch_head_y: float = 0.8
 
+# Vomit Mechanics Runtime State
+var _vomit_particles: GPUParticles3D
+var _vomit_cooldown_timer: float = 0.0
+var _severe_nausea_duration: float = 0.0
+
 func _ready() -> void:
 	if ProjectSettings.has_setting("physics/3d/default_gravity"):
 		gravity = ProjectSettings.get_setting("physics/3d/default_gravity")
@@ -138,6 +143,8 @@ func _ready() -> void:
 
 	if uncrouch_ray:
 		uncrouch_ray.add_exception(self)
+
+	_setup_vomit_particles()
 
 	update_hud_display()
 
@@ -331,6 +338,71 @@ func _perform_melee_attack() -> void:
 			var dmg: float = 35.0 if selected_character_id == "fat" else 20.0
 			hit_collider.take_damage(dmg, hit_pos)
 
+func _setup_vomit_particles() -> void:
+	if not head or _vomit_particles:
+		return
+
+	_vomit_particles = GPUParticles3D.new()
+	_vomit_particles.name = "VomitParticles"
+	_vomit_particles.amount = 45
+	_vomit_particles.lifetime = 0.8
+	_vomit_particles.one_shot = true
+	_vomit_particles.explosiveness = 0.85
+	_vomit_particles.emitting = false
+
+	var mat := ParticleProcessMaterial.new()
+	mat.direction = Vector3(0, -0.3, -1.0) # Forward and slightly down out of mouth
+	mat.spread = 22.0
+	mat.initial_velocity_min = 3.5
+	mat.initial_velocity_max = 6.0
+	mat.gravity = Vector3(0, -9.8, 0)
+	mat.scale_min = 0.15
+	mat.scale_max = 0.4
+	mat.color = Color(0.65, 0.75, 0.15, 0.95)
+
+	var mesh := SphereMesh.new()
+	var draw_mat := StandardMaterial3D.new()
+	draw_mat.shading_mode = StandardMaterial3D.SHADING_MODE_UNSHADED
+	draw_mat.albedo_color = Color(0.6, 0.75, 0.15, 0.95)
+	mesh.material = draw_mat
+	mesh.radius = 0.1
+	mesh.height = 0.2
+
+	_vomit_particles.process_material = mat
+	_vomit_particles.draw_pass_1 = mesh
+	_vomit_particles.transform.origin = Vector3(0, -0.15, -0.35)
+	head.add_child(_vomit_particles)
+
+func trigger_vomit() -> void:
+	_severe_nausea_duration = 0.0
+	_vomit_cooldown_timer = 5.0
+
+	# Relief after vomiting reduces nausea slightly
+	nausea_intensity = maxf(nausea_intensity - 0.25, 0.2)
+
+	if _vomit_particles:
+		_vomit_particles.restart()
+		_vomit_particles.emitting = true
+
+	# Sudden violent retch head pitch down
+	if head:
+		head.rotation.x = clampf(head.rotation.x + deg_to_rad(35.0), deg_to_rad(-89.0), deg_to_rad(89.0))
+
+	# Spawn Vomit Puddle floor hazard in front of player
+	if is_multiplayer_authority():
+		var forward := -global_transform.basis.z
+		rpc_spawn_vomit_puddle.rpc(global_position + forward * 1.5)
+
+	print("🤮 VOMIT BURST: %s vomited!" % name)
+
+@rpc("any_peer", "call_local", "reliable")
+func rpc_spawn_vomit_puddle(spawn_pos: Vector3) -> void:
+	var puddle_scene := load("res://scenes/vomit_puddle.tscn") as PackedScene
+	if puddle_scene:
+		var puddle := puddle_scene.instantiate() as Node3D
+		puddle.global_position = Vector3(spawn_pos.x, 0.05, spawn_pos.z)
+		get_tree().root.add_child(puddle)
+
 func trigger_nausea(amount: float) -> void:
 	if not is_dead:
 		nausea_intensity = clampf(nausea_intensity + amount, 0.0, 1.0)
@@ -347,6 +419,17 @@ func _update_nausea_effects(delta: float) -> void:
 		if _respawn_timer <= 0.0:
 			respawn()
 		return
+
+	# Handle prolonged severe nausea -> Vomiting burst!
+	if nausea_intensity >= 0.75:
+		_severe_nausea_duration += delta
+		if _severe_nausea_duration >= 3.0 and _vomit_cooldown_timer <= 0.0:
+			trigger_vomit()
+	else:
+		_severe_nausea_duration = maxf(_severe_nausea_duration - delta, 0.0)
+
+	if _vomit_cooldown_timer > 0.0:
+		_vomit_cooldown_timer -= delta
 
 	# Slowly decay nausea when away from stench (lasts ~12 seconds)
 	nausea_intensity = maxf(nausea_intensity - 0.08 * delta, 0.0)
