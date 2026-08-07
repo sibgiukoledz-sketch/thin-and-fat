@@ -320,21 +320,46 @@ func _on_player_landed(downward_vel: float) -> void:
 
 @rpc("any_peer", "call_local", "reliable")
 func rpc_seismic_earthquake(center_pos: Vector3, impact_speed: float) -> void:
+	var is_pancake := (impact_speed >= 7.0)
+	var radius: float = 12.5 if is_pancake else 7.5
+
 	if _seismic_shockwave_particles:
 		_seismic_shockwave_particles.global_position = center_pos + Vector3(0, 0.1, 0)
 		_seismic_shockwave_particles.restart()
 		_seismic_shockwave_particles.emitting = true
 
+	# Pancake Mesh Visual Squish ("Гравитационный блин")
+	if is_pancake and player and player.mesh_instance:
+		_trigger_pancake_squish_animation()
+
 	if player and player.is_multiplayer_authority() and player.camera_3d:
-		player.camera_3d.rotation.z = deg_to_rad(randf_range(-14.0, 14.0))
+		var tilt_amount: float = 24.0 if is_pancake else 14.0
+		player.camera_3d.rotation.z = deg_to_rad(randf_range(-tilt_amount, tilt_amount))
 
-	var radius: float = 7.5
 	var root: Node = get_tree().root
-	_pop_seismic_nodes_recursive(root, center_pos, radius, impact_speed)
+	_pop_seismic_nodes_recursive(root, center_pos, radius, impact_speed, is_pancake)
 
-	print("💥 SEISMIC EARTHQUAKE: Fat landed! Popped items & players within %.1fm radius." % radius)
+	if is_pancake:
+		print("🥞 ГРАВИТАЦИОННЫЙ БЛИН: Fat slammed down from high fall! Flattened into a pancake and released a massive gravitational wave (%.1fm radius)!" % radius)
+	else:
+		print("💥 SEISMIC EARTHQUAKE: Fat landed! Popped items & players within %.1fm radius." % radius)
 
-func _pop_seismic_nodes_recursive(node: Node, center: Vector3, radius: float, impact_speed: float) -> void:
+func _trigger_pancake_squish_animation() -> void:
+	if not player or not player.mesh_instance:
+		return
+
+	var orig_scale: Vector3 = Vector3.ONE
+	var pancake_scale: Vector3 = Vector3(2.2, 0.15, 2.2) # Wide flat pancake shape
+
+	var tween: Tween = player.create_tween().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	# Flatten into pancake in 0.07s
+	tween.tween_property(player.mesh_instance, "scale", pancake_scale, 0.07)
+	# Hold pancake shape for 0.22s while shockwave propagates
+	tween.tween_interval(0.22)
+	# Spring back to normal shape with bouncy elasticity over 0.38s
+	tween.tween_property(player.mesh_instance, "scale", orig_scale, 0.38).set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
+
+func _pop_seismic_nodes_recursive(node: Node, center: Vector3, radius: float, impact_speed: float, is_pancake: bool = false) -> void:
 	if not node:
 		return
 
@@ -344,46 +369,62 @@ func _pop_seismic_nodes_recursive(node: Node, center: Vector3, radius: float, im
 		if dist <= radius:
 			var falloff: float = 1.0 - (dist / radius)
 
-			# Case A: RigidBody3D physical objects (Heavy Boulder, barrels, crates, items) -> MASSIVE POP UPWARD!
+			# Case A: RigidBody3D physical objects (Heavy Boulder, barrels, crates, items, trash bins) -> MASSIVE POP & SCATTER!
 			if node is RigidBody3D:
 				var rb: RigidBody3D = node as RigidBody3D
-				if not rb.freeze:
-					# Scaled mass impulse so giant 450kg Heavy Boulder pops up noticeably in the air!
-					var pop_y: float = clampf(rb.mass * 9.5 * (impact_speed / 3.5) * falloff, 300.0, 5000.0)
-					var dir_xz: Vector3 = (rb.global_position - center)
-					dir_xz.y = 0
-					if dir_xz.length_squared() > 0.001:
-						dir_xz = dir_xz.normalized()
-					rb.apply_central_impulse(Vector3(dir_xz.x * rb.mass * 3.5 * falloff, pop_y, dir_xz.z * rb.mass * 3.5 * falloff))
-					rb.apply_torque_impulse(Vector3(randf_range(-150.0, 150.0), 0, randf_range(-150.0, 150.0)))
-					print("💥 SEISMIC POP: Launched RigidBody %s into the air!" % rb.name)
+				# Unfreeze if frozen so gravitational wave launches & scatters heavy obstacles!
+				if rb.freeze:
+					rb.freeze = false
+					rb.sleeping = false
 
-			# Case B: Teammates / Other Players -> POP UPWARD IN THE AIR!
+				var mult: float = 2.5 if is_pancake else 1.0
+				var pop_y: float = clampf(rb.mass * 12.0 * (impact_speed / 3.5) * falloff * mult, 400.0, 8500.0)
+				var dir_xz: Vector3 = (rb.global_position - center)
+				dir_xz.y = 0
+				if dir_xz.length_squared() > 0.001:
+					dir_xz = dir_xz.normalized()
+
+				var push_force_xz: float = rb.mass * 7.5 * falloff * mult
+				rb.apply_central_impulse(Vector3(dir_xz.x * push_force_xz, pop_y, dir_xz.z * push_force_xz))
+				rb.apply_torque_impulse(Vector3(randf_range(-300.0, 300.0), randf_range(-200.0, 200.0), randf_range(-300.0, 300.0)))
+				print("🥞 GRAVITATIONAL LAUNCH: Launched & scattered RigidBody %s into the air!" % rb.name)
+
+			# Case B: Teammates / Other Players -> LAUNCH INTO THE STRATOSPHERE!
 			elif node is Player:
 				var target_player: Player = node as Player
 				if not target_player.is_dead:
-					var pop_y_vel: float = clampf(6.5 * (impact_speed / 3.5) * falloff, 4.2, 9.2)
+					var mult: float = 1.8 if is_pancake else 1.0
+					var pop_y_vel: float = clampf(8.5 * (impact_speed / 3.5) * falloff * mult, 6.0, 18.5)
 					target_player.velocity.y = pop_y_vel
+					
+					# Radial horizontal blast away from Fat center
+					var dir_xz: Vector3 = (target_player.global_position - center)
+					dir_xz.y = 0
+					if dir_xz.length_squared() > 0.001:
+						dir_xz = dir_xz.normalized()
+						target_player.velocity.x += dir_xz.x * 7.5 * falloff * mult
+						target_player.velocity.z += dir_xz.z * 7.5 * falloff * mult
+
 					if target_player.camera_3d:
-						target_player.camera_3d.rotation.z = deg_to_rad(randf_range(-14.0, 14.0))
-					print("💥 SEISMIC POP: Launched teammate %s into the air! (y_vel: %.1f)" % [target_player.name, pop_y_vel])
+						target_player.camera_3d.rotation.z = deg_to_rad(randf_range(-20.0, 20.0))
+					print("🥞 GRAVITATIONAL LAUNCH: Launched player %s into the air! (y_vel: %.1f)" % [target_player.name, pop_y_vel])
 
 			# Case C: Dummy NPC
 			elif node is DummyNPC:
 				var dummy: DummyNPC = node as DummyNPC
-				var pop_y_vel: float = clampf(6.5 * (impact_speed / 3.5) * falloff, 4.2, 9.2)
-				dummy.velocity = Vector3(randf_range(-3, 3), pop_y_vel, randf_range(-3, 3))
-				dummy.take_damage(15.0 * falloff, n3d.global_position)
-				print("💥 SEISMIC POP: Launched DummyNPC %s into the air!" % dummy.name)
+				var mult: float = 1.8 if is_pancake else 1.0
+				var pop_y_vel: float = clampf(8.5 * (impact_speed / 3.5) * falloff * mult, 6.0, 18.5)
+				dummy.velocity = Vector3(randf_range(-5, 5), pop_y_vel, randf_range(-5, 5))
+				dummy.take_damage(35.0 * falloff * mult, n3d.global_position)
+				print("🥞 GRAVITATIONAL LAUNCH: Launched DummyNPC %s into the air!" % dummy.name)
 
-			# Case D: Fragile Glass Floor -> Shatter from nearby seismic earthquake landing!
+			# Case D: Fragile Glass Floor -> Shatter from nearby gravitational pancake landing!
 			elif node is FragileGlassFloor:
 				var glass: FragileGlassFloor = node as FragileGlassFloor
 				glass.trigger_seismic_break()
 
-
 	for child in node.get_children():
-		_pop_seismic_nodes_recursive(child, center, radius, impact_speed)
+		_pop_seismic_nodes_recursive(child, center, radius, impact_speed, is_pancake)
 
 # Slingshot Shove & Launch Mechanics (Supports Thin Players AND Dummy NPCs)
 func handle_ability_input(event: InputEvent) -> void:
