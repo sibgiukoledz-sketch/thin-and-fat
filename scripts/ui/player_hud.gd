@@ -149,23 +149,23 @@ func _update_pump_qte_ui() -> void:
 	if not _pump_qte_panel or not player:
 		return
 
-	var infl_sys := player.get_node_or_null("InflationSystem") as InflationSystem
-	if not infl_sys:
+	var fat_mech := player.get_node_or_null("FatMechanics") as FatMechanics
+	if not fat_mech:
 		_pump_qte_panel.hide()
 		return
 
 	# Show carry hint when Fat has the hose
-	if infl_sys.is_carrying_hose and not infl_sys.is_inflating:
+	if fat_mech.is_carrying_hose and not fat_mech.is_pumping:
 		_pump_qte_panel.show()
 		if _qte_title:
-			_qte_title.text = "🎈 ШЛАНГ В РУКАХ! Подойди к Худому и нажми [F]!"
+			_qte_title.text = "🎈 ШЛАНГ В РУКАХ! Подойди к Худому или Манекену и нажми [F]!"
 		if _qte_cursor:
 			_qte_cursor.hide()
 		if _qte_progress_bar:
 			_qte_progress_bar.value = 0.0
 		return
 
-	if not infl_sys.is_inflating:
+	if not fat_mech.is_pumping:
 		_pump_qte_panel.hide()
 		return
 
@@ -175,9 +175,9 @@ func _update_pump_qte_ui() -> void:
 		_qte_title.text = "🎈 НАКАЧИВАНИЕ: [F] В ЗЕЛЁНОЙ ЗОНЕ!"
 	if _qte_cursor:
 		_qte_cursor.show()
-		_qte_cursor.position.x = infl_sys.qte_cursor_pos * 390.0
+		_qte_cursor.position.x = fat_mech.qte_cursor_pos * 390.0
 	if _qte_progress_bar:
-		_qte_progress_bar.value = infl_sys.inflation_progress * 100.0
+		_qte_progress_bar.value = fat_mech.inflation_progress * 100.0
 
 func setup(player_node: Player) -> void:
 	player = player_node

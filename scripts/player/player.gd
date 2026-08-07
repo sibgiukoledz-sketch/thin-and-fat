@@ -444,35 +444,6 @@ func _unhandled_input(event: InputEvent) -> void:
 	if hud and hud.has_method("is_pause_menu_open") and hud.is_pause_menu_open():
 		return
 
-	# --- Inflation Hose Mechanic: Dedicated [F] key handles all steps (Zero conflict with E ability!) ---
-	var is_f_pressed: bool = (event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_F)
-	if is_f_pressed:
-		var infl_sys := get_node_or_null("InflationSystem") as InflationSystem
-		if infl_sys:
-			# Step 3: QTE Pumping (hose connected, Fat is pumping)
-			if infl_sys.is_inflating:
-				var in_zone: bool = (infl_sys.qte_cursor_pos >= infl_sys.qte_zone_min and infl_sys.qte_cursor_pos <= infl_sys.qte_zone_max)
-				infl_sys.rpc_perform_pump_qte.rpc(in_zone)
-				get_viewport().set_input_as_handled()
-				return
-			# Deflate / release balloon mode
-			elif infl_sys.is_balloon_mode:
-				infl_sys.rpc_stop_inflation.rpc()
-				get_viewport().set_input_as_handled()
-				return
-			# Step 2: Fat is carrying hose -> connect to nearby Thin Player OR DummyNPC mannequin!
-			elif infl_sys.is_carrying_hose and selected_character_id.to_lower() == "fat":
-				var target: Node3D = _find_nearby_inflation_target()
-				if target:
-					infl_sys.rpc_start_inflation.rpc(target.get_path())
-					get_viewport().set_input_as_handled()
-					return
-			# Step 1: Fat grabs hose from pump station on the ground
-			elif not infl_sys.is_carrying_hose and not infl_sys.is_inflating and selected_character_id.to_lower() == "fat":
-				if infl_sys.try_grab_hose_from_station():
-					get_viewport().set_input_as_handled()
-					return
-
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		if Input.mouse_mode != Input.MOUSE_MODE_CAPTURED:
 			Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
