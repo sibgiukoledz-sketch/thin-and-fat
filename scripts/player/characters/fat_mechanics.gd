@@ -442,61 +442,14 @@ func _pop_seismic_nodes_recursive(node: Node, center: Vector3, radius: float, im
 	for child in node.get_children():
 		_pop_seismic_nodes_recursive(child, center, radius, impact_speed, is_pancake)
 
-# Hose Pickup, Mouth+Hand Attachment & Inflation Mechanics (Dedicated to Fat)
-var carried_hose: Node3D = null
-var is_carrying_hose: bool = false
-var is_pumping: bool = false
-var is_balloon_mode: bool = false
-var inflation_target: Node3D = null
-var inflation_progress: float = 0.0
-
-var qte_cursor_pos: float = 0.0
-var qte_cursor_dir: float = 1.0
-var qte_speed: float = 1.6
-var qte_zone_min: float = 0.38
-var qte_zone_max: float = 0.62
-
-func update_mechanics(delta: float) -> void:
-	# QTE Cursor oscillation when Fat is pumping
-	if is_pumping and player and player.is_multiplayer_authority():
-		qte_cursor_pos += qte_cursor_dir * qte_speed * delta
-		if qte_cursor_pos >= 1.0:
-			qte_cursor_pos = 1.0
-			qte_cursor_dir = -1.0
-		elif qte_cursor_pos <= 0.0:
-			qte_cursor_pos = 0.0
-			qte_cursor_dir = 1.0
-
+# Slingshot Shove & Launch Mechanics (Supports Thin Players AND Dummy NPCs)
 func handle_ability_input(event: InputEvent) -> void:
 	if not _ensure_player_ref() or not player.is_multiplayer_authority() or player.is_dead:
 		return
 
-	# --- Dedicated [F] key for Fat's Hose Pickup & Inflation Pumping ---
-	var is_f_pressed: bool = (event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_F)
-	if is_f_pressed:
-		# Step 3: Pumping QTE Press
-		if is_pumping:
-			var in_zone: bool = (qte_cursor_pos >= qte_zone_min and qte_cursor_pos <= qte_zone_max)
-			rpc_perform_pump_qte.rpc(in_zone)
-			return
-		# Deflate / Release Balloon
-		elif is_balloon_mode:
-			rpc_stop_inflation.rpc()
-			return
-		# Step 2: Carrying Hose -> Connect to nearby Thin or DummyNPC!
-		elif is_carrying_hose:
-			var target: Node3D = _find_nearby_inflation_target()
-			if target:
-				rpc_start_inflation.rpc(target.get_path())
-				return
-		# Step 1: Grab 3D Hose from floor (End 1 -> Mouth, End 2 -> Hand Nozzle!)
-		elif not is_carrying_hose and not is_pumping:
-			if _try_grab_floor_hose():
-				return
+	var is_slingshot_pressed: bool = (event is InputEventKey and event.pressed and not event.echo and (event.keycode == KEY_E or event.keycode == KEY_F))
 
-	# --- Dedicated [E] key for Fat's Slingshot Attack ---
-	var is_slingshot_pressed: bool = (event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_E)
-	if is_slingshot_pressed and not is_carrying_hose and not is_pumping and _slingshot_cooldown <= 0.0:
+	if is_slingshot_pressed and _slingshot_cooldown <= 0.0:
 		var target_node: Node3D = _find_thin_target()
 		if target_node:
 			var forward: Vector3 = -player.camera_3d.global_transform.basis.z if player.camera_3d else -player.global_transform.basis.z
@@ -510,151 +463,6 @@ func handle_ability_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
 		if event.keycode == KEY_K or event.keycode == KEY_G:
 			add_stench(35.0)
-
-func _try_grab_floor_hose() -> bool:
-	if not player:
-		return false
-
-	var hoses := player.get_tree().get_nodes_in_group("inflation_stations")
-	if hoses.is_empty():
-		for node in player.get_tree().root.get_children():
-			_find_nodes_recursive(node, "InflationPumpStation", hoses)
-
-	var closest_hose: Node3D = null
-	var closest_dist: float = 4.0
-
-	for h in hoses:
-		if h is InflationPumpStation:
-			var station: InflationPumpStation = h as InflationPumpStation
-			if station.is_hose_taken:
-				continue
-			var nozzle_pos: Vector3 = station.get_hose_nozzle_world_pos()
-			var dist: float = player.global_position.distance_to(nozzle_pos)
-			if dist < closest_dist:
-				closest_dist = dist
-				closest_hose = station
-
-	if closest_hose and closest_hose is InflationPumpStation:
-		var station: InflationPumpStation = closest_hose as InflationPumpStation
-		station.rpc_grab_hose.rpc(player.get_path())
-		carried_hose = station
-		is_carrying_hose = true
-		print("🎈 Fat grabbed hose! End 1 -> Mouth, End 2 -> Right Hand!")
-		return true
-
-	return false
-
-func _find_nearby_inflation_target() -> Node3D:
-	if not player:
-		return null
-	var closest: Node3D = null
-	var closest_dist: float = 4.0
-
-	# 1. Thin Players
-	for node in player.get_tree().get_nodes_in_group("players"):
-		if node == player or not node is Player:
-			continue
-		var p: Player = node as Player
-		if p.selected_character_id.to_lower() == "thin" and not p.is_dead:
-			var dist: float = player.global_position.distance_to(p.global_position)
-			if dist < closest_dist:
-				closest_dist = dist
-				closest = p
-
-	# 2. DummyNPC Mannequins
-	var dummies: Array = []
-	_find_nodes_recursive(player.get_tree().root, "DummyNPC", dummies)
-	for d in dummies:
-		if d is DummyNPC:
-			var dummy: DummyNPC = d as DummyNPC
-			var dist: float = player.global_position.distance_to(dummy.global_position)
-			if dist < closest_dist:
-				closest_dist = dist
-				closest = dummy
-
-	return closest
-
-func _find_nodes_recursive(node: Node, type_name: String, result: Array) -> void:
-	if not node:
-		return
-	if node.get_class() == type_name or node.is_class(type_name) or (node.get_script() and node.get_script().get_global_name() == type_name):
-		result.append(node)
-	for child in node.get_children():
-		_find_nodes_recursive(child, type_name, result)
-
-# --- Inflation RPCs ---
-@rpc("any_peer", "call_local", "reliable")
-func rpc_start_inflation(target_path: NodePath) -> void:
-	var target: Node3D = get_node_or_null(target_path) as Node3D
-	if not target:
-		return
-
-	is_pumping = true
-	is_carrying_hose = false
-	inflation_target = target
-	inflation_progress = 0.15
-	qte_cursor_pos = 0.0
-	qte_cursor_dir = 1.0
-
-@rpc("any_peer", "call_local", "reliable")
-func rpc_perform_pump_qte(is_success: bool) -> void:
-	if not is_pumping:
-		return
-
-	if is_success:
-		inflation_progress = minf(1.0, inflation_progress + 0.25)
-	else:
-		inflation_progress = maxf(0.05, inflation_progress - 0.12)
-
-	# Swell target mesh
-	if inflation_target:
-		var target_mesh: MeshInstance3D = inflation_target.get_node_or_null("MeshInstance3D") as MeshInstance3D
-		if target_mesh:
-			var target_s: float = lerpf(1.0, 2.3, inflation_progress)
-			var tw := inflation_target.create_tween().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-			tw.tween_property(target_mesh, "scale", Vector3(target_s, target_s, target_s), 0.12)
-
-	if inflation_progress >= 1.0:
-		rpc_activate_balloon_mode.rpc()
-
-@rpc("any_peer", "call_local", "reliable")
-func rpc_activate_balloon_mode() -> void:
-	is_pumping = false
-	is_balloon_mode = true
-
-	if inflation_target:
-		if inflation_target is Player:
-			var thin_mech := (inflation_target as Player).get_node_or_null("ThinMechanics") as ThinMechanics
-			if thin_mech:
-				thin_mech.is_balloon_mode = true
-		elif inflation_target is DummyNPC:
-			(inflation_target as DummyNPC).is_balloon_floating = true
-
-@rpc("any_peer", "call_local", "reliable")
-func rpc_stop_inflation() -> void:
-	is_pumping = false
-	is_balloon_mode = false
-	is_carrying_hose = false
-	inflation_progress = 0.0
-
-	if inflation_target:
-		var target_mesh: MeshInstance3D = inflation_target.get_node_or_null("MeshInstance3D") as MeshInstance3D
-		if target_mesh:
-			target_mesh.scale = Vector3.ONE
-			target_mesh.position.y = 0.9
-
-		if inflation_target is Player:
-			var thin_mech := (inflation_target as Player).get_node_or_null("ThinMechanics") as ThinMechanics
-			if thin_mech:
-				thin_mech.is_balloon_mode = false
-		elif inflation_target is DummyNPC:
-			(inflation_target as DummyNPC).is_balloon_floating = false
-
-		inflation_target = null
-
-	if carried_hose and is_instance_valid(carried_hose) and carried_hose.has_method("rpc_return_hose"):
-		carried_hose.call("rpc_return_hose")
-	carried_hose = null
 
 func _find_thin_target() -> Node3D:
 	if not player:

@@ -23,7 +23,6 @@
 [ext_resource type="PackedScene" uid="uid://dqknjse4ig1eq" path="res://scenes/objects/wind_tunnel_fan.tscn" id="12_fan_scene"]
 [ext_resource type="PackedScene" uid="uid://bsksw0irpi601" path="res://scenes/objects/heavy_pressure_button.tscn" id="13_button_scene"]
 [ext_resource type="PackedScene" uid="uid://yrnkiot641b5" path="res://scenes/objects/heavy_lever.tscn" id="14_lever_scene"]
-[ext_resource type="PackedScene" uid="uid://c8inflpump01" path="res://scenes/objects/inflation_pump_station.tscn" id="15_pump_scene"]
 [ext_resource type="Texture2D" uid="uid://cxn2xyrsehric" path="res://addons/lowpolytrees/tex3.png" id="16_0nbtd"]
 [ext_resource type="Texture2D" uid="uid://dk3sax7qgv6cy" path="res://addons/lowpolytrees/tex1.png" id="17_37qwj"]
 [ext_resource type="Texture2D" uid="uid://dev8auypr0qs5" path="res://addons/lowpolytrees/tex4.png" id="18_navra"]
@@ -669,17 +668,3 @@ billboard = 1
 modulate = Color(1, 0.8, 0.2, 1)
 text = "⚙️ КОНТРОЛЬНАЯ ТОЧКА №3 (СКОРО...)"
 outline_size = 10
-
-[node name="TestRoom_Inflation" parent="." unique_id=384910320 instance=ExtResource("9_room_scene")]
-transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 49.68441, 0.07999998, 5.88435)
-room_title = "КАМЕРА №7: НАКАЧКА ШАРИКА"
-room_color = Color(0.2, 0.9, 1, 1)
-
-[node name="InflationPumpStation" parent="." unique_id=384910321 instance=ExtResource("15_pump_scene")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 44.170807, 0.12, 8.352013)
-
-[node name="InflationDummy" parent="." unique_id=384910322 instance=ExtResource("2_dummy")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 46.694435, 0.56, 5.989874)
-
-[node name="Road_ToInflation" parent="." unique_id=384910323 instance=ExtResource("10_road_scene")]
-transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 54.70202, 0.04, -7.951)
