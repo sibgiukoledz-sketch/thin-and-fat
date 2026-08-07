@@ -412,21 +412,22 @@ func _pop_seismic_nodes_recursive(node: Node, center: Vector3, radius: float, im
 			elif node is Player:
 				var target_player: Player = node as Player
 				if not target_player.is_dead:
-					var mult: float = 1.8 if is_pancake else 1.0
-					var pop_y_vel: float = clampf(8.5 * (impact_speed / 3.5) * falloff * mult, 6.0, 18.5)
-					target_player.velocity.y = pop_y_vel
-					
-					# Radial horizontal blast away from Fat center
-					var dir_xz: Vector3 = (target_player.global_position - center)
-					dir_xz.y = 0
-					if dir_xz.length_squared() > 0.001:
-						dir_xz = dir_xz.normalized()
-						target_player.velocity.x += dir_xz.x * 7.5 * falloff * mult
-						target_player.velocity.z += dir_xz.z * 7.5 * falloff * mult
+					if target_player.selected_character_id.to_lower() == "thin":
+						target_player.apply_paper_flatten(15.0)
+						print("📄 FAT SLAMMED ON THIN: Flattened %s into paper!" % target_player.name)
+					else:
+						var mult: float = 1.8 if is_pancake else 1.0
+						var pop_y_vel: float = clampf(8.5 * (impact_speed / 3.5) * falloff * mult, 6.0, 18.5)
+						target_player.velocity.y = pop_y_vel
+						var dir_xz: Vector3 = (target_player.global_position - center)
+						dir_xz.y = 0
+						if dir_xz.length_squared() > 0.001:
+							dir_xz = dir_xz.normalized()
+							target_player.velocity.x += dir_xz.x * 7.5 * falloff * mult
+							target_player.velocity.z += dir_xz.z * 7.5 * falloff * mult
 
 					if target_player.camera_3d:
 						target_player.camera_3d.rotation.z = deg_to_rad(randf_range(-20.0, 20.0))
-					print("🥞 GRAVITATIONAL LAUNCH: Launched player %s into the air! (y_vel: %.1f)" % [target_player.name, pop_y_vel])
 
 			# Case C: Dummy NPC
 			elif node is DummyNPC:
