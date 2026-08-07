@@ -447,9 +447,14 @@ func handle_ability_input(event: InputEvent) -> void:
 	if not _ensure_player_ref() or not player.is_multiplayer_authority() or player.is_dead:
 		return
 
-	var is_interact_pressed: bool = event.is_action_pressed("interact") or (event is InputEventKey and event.pressed and not event.echo and (event.keycode == KEY_E or event.keycode == KEY_F))
+	# Block Slingshot attack while holding hose or inflating so [F] key interaction never conflicts!
+	var infl_sys := player.get_node_or_null("InflationSystem") as InflationSystem
+	if infl_sys and (infl_sys.is_carrying_hose or infl_sys.is_inflating or infl_sys.is_balloon_mode):
+		return
 
-	if is_interact_pressed and _slingshot_cooldown <= 0.0:
+	var is_slingshot_pressed: bool = (event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_E)
+
+	if is_slingshot_pressed and _slingshot_cooldown <= 0.0:
 		var target_node: Node3D = _find_thin_target()
 		if target_node:
 			var forward: Vector3 = -player.camera_3d.global_transform.basis.z if player.camera_3d else -player.global_transform.basis.z

@@ -444,9 +444,9 @@ func _unhandled_input(event: InputEvent) -> void:
 	if hud and hud.has_method("is_pause_menu_open") and hud.is_pause_menu_open():
 		return
 
-	# --- Inflation Mechanic: [E] key handles all steps ---
-	var is_e_pressed: bool = event.is_action_pressed("interact") or (event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_E)
-	if is_e_pressed:
+	# --- Inflation Hose Mechanic: Dedicated [F] key handles all steps (Zero conflict with E ability!) ---
+	var is_f_pressed: bool = (event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_F)
+	if is_f_pressed:
 		var infl_sys := get_node_or_null("InflationSystem") as InflationSystem
 		if infl_sys:
 			# Step 3: QTE Pumping (hose connected, Fat is pumping)

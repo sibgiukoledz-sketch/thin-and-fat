@@ -89,7 +89,7 @@ func _setup_pump_qte_ui() -> void:
 	_pump_qte_panel.add_theme_stylebox_override("panel", panel_style)
 
 	_qte_title = Label.new()
-	_qte_title.text = "🎈 РИТМИЧНОЕ НАКАЧИВАНИЕ: [E] НАЖМИТЕ В ЗЕЛЁНОЙ ЗОНЕ!"
+	_qte_title.text = "🎈 РИТМИЧНОЕ НАКАЧИВАНИЕ: [F] НАЖМИТЕ В ЗЕЛЁНОЙ ЗОНЕ!"
 	_qte_title.position = Vector2(10, 8)
 	_qte_title.size = Vector2(420, 26)
 	_qte_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -158,7 +158,7 @@ func _update_pump_qte_ui() -> void:
 	if infl_sys.is_carrying_hose and not infl_sys.is_inflating:
 		_pump_qte_panel.show()
 		if _qte_title:
-			_qte_title.text = "🎈 ШЛАНГ В РУКАХ! Подойди к Худому и нажми [E]!"
+			_qte_title.text = "🎈 ШЛАНГ В РУКАХ! Подойди к Худому и нажми [F]!"
 		if _qte_cursor:
 			_qte_cursor.hide()
 		if _qte_progress_bar:
@@ -172,7 +172,7 @@ func _update_pump_qte_ui() -> void:
 	# QTE pumping mode
 	_pump_qte_panel.show()
 	if _qte_title:
-		_qte_title.text = "🎈 НАКАЧИВАНИЕ: [E] В ЗЕЛЁНОЙ ЗОНЕ!"
+		_qte_title.text = "🎈 НАКАЧИВАНИЕ: [F] В ЗЕЛЁНОЙ ЗОНЕ!"
 	if _qte_cursor:
 		_qte_cursor.show()
 		_qte_cursor.position.x = infl_sys.qte_cursor_pos * 390.0

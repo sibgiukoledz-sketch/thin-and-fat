@@ -1,34 +1,32 @@
 class_name InflationPumpStation
 extends StaticBody3D
 
-## Interactive Inflation Pump Station with a PHYSICAL 3D hose lying on the ground.
+## High-Quality Physical 3D Inflation Hose Object (Standalone Hose on Floor).
 ## Flow:
-## 1. Fat walks to the hose lying on the ground and presses [E] to GRAB it.
-## 2. Fat carries the hose (it stretches from the compressor to Fat).
-## 3. Fat walks to Thin and presses [E] to CONNECT the hose and start pumping.
+## 1. Fat walks up to the 3D hose on the floor and presses [F] to GRAB IT.
+## 2. Fat carries the hose (3D flexible hose stretches from the hose reel to Fat).
+## 3. Fat walks to Thin and presses [F] to CONNECT the hose and start pumping!
 
 signal hose_grabbed(by_player: Player)
 signal hose_connected(fat: Player, thin: Player)
 
-@export var interaction_radius: float = 2.5
+@export var interaction_radius: float = 3.0
 
 var is_hose_taken: bool = false
 var hose_carrier: Player = null
 
-# 3D Visual nodes
-var _compressor_mesh: MeshInstance3D
-var _hose_ground_node: Node3D  # The hose lying on the ground (pickup target)
+# 3D Visual nodes for pure standalone hose
+var _hose_ground_node: Node3D
 var _hose_nozzle_mesh: MeshInstance3D
 var _hose_coil_mesh: MeshInstance3D
-var _hose_segments: Array[MeshInstance3D] = []  # Segmented hose pieces on ground
-var _platform_mesh: MeshInstance3D
+var _hose_segments: Array[MeshInstance3D] = []
 var _prompt_label: Label3D
 var _title_label: Label3D
 var _hose_pickup_area: Area3D
-var _compressor_material: StandardMaterial3D
 var _hose_material: StandardMaterial3D
+var _brass_material: StandardMaterial3D
 
-# Stretched hose from compressor to carrier
+# Stretched hose from floor origin -> Fat's hand
 var _stretched_rope: MeshInstance3D
 var _stretched_mesh: ImmediateMesh
 
@@ -36,134 +34,85 @@ func _ready() -> void:
 	collision_layer = 1
 	collision_mask = 0
 
-	_build_compressor_visuals()
-	_build_hose_on_ground()
+	_setup_materials()
+	_build_3d_hose_visuals()
 	_build_hose_pickup_area()
 	_build_labels()
 
-# =================== COMPRESSOR UNIT ===================
-
-func _build_compressor_visuals() -> void:
-	# --- Platform base (dark metal plate) ---
-	_platform_mesh = MeshInstance3D.new()
-	_platform_mesh.name = "PlatformMesh"
-	var plat_box := BoxMesh.new()
-	plat_box.size = Vector3(3.0, 0.12, 3.0)
-	var plat_mat := StandardMaterial3D.new()
-	plat_mat.albedo_color = Color(0.25, 0.28, 0.32, 1.0)
-	plat_mat.metallic = 0.6
-	plat_mat.roughness = 0.35
-	plat_box.material = plat_mat
-	_platform_mesh.mesh = plat_box
-	_platform_mesh.position = Vector3(0, 0.06, 0)
-	add_child(_platform_mesh)
-
-	# Platform collision
-	var plat_col := CollisionShape3D.new()
-	var plat_shape := BoxShape3D.new()
-	plat_shape.size = Vector3(3.0, 0.12, 3.0)
-	plat_col.shape = plat_shape
-	plat_col.position = Vector3(0, 0.06, 0)
-	add_child(plat_col)
-
-	# --- Compressor body (cylindrical tank) ---
-	_compressor_mesh = MeshInstance3D.new()
-	_compressor_mesh.name = "CompressorTank"
-	var cyl_mesh := CylinderMesh.new()
-	cyl_mesh.top_radius = 0.45
-	cyl_mesh.bottom_radius = 0.5
-	cyl_mesh.height = 1.2
-	_compressor_material = StandardMaterial3D.new()
-	_compressor_material.albedo_color = Color(0.85, 0.25, 0.15, 1.0)
-	_compressor_material.metallic = 0.7
-	_compressor_material.roughness = 0.25
-	cyl_mesh.material = _compressor_material
-	_compressor_mesh.mesh = cyl_mesh
-	_compressor_mesh.position = Vector3(-0.8, 0.72, 0)
-	add_child(_compressor_mesh)
-
-	# --- Pressure gauge (small sphere on top) ---
-	var gauge := MeshInstance3D.new()
-	gauge.name = "PressureGauge"
-	var gauge_mesh := SphereMesh.new()
-	gauge_mesh.radius = 0.12
-	gauge_mesh.height = 0.24
-	var gauge_mat := StandardMaterial3D.new()
-	gauge_mat.albedo_color = Color(0.9, 0.9, 0.85, 1.0)
-	gauge_mat.metallic = 0.8
-	gauge_mesh.material = gauge_mat
-	gauge.mesh = gauge_mesh
-	gauge.position = Vector3(-0.8, 1.45, 0.25)
-	add_child(gauge)
-
-	# --- Valve handle on the tank ---
-	var valve := MeshInstance3D.new()
-	valve.name = "ValveHandle"
-	var valve_mesh := TorusMesh.new()
-	valve_mesh.inner_radius = 0.06
-	valve_mesh.outer_radius = 0.15
-	var valve_mat := StandardMaterial3D.new()
-	valve_mat.albedo_color = Color(0.3, 0.3, 0.35, 1.0)
-	valve_mat.metallic = 0.85
-	valve_mesh.material = valve_mat
-	valve.mesh = valve_mesh
-	valve.position = Vector3(-0.8, 1.4, -0.3)
-	valve.rotation_degrees = Vector3(0, 0, 90)
-	add_child(valve)
-
-	# --- Hose outlet pipe from compressor (short stub) ---
-	var outlet := MeshInstance3D.new()
-	outlet.name = "HoseOutlet"
-	var out_cyl := CylinderMesh.new()
-	out_cyl.top_radius = 0.06
-	out_cyl.bottom_radius = 0.07
-	out_cyl.height = 0.4
-	var out_mat := StandardMaterial3D.new()
-	out_mat.albedo_color = Color(0.4, 0.42, 0.45, 1.0)
-	out_mat.metallic = 0.7
-	out_cyl.material = out_mat
-	outlet.mesh = out_cyl
-	outlet.position = Vector3(-0.35, 0.6, 0)
-	outlet.rotation_degrees = Vector3(0, 0, 90)
-	add_child(outlet)
-
-	# --- Stretched hose renderer (compressor -> carrier) ---
-	_stretched_mesh = ImmediateMesh.new()
-	_stretched_rope = MeshInstance3D.new()
-	_stretched_rope.name = "StretchedHose"
-	_stretched_rope.top_level = true
-	_stretched_rope.mesh = _stretched_mesh
-	var rope_mat := StandardMaterial3D.new()
-	rope_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	rope_mat.albedo_color = Color(0.15, 0.75, 0.9, 1.0)
-	_stretched_rope.material_override = rope_mat
-	_stretched_rope.hide()
-	add_child(_stretched_rope)
-
-# =================== 3D HOSE ON THE GROUND ===================
-
-func _build_hose_on_ground() -> void:
+func _setup_materials() -> void:
+	# Flexible industrial cyan/yellow rubber hose material
 	_hose_material = StandardMaterial3D.new()
-	_hose_material.albedo_color = Color(0.15, 0.75, 0.9, 1.0)
-	_hose_material.roughness = 0.65
+	_hose_material.albedo_color = Color(0.12, 0.78, 0.92, 1.0)
+	_hose_material.roughness = 0.45
+	_hose_material.metallic = 0.1
 
+	# Polished brass nozzle connector material
+	_brass_material = StandardMaterial3D.new()
+	_brass_material.albedo_color = Color(0.95, 0.82, 0.22, 1.0)
+	_brass_material.metallic = 0.85
+	_brass_material.roughness = 0.2
+
+func _build_3d_hose_visuals() -> void:
 	_hose_ground_node = Node3D.new()
-	_hose_ground_node.name = "HoseOnGround"
+	_hose_ground_node.name = "StandaloneHose3D"
 	add_child(_hose_ground_node)
 
-	# Hose is a series of short cylinders laid out in a winding path on the ground
-	# Starting from the compressor outlet, curving on the floor
+	# --- 1. Hose Floor Mount Ring Base ---
+	var mount := MeshInstance3D.new()
+	mount.name = "HoseMountBase"
+	var mount_mesh := CylinderMesh.new()
+	mount_mesh.top_radius = 0.35
+	mount_mesh.bottom_radius = 0.4
+	mount_mesh.height = 0.1
+	var mount_mat := StandardMaterial3D.new()
+	mount_mat.albedo_color = Color(0.2, 0.22, 0.26, 1.0)
+	mount_mat.metallic = 0.7
+	mount_mesh.material = mount_mat
+	mount.mesh = mount_mesh
+	mount.position = Vector3(0, 0.05, 0)
+	_hose_ground_node.add_child(mount)
 
+	# Mount collision
+	var mount_col := CollisionShape3D.new()
+	var mount_shape := CylinderShape3D.new()
+	mount_shape.radius = 0.4
+	mount_shape.height = 0.1
+	mount_col.shape = mount_shape
+	mount_col.position = Vector3(0, 0.05, 0)
+	add_child(mount_col)
+
+	# --- 2. Coiled Rubber Hose on floor (2 layered rings) ---
+	_hose_coil_mesh = MeshInstance3D.new()
+	_hose_coil_mesh.name = "HoseCoilRing1"
+	var coil1 := TorusMesh.new()
+	coil1.inner_radius = 0.22
+	coil1.outer_radius = 0.38
+	coil1.material = _hose_material
+	_hose_coil_mesh.mesh = coil1
+	_hose_coil_mesh.position = Vector3(0, 0.12, 0)
+	_hose_coil_mesh.rotation_degrees = Vector3(90, 0, 0)
+	_hose_ground_node.add_child(_hose_coil_mesh)
+
+	var coil2 := MeshInstance3D.new()
+	coil2.name = "HoseCoilRing2"
+	var coil2_mesh := TorusMesh.new()
+	coil2_mesh.inner_radius = 0.18
+	coil2_mesh.outer_radius = 0.34
+	coil2_mesh.material = _hose_material
+	coil2.mesh = coil2_mesh
+	coil2.position = Vector3(0, 0.20, 0)
+	coil2.rotation_degrees = Vector3(90, 15, 0)
+	_hose_ground_node.add_child(coil2)
+
+	# --- 3. Curved Winding Hose Segments extending from coil ---
 	var hose_path: Array[Vector3] = [
-		Vector3(-0.1, 0.18, 0),
-		Vector3(0.3, 0.18, 0.15),
-		Vector3(0.7, 0.18, -0.1),
-		Vector3(1.0, 0.18, 0.2),
-		Vector3(1.3, 0.18, 0.0),
-		Vector3(1.6, 0.18, 0.25),
-		Vector3(1.9, 0.18, 0.1),
-		Vector3(2.2, 0.18, -0.15),
-		Vector3(2.5, 0.18, 0.1),
+		Vector3(0.0, 0.18, 0.0),
+		Vector3(0.35, 0.18, 0.2),
+		Vector3(0.75, 0.18, 0.0),
+		Vector3(1.15, 0.18, 0.35),
+		Vector3(1.6, 0.18, 0.15),
+		Vector3(2.0, 0.18, -0.1),
+		Vector3(2.35, 0.18, 0.15),
 	]
 
 	for i in range(hose_path.size() - 1):
@@ -175,16 +124,14 @@ func _build_hose_on_ground() -> void:
 		var seg := MeshInstance3D.new()
 		seg.name = "HoseSeg_%d" % i
 		var seg_cyl := CylinderMesh.new()
-		seg_cyl.top_radius = 0.045
-		seg_cyl.bottom_radius = 0.045
+		seg_cyl.top_radius = 0.05
+		seg_cyl.bottom_radius = 0.05
 		seg_cyl.height = seg_len
 		seg_cyl.material = _hose_material
 		seg.mesh = seg_cyl
 		seg.position = seg_mid
 
-		# Rotate cylinder to align between two points
 		var dir := (seg_end - seg_start).normalized()
-		seg.rotation = Vector3(0, 0, -acos(dir.dot(Vector3.UP)))
 		if absf(dir.x) > 0.001 or absf(dir.z) > 0.001:
 			seg.look_at(seg.global_position + dir, Vector3.UP)
 			seg.rotate_object_local(Vector3.RIGHT, deg_to_rad(90))
@@ -192,48 +139,60 @@ func _build_hose_on_ground() -> void:
 		_hose_segments.append(seg)
 		_hose_ground_node.add_child(seg)
 
-	# --- Nozzle at the end of the hose (the part Fat grabs) ---
+	# --- 4. High-Quality Brass Nozzle & Air Meter Valve at tip ---
 	_hose_nozzle_mesh = MeshInstance3D.new()
-	_hose_nozzle_mesh.name = "HoseNozzle"
-	var nozzle_cyl := CylinderMesh.new()
-	nozzle_cyl.top_radius = 0.035
-	nozzle_cyl.bottom_radius = 0.065
-	nozzle_cyl.height = 0.25
-	var nozzle_mat := StandardMaterial3D.new()
-	nozzle_mat.albedo_color = Color(0.9, 0.85, 0.2, 1.0)  # Yellow/gold nozzle tip
-	nozzle_mat.metallic = 0.6
-	nozzle_cyl.material = nozzle_mat
-	_hose_nozzle_mesh.mesh = nozzle_cyl
-	_hose_nozzle_mesh.position = Vector3(2.5, 0.3, 0.1)
+	_hose_nozzle_mesh.name = "BrassHoseNozzle"
+
+	var nozzle_body := CylinderMesh.new()
+	nozzle_body.top_radius = 0.035
+	nozzle_body.bottom_radius = 0.065
+	nozzle_body.height = 0.32
+	nozzle_body.material = _brass_material
+	_hose_nozzle_mesh.mesh = nozzle_body
+	_hose_nozzle_mesh.position = Vector3(2.35, 0.28, 0.15)
 	_hose_nozzle_mesh.rotation_degrees = Vector3(0, 0, 90)
 	_hose_ground_node.add_child(_hose_nozzle_mesh)
 
-	# --- Hose coil ring near the compressor ---
-	_hose_coil_mesh = MeshInstance3D.new()
-	_hose_coil_mesh.name = "HoseCoil"
-	var coil_mesh := TorusMesh.new()
-	coil_mesh.inner_radius = 0.2
-	coil_mesh.outer_radius = 0.4
-	coil_mesh.material = _hose_material
-	_hose_coil_mesh.mesh = coil_mesh
-	_hose_coil_mesh.position = Vector3(0.4, 0.16, -0.5)
-	_hose_coil_mesh.rotation_degrees = Vector3(90, 0, 0)
-	_hose_ground_node.add_child(_hose_coil_mesh)
+	# Rubber grip handle on nozzle
+	var grip := MeshInstance3D.new()
+	grip.name = "NozzleGrip"
+	var grip_mesh := TorusMesh.new()
+	grip_mesh.inner_radius = 0.04
+	grip_mesh.outer_radius = 0.08
+	var grip_mat := StandardMaterial3D.new()
+	grip_mat.albedo_color = Color(0.15, 0.15, 0.18, 1.0)
+	grip_mesh.material = grip_mat
+	grip.mesh = grip_mesh
+	grip.position = Vector3(2.25, 0.28, 0.15)
+	grip.rotation_degrees = Vector3(0, 0, 90)
+	_hose_ground_node.add_child(grip)
 
-# =================== INTERACTION AREA (near the nozzle) ===================
+	# --- 5. Stretched Hose Renderer (from ground mount -> Fat's hands) ---
+	_stretched_mesh = ImmediateMesh.new()
+	_stretched_rope = MeshInstance3D.new()
+	_stretched_rope.name = "StretchedHoseLine"
+	_stretched_rope.top_level = true
+	_stretched_rope.mesh = _stretched_mesh
+	var rope_mat := StandardMaterial3D.new()
+	rope_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	rope_mat.albedo_color = Color(0.12, 0.78, 0.92, 1.0)
+	_stretched_rope.material_override = rope_mat
+	_stretched_rope.hide()
+	add_child(_stretched_rope)
+
+# =================== INTERACTION AREA ===================
 
 func _build_hose_pickup_area() -> void:
 	_hose_pickup_area = Area3D.new()
 	_hose_pickup_area.name = "HosePickupArea"
 	_hose_pickup_area.collision_layer = 0
-	_hose_pickup_area.collision_mask = 2  # Players layer
+	_hose_pickup_area.collision_mask = 2 # Players layer
 
 	var area_col := CollisionShape3D.new()
 	var area_shape := SphereShape3D.new()
 	area_shape.radius = interaction_radius
 	area_col.shape = area_shape
-	# Area centered near the nozzle end of the hose
-	area_col.position = Vector3(2.5, 0.5, 0.1)
+	area_col.position = Vector3(2.35, 0.5, 0.15)
 	_hose_pickup_area.add_child(area_col)
 	add_child(_hose_pickup_area)
 
@@ -242,22 +201,22 @@ func _build_hose_pickup_area() -> void:
 func _build_labels() -> void:
 	_title_label = Label3D.new()
 	_title_label.name = "TitleLabel"
-	_title_label.text = "🎈 СТАНЦИЯ НАКАЧКИ"
+	_title_label.text = "🎈 ВОЗДУШНЫЙ ШЛАНГ"
 	_title_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	_title_label.position = Vector3(0, 2.6, 0)
-	_title_label.font_size = 32
-	_title_label.outline_size = 10
-	_title_label.modulate = Color(0.2, 0.9, 1.0, 1.0)
+	_title_label.position = Vector3(0, 1.8, 0)
+	_title_label.font_size = 28
+	_title_label.outline_size = 8
+	_title_label.modulate = Color(0.2, 0.85, 0.95, 1.0)
 	add_child(_title_label)
 
 	_prompt_label = Label3D.new()
 	_prompt_label.name = "PromptLabel"
-	_prompt_label.text = "💨 [E] ВЗЯТЬ ШЛАНГ"
+	_prompt_label.text = "💨 [F] ВЗЯТЬ ШЛАНГ!"
 	_prompt_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	_prompt_label.position = Vector3(2.5, 1.2, 0.1)
-	_prompt_label.font_size = 24
+	_prompt_label.position = Vector3(2.35, 1.1, 0.15)
+	_prompt_label.font_size = 26
 	_prompt_label.outline_size = 8
-	_prompt_label.modulate = Color(1.0, 0.95, 0.4, 1.0)
+	_prompt_label.modulate = Color(1.0, 0.92, 0.25, 1.0)
 	_prompt_label.hide()
 	add_child(_prompt_label)
 
@@ -298,19 +257,17 @@ func _update_stretched_hose() -> void:
 
 	_stretched_rope.show()
 
-	# Draw hose from compressor outlet to the carrier's hand position
-	var compressor_outlet: Vector3 = global_position + Vector3(-0.15, 0.6, 0)
+	var hose_origin: Vector3 = global_position + Vector3(0, 0.15, 0)
 	var carrier_hand: Vector3 = hose_carrier.global_position + Vector3(0, 0.8, 0)
 
 	_stretched_mesh.surface_begin(Mesh.PRIMITIVE_LINE_STRIP)
 	var segments: int = 16
-	var sag: float = 0.8
+	var sag: float = 0.75
 
 	for i in range(segments + 1):
 		var t: float = float(i) / float(segments)
-		var pos: Vector3 = compressor_outlet.lerp(carrier_hand, t)
-		# Catenary sag
-		pos.y -= sin(t * PI) * sag * (1.0 - t * 0.5)
+		var pos: Vector3 = hose_origin.lerp(carrier_hand, t)
+		pos.y -= sin(t * PI) * sag * (1.0 - t * 0.4)
 		_stretched_mesh.surface_add_vertex(pos)
 
 	_stretched_mesh.surface_end()
@@ -326,7 +283,6 @@ func rpc_grab_hose(player_path: NodePath) -> void:
 	is_hose_taken = true
 	hose_carrier = p
 
-	# Hide hose on ground, show stretched hose
 	if _hose_ground_node:
 		_hose_ground_node.hide()
 
@@ -338,12 +294,11 @@ func rpc_return_hose() -> void:
 	is_hose_taken = false
 	hose_carrier = null
 
-	# Show hose back on ground
 	if _hose_ground_node:
 		_hose_ground_node.show()
 
 	_stretched_rope.hide()
-	print("🎈 HOSE RETURNED to station.")
+	print("🎈 HOSE RETURNED to floor.")
 
 func get_hose_nozzle_world_pos() -> Vector3:
-	return global_position + Vector3(2.5, 0.3, 0.1)
+	return global_position + Vector3(2.35, 0.28, 0.15)
