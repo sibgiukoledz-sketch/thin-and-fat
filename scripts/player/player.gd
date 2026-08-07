@@ -305,8 +305,9 @@ func die() -> void:
 
 	if collision_shape:
 		collision_shape.set_deferred("disabled", true)
-	if mesh_instance:
-		mesh_instance.hide()
+
+	_start_ragdoll()
+
 	if hud and "death_overlay" in hud and hud.death_overlay and is_multiplayer_authority():
 		hud.death_overlay.show()
 
@@ -326,6 +327,8 @@ func respawn() -> void:
 
 	if active_mechanics and active_mechanics.has_method("wash_stench"):
 		active_mechanics.wash_stench()
+
+	_stop_ragdoll()
 
 	if collision_shape:
 		collision_shape.set_deferred("disabled", false)
@@ -788,6 +791,36 @@ func can_uncrouch() -> bool:
 	var result: Dictionary = space_state.intersect_ray(query)
 	return result.is_empty()
 
+var _is_ragdoll_active: bool = false
+
+func _start_ragdoll() -> void:
+	_is_ragdoll_active = true
+	if not mesh_instance:
+		return
+
+	mesh_instance.show()
+	mesh_instance.visible = true
+
+	var skel: Skeleton3D = mesh_instance.find_child("Skeleton3D", true, false) as Skeleton3D
+	if skel:
+		skel.physical_bones_start_simulation()
+
+	# Dramatic ragdoll body tumble & drop animation
+	var drop_tw := create_tween().set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
+	drop_tw.tween_property(mesh_instance, "rotation:z", deg_to_rad(randf_range(-90.0, 90.0)), 0.35)
+	drop_tw.parallel().tween_property(mesh_instance, "rotation:x", deg_to_rad(randf_range(-45.0, 45.0)), 0.35)
+
+func _stop_ragdoll() -> void:
+	_is_ragdoll_active = false
+	if not mesh_instance:
+		return
+
+	var skel: Skeleton3D = mesh_instance.find_child("Skeleton3D", true, false) as Skeleton3D
+	if skel:
+		skel.physical_bones_stop_simulation()
+
+	mesh_instance.rotation = Vector3.ZERO
+
 func _build_character_visuals(is_fat: bool) -> void:
 	if not mesh_instance:
 		return
@@ -807,127 +840,209 @@ func _build_character_visuals(is_fat: bool) -> void:
 			print("🎨 CUSTOM 3D MODEL LOADED: %s" % glb_path)
 			return
 
-	# Procedural AAA Multi-Part Stylized 3D Character Model Construction
+	# Shared Materials from Concept Art:
+	# Skin: Smooth warm greyish-tan (#84807C)
+	var skin_mat := StandardMaterial3D.new()
+	skin_mat.albedo_color = Color(0.52, 0.50, 0.48, 1.0)
+	skin_mat.roughness = 0.55
+
+	# Pants: Dark slate blue-grey (#2C303D)
+	var pants_mat := StandardMaterial3D.new()
+	pants_mat.albedo_color = Color(0.18, 0.20, 0.26, 1.0)
+	pants_mat.roughness = 0.65
+
+	# Face Features: Matte Black (#141414)
+	var face_mat := StandardMaterial3D.new()
+	face_mat.albedo_color = Color(0.08, 0.08, 0.08, 1.0)
+	face_mat.roughness = 0.8
+
+	var skel := Skeleton3D.new()
+	skel.name = "Skeleton3D"
+	mesh_instance.mesh = null
+	mesh_instance.add_child(skel)
+
 	if is_fat:
-		# --- FAT CHARACTER (Warm Amber Heavyweight Juggernaut) ---
-		var cap_mesh := CapsuleMesh.new()
-		cap_mesh.radius = 0.65
-		cap_mesh.height = 1.5
+		# ==============================================================================
+		# FAT CHARACTER ("Жирдяй" - matching Gemini_Generated_Image_qbah5vqbah5vqbah.png)
+		# ==============================================================================
+		# 1. Giant Round Belly & Upper Torso
+		var belly := MeshInstance3D.new()
+		belly.name = "GiantBelly"
+		var b_mesh := SphereMesh.new()
+		b_mesh.radius = 0.75
+		b_mesh.height = 1.35
+		b_mesh.radial_segments = 32
+		b_mesh.rings = 24
+		belly.mesh = b_mesh
+		belly.material_override = skin_mat
+		belly.position = Vector3(0, 0.15, 0)
+		skel.add_child(belly)
 
-		var fat_mat := StandardMaterial3D.new()
-		fat_mat.albedo_color = Color(0.88, 0.48, 0.18, 1.0) # Heavy Amber Jumpsuit
-		fat_mat.roughness = 0.4
-		fat_mat.metallic = 0.15
-		cap_mesh.material = fat_mat
-		mesh_instance.mesh = cap_mesh
+		# 2. Dark Slate Blue Pants & Lower Body
+		var pants := MeshInstance3D.new()
+		pants.name = "DarkPants"
+		var p_mesh := SphereMesh.new()
+		p_mesh.radius = 0.70
+		p_mesh.height = 0.75
+		pants.mesh = p_mesh
+		pants.material_override = pants_mat
+		pants.position = Vector3(0, -0.32, 0)
+		skel.add_child(pants)
 
-		# 1. Heavy Chest Armor Plate
-		var chest := MeshInstance3D.new()
-		chest.name = "ChestArmor"
-		var c_mesh := BoxMesh.new()
-		c_mesh.size = Vector3(1.1, 0.6, 0.35)
-		var c_mat := StandardMaterial3D.new()
-		c_mat.albedo_color = Color(0.2, 0.22, 0.25, 1.0) # Dark Steel Armor
-		c_mat.metallic = 0.8
-		c_mat.roughness = 0.25
-		chest.mesh = c_mesh
-		chest.material_override = c_mat
-		chest.position = Vector3(0, 0.15, 0.5)
-		mesh_instance.add_child(chest)
-
-		# 2. Glowing Visor Eyes
-		var visor := MeshInstance3D.new()
-		visor.name = "GlowingVisor"
-		var v_mesh := BoxMesh.new()
-		v_mesh.size = Vector3(0.65, 0.14, 0.25)
-		var v_mat := StandardMaterial3D.new()
-		v_mat.albedo_color = Color(1.0, 0.6, 0.1, 1.0)
-		v_mat.emission_enabled = true
-		v_mat.emission = Color(1.0, 0.55, 0.0)
-		v_mat.emission_energy_multiplier = 4.0
-		visor.mesh = v_mesh
-		visor.material_override = v_mat
-		visor.position = Vector3(0, 0.5, 0.55)
-		mesh_instance.add_child(visor)
-
-		# 3. Dual Heavy Shoulder Pads
+		# 3. Feet
 		for side in [-1.0, 1.0]:
-			var pad := MeshInstance3D.new()
-			pad.name = "ShoulderPad_" + ("L" if side < 0 else "R")
-			var p_mesh := SphereMesh.new()
-			p_mesh.radius = 0.35
-			p_mesh.height = 0.5
-			pad.mesh = p_mesh
-			pad.material_override = c_mat
-			pad.position = Vector3(side * 0.72, 0.45, 0.0)
-			mesh_instance.add_child(pad)
+			var foot := MeshInstance3D.new()
+			foot.name = "Foot_" + ("L" if side < 0 else "R")
+			var f_mesh := BoxMesh.new()
+			f_mesh.size = Vector3(0.26, 0.14, 0.32)
+			foot.mesh = f_mesh
+			foot.material_override = pants_mat
+			foot.position = Vector3(side * 0.28, -0.68, 0.05)
+			skel.add_child(foot)
 
-		# 4. Back Stench Pressure Tank
-		var tank := MeshInstance3D.new()
-		tank.name = "BackTank"
-		var t_mesh := CylinderMesh.new()
-		t_mesh.top_radius = 0.22
-		t_mesh.bottom_radius = 0.22
-		t_mesh.height = 0.85
-		var t_mat := StandardMaterial3D.new()
-		t_mat.albedo_color = Color(0.3, 0.75, 0.2, 1.0) # Toxic Stench Green Tank
-		t_mat.emission_enabled = true
-		t_mat.emission = Color(0.1, 0.5, 0.1)
-		t_mat.emission_energy_multiplier = 1.2
-		tank.mesh = t_mesh
-		tank.material_override = t_mat
-		tank.position = Vector3(0, 0.1, -0.55)
-		tank.rotation_degrees.z = 90.0
-		mesh_instance.add_child(tank)
+		# 4. T-Pose Arms
+		for side in [-1.0, 1.0]:
+			var arm := MeshInstance3D.new()
+			arm.name = "Arm_" + ("L" if side < 0 else "R")
+			var a_mesh := CylinderMesh.new()
+			a_mesh.top_radius = 0.24
+			a_mesh.bottom_radius = 0.12
+			a_mesh.height = 0.95
+			arm.mesh = a_mesh
+			arm.material_override = skin_mat
+			arm.position = Vector3(side * 0.95, 0.42, 0.0)
+			arm.rotation_degrees.z = side * -90.0
+			skel.add_child(arm)
+
+		# 5. Round Head with Cute Face (😊)
+		var head_mesh := MeshInstance3D.new()
+		head_mesh.name = "RoundHead"
+		var h_mesh := SphereMesh.new()
+		h_mesh.radius = 0.28
+		h_mesh.height = 0.56
+		head_mesh.mesh = h_mesh
+		head_mesh.material_override = skin_mat
+		head_mesh.position = Vector3(0, 0.88, 0)
+		skel.add_child(head_mesh)
+
+		# 6. Signature Face Features (😊 Dot Eyes & Curved Smile)
+		for side in [-1.0, 1.0]:
+			var eye := MeshInstance3D.new()
+			eye.name = "Eye_" + ("L" if side < 0 else "R")
+			var e_mesh := SphereMesh.new()
+			e_mesh.radius = 0.026
+			e_mesh.height = 0.05
+			eye.mesh = e_mesh
+			eye.material_override = face_mat
+			eye.position = Vector3(side * 0.075, 0.92, 0.265)
+			skel.add_child(eye)
+
+		# Curved Smile (‿)
+		var smile := MeshInstance3D.new()
+		smile.name = "Smile"
+		var s_mesh := TorusMesh.new()
+		s_mesh.inner_radius = 0.045
+		s_mesh.outer_radius = 0.065
+		smile.mesh = s_mesh
+		smile.material_override = face_mat
+		smile.position = Vector3(0, 0.82, 0.268)
+		smile.rotation_degrees.x = 90.0
+		skel.add_child(smile)
 
 	else:
-		# --- THIN CHARACTER (Electric Neon Cyan Ultra-Slender Scout) ---
-		var cap_mesh := CapsuleMesh.new()
-		cap_mesh.radius = 0.28
-		cap_mesh.height = 2.4
+		# ==============================================================================
+		# THIN CHARACTER ("Худой" - matching Gemini_Generated_Image_19i6b219i6b219i6.png)
+		# ==============================================================================
+		# 1. Slender Needle Torso
+		var torso := MeshInstance3D.new()
+		torso.name = "SlenderTorso"
+		var t_mesh := CylinderMesh.new()
+		t_mesh.top_radius = 0.16
+		t_mesh.bottom_radius = 0.15
+		t_mesh.height = 1.35
+		torso.mesh = t_mesh
+		torso.material_override = skin_mat
+		torso.position = Vector3(0, 0.25, 0)
+		skel.add_child(torso)
 
-		var thin_mat := StandardMaterial3D.new()
-		thin_mat.albedo_color = Color(0.15, 0.65, 0.95, 1.0) # Electric Cyan Suit
-		thin_mat.roughness = 0.25
-		thin_mat.metallic = 0.2
-		cap_mesh.material = thin_mat
-		mesh_instance.mesh = cap_mesh
+		# 2. Long Skinny Dark Pants & Legs
+		for side in [-1.0, 1.0]:
+			var leg := MeshInstance3D.new()
+			leg.name = "Leg_" + ("L" if side < 0 else "R")
+			var l_mesh := CylinderMesh.new()
+			l_mesh.top_radius = 0.09
+			l_mesh.bottom_radius = 0.08
+			l_mesh.height = 1.25
+			leg.mesh = l_mesh
+			leg.material_override = pants_mat
+			leg.position = Vector3(side * 0.14, -0.65, 0)
+			skel.add_child(leg)
 
-		# 1. High-Tech Chest Harness
-		var harness := MeshInstance3D.new()
-		harness.name = "ChestHarness"
-		var h_mesh := BoxMesh.new()
-		h_mesh.size = Vector3(0.48, 0.7, 0.22)
-		var h_mat := StandardMaterial3D.new()
-		h_mat.albedo_color = Color(0.12, 0.15, 0.2, 1.0) # Matte Carbon Black
-		h_mat.metallic = 0.6
-		h_mat.roughness = 0.3
-		harness.mesh = h_mesh
-		harness.material_override = h_mat
-		harness.position = Vector3(0, 0.3, 0.2)
-		mesh_instance.add_child(harness)
+			var foot := MeshInstance3D.new()
+			foot.name = "Foot_" + ("L" if side < 0 else "R")
+			var f_mesh := BoxMesh.new()
+			f_mesh.size = Vector3(0.14, 0.10, 0.25)
+			foot.mesh = f_mesh
+			foot.material_override = pants_mat
+			foot.position = Vector3(side * 0.14, -1.25, 0.04)
+			skel.add_child(foot)
 
-		# 2. Sleek Cyber Visor
-		var visor := MeshInstance3D.new()
-		visor.name = "CyberVisor"
-		var v_mesh := BoxMesh.new()
-		v_mesh.size = Vector3(0.42, 0.10, 0.2)
-		var v_mat := StandardMaterial3D.new()
-		v_mat.albedo_color = Color(0.0, 1.0, 0.9, 1.0)
-		v_mat.emission_enabled = true
-		v_mat.emission = Color(0.0, 0.95, 1.0)
-		v_mat.emission_energy_multiplier = 4.5
-		visor.mesh = v_mesh
-		visor.material_override = v_mat
-		visor.position = Vector3(0, 0.82, 0.22)
-		mesh_instance.add_child(visor)
+		# 3. Extremely Long T-Pose Arms
+		for side in [-1.0, 1.0]:
+			var arm := MeshInstance3D.new()
+			arm.name = "Arm_" + ("L" if side < 0 else "R")
+			var a_mesh := CylinderMesh.new()
+			a_mesh.top_radius = 0.08
+			a_mesh.bottom_radius = 0.06
+			a_mesh.height = 1.15
+			arm.mesh = a_mesh
+			arm.material_override = skin_mat
+			arm.position = Vector3(side * 0.72, 0.75, 0.0)
+			arm.rotation_degrees.z = side * -90.0
+			skel.add_child(arm)
 
-		# 3. Aerodynamic Back Thruster Pack
-		var thruster := MeshInstance3D.new()
-		thruster.name = "ThrusterPack"
-		var t_mesh := BoxMesh.new()
-		t_mesh.size = Vector3(0.35, 0.9, 0.18)
-		thruster.mesh = t_mesh
-		thruster.material_override = h_mat
-		thruster.position = Vector3(0, 0.2, -0.22)
-		mesh_instance.add_child(thruster)
+		# 4. Long Thin Neck & Round Head
+		var neck := MeshInstance3D.new()
+		neck.name = "ThinNeck"
+		var n_mesh := CylinderMesh.new()
+		n_mesh.top_radius = 0.08
+		n_mesh.bottom_radius = 0.09
+		n_mesh.height = 0.32
+		neck.mesh = n_mesh
+		neck.material_override = skin_mat
+		neck.position = Vector3(0, 0.98, 0)
+		skel.add_child(neck)
+
+		var head_mesh := MeshInstance3D.new()
+		head_mesh.name = "RoundHead"
+		var h_mesh := SphereMesh.new()
+		h_mesh.radius = 0.26
+		h_mesh.height = 0.52
+		head_mesh.mesh = h_mesh
+		head_mesh.material_override = skin_mat
+		head_mesh.position = Vector3(0, 1.25, 0)
+		skel.add_child(head_mesh)
+
+		# 5. Signature Face Features (😊 Dot Eyes & Curved Smile)
+		for side in [-1.0, 1.0]:
+			var eye := MeshInstance3D.new()
+			eye.name = "Eye_" + ("L" if side < 0 else "R")
+			var e_mesh := SphereMesh.new()
+			e_mesh.radius = 0.024
+			e_mesh.height = 0.045
+			eye.mesh = e_mesh
+			eye.material_override = face_mat
+			eye.position = Vector3(side * 0.07, 1.28, 0.245)
+			skel.add_child(eye)
+
+		# Curved Smile (‿)
+		var smile := MeshInstance3D.new()
+		smile.name = "Smile"
+		var s_mesh := TorusMesh.new()
+		s_mesh.inner_radius = 0.042
+		s_mesh.outer_radius = 0.060
+		smile.mesh = s_mesh
+		smile.material_override = face_mat
+		smile.position = Vector3(0, 1.19, 0.248)
+		smile.rotation_degrees.x = 90.0
+		skel.add_child(smile)
