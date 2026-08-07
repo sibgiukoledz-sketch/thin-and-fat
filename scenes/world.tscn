@@ -43,7 +43,7 @@ shader_parameter/atm_level_params = Vector3(1, 0, 0)
 shader_parameter/atm_thickness = 0.7
 shader_parameter/atm_beta_ray = Vector3(5.804544e-06, 1.3562913e-05, 3.311258e-05)
 shader_parameter/atm_beta_mie = Vector3(3.038e-08, 3.038e-08, 3.038e-08)
-shader_parameter/sun_light_color = Color(0.99561316, 0.8953732, 0.84514356, 1)
+shader_parameter/sun_light_color = Color(1, 1, 1, 1)
 shader_parameter/sun_disk_color = Color(0.996094, 0.541334, 0.140076, 1)
 shader_parameter/sun_disk_intensity = 30.0
 shader_parameter/sun_disk_size = 0.02
@@ -65,7 +65,7 @@ shader_parameter/starmap_flip_u = false
 shader_parameter/starmap_flip_v = false
 shader_parameter/starmap_alignment = Vector3(2.68288, -0.25891, 0.40101)
 shader_parameter/star_rotation_offset = 9.38899
-shader_parameter/star_rotation = -10.529815155905998
+shader_parameter/star_rotation = -11.316159594078282
 shader_parameter/star_tilt = -1.2915436464758039
 shader_parameter/star_field_color = Color(1, 1, 1, 1)
 shader_parameter/star_field_texture = ExtResource("7_ctatt")
@@ -81,8 +81,8 @@ shader_parameter/cirrus_absorption = 2.0
 shader_parameter/cirrus_sky_tint_fade = 0.5
 shader_parameter/cirrus_size = 1.0
 shader_parameter/cirrus_uv = Vector2(0.16, 0.11)
-shader_parameter/cirrus_position1 = Vector2(0.91226315, 0.91226315)
-shader_parameter/cirrus_position2 = Vector2(0.91226315, 0.91226315)
+shader_parameter/cirrus_position1 = Vector2(0.07197165, 0.07197165)
+shader_parameter/cirrus_position2 = Vector2(0.07197165, 0.07197165)
 shader_parameter/cirrus_texture = ExtResource("3_2lf6f")
 shader_parameter/cumulus_visible = true
 shader_parameter/cumulus_intensity = 0.6
@@ -92,7 +92,7 @@ shader_parameter/cumulus_absorption = 2.0
 shader_parameter/cumulus_noise_freq = 2.7
 shader_parameter/cumulus_sky_tint_fade = 0.0
 shader_parameter/cumulus_size = 0.5
-shader_parameter/cumulus_position = Vector2(4.5620594, 4.5620594)
+shader_parameter/cumulus_position = Vector2(5.3605995, 5.3605995)
 shader_parameter/cumulus_texture = ExtResource("4_7iits")
 shader_parameter/cumulus_partial_mie_phase = Vector3(0.957564, 1.042436, 0.412)
 shader_parameter/cumulus_mie_intensity = 1.0
@@ -102,7 +102,7 @@ shader_parameter/azimuthal_grid_rotation_offset = 0.03
 shader_parameter/show_equatorial_grid = false
 shader_parameter/equatorial_grid_color = Color(0, 0.75, 1, 1)
 shader_parameter/equatorial_grid_rotation_offset = 0.03
-shader_parameter/moon_matrix = Basis(0.31497076, 0.9123349, 0.26160783, 0.07560775, 0.25064206, -0.965123, -0.9460851, 0.323765, 0.009965316)
+shader_parameter/moon_matrix = Basis(-0.42845356, 0.8685612, 0.24905589, 0.060776107, 0.30271563, -0.9511411, -0.90151745, -0.39238316, -0.18248735)
 
 [sub_resource type="Sky" id="Sky_rup4s"]
 sky_material = SubResource("ShaderMaterial_fh13f")
@@ -111,7 +111,7 @@ sky_material = SubResource("ShaderMaterial_fh13f")
 background_mode = 2
 sky = SubResource("Sky_rup4s")
 ambient_light_source = 3
-ambient_light_color = Color(0.7868613, 0.7076388, 0.66794086, 1)
+ambient_light_color = Color(1, 1, 1, 1)
 reflected_light_source = 2
 tonemap_mode = 3
 tonemap_white = 6.0
@@ -322,31 +322,30 @@ script = ExtResource("1_world")
 environment = SubResource("Environment_4kbfs")
 camera_attributes = SubResource("CameraAttributesPractical_f17e3")
 script = ExtResource("5_sky3d")
-current_time = 8.154560000001455
+current_time = 11.149973333335945
 wind_direction = 2.35619451204804
 
 [node name="SunLight" type="DirectionalLight3D" parent="Sky3D" unique_id=946822099]
-transform = Transform3D(0.5165528, -0.3342207, 0.78833354, 0, 0.92067575, 0.39032832, -0.85625535, -0.20162518, 0.47557762, 0.78833354, 0.39032832, 0.47557762)
-light_color = Color(0.99561316, 0.8953732, 0.84514356, 1)
+transform = Transform3D(0.94636506, -0.25318843, 0.20072047, 0, 0.6212348, 0.7836245, -0.3230992, -0.7415948, 0.58791494, 0.20072047, 0.7836245, 0.58791494)
 shadow_enabled = true
 
 [node name="MoonLight" type="DirectionalLight3D" parent="Sky3D" unique_id=86044256]
-transform = Transform3D(0, -0.32391834, -0.9460851, 0.03076496, -0.9456372, 0.32376504, -0.9995266, -0.02910627, 0.009965336, -0.94608504, 0.323765, 0.009965335)
+transform = Transform3D(0, -0.43274269, -0.9015175, -0.4216995, 0.81743807, -0.39238322, 0.90673566, 0.38016948, -0.18248737, -0.9015175, -0.39238322, -0.18248737)
 light_color = Color(0.572549, 0.776471, 0.956863, 1)
 light_energy = 0.0
 
 [node name="SkyDome" type="Node" parent="Sky3D" unique_id=1619291409]
 script = ExtResource("10_munwf")
-sun_azimuth = -2.1136165
-sun_altitude = -1.1698081
-moon_azimuth = -4.701856
-moon_altitude = -1.2410902
+sun_azimuth = -2.8125901
+sun_altitude = -0.6703175
+moon_azimuth = -4.9121127
+moon_altitude = -1.9740175
 wind_direction = 2.35619451204804
 
 [node name="TimeOfDay" type="Node" parent="Sky3D" unique_id=348745801]
 script = ExtResource("11_ts3gi")
 dome_path = NodePath("../SkyDome")
-current_time = 8.154560000001455
+current_time = 11.149973333335945
 day = 18
 
 [node name="MultiplayerSpawner" type="MultiplayerSpawner" parent="." unique_id=1032412554]
@@ -521,6 +520,11 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16.312828, 0.27091223, -21.59
 room_title = "КАМЕРА №4: КАМЕНЬ"
 room_color = Color(1, 1, 1, 1)
 
+[node name="TestRoom_kamen2" parent="." unique_id=648782806 instance=ExtResource("9_room_scene")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 33.687027, 0.27091223, -21.598648)
+room_title = "ПОПРОБУ ЗАЕЛЕЗСТЬ ПОВЫШЕ за жирдая и спрыгнуть"
+room_color = Color(1, 1, 1, 1)
+
 [node name="Road_ToGlass" parent="." unique_id=892301922 instance=ExtResource("10_road_scene")]
 transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -5, 0.04, -7.9513035)
 
@@ -556,9 +560,9 @@ polygon = PackedVector2Array(0, 0, 5, 0, 0, 2)
 depth = 3.1
 
 [node name="CatapultEasyRamp2" type="CSGPolygon3D" parent="." unique_id=384343439]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.020076, 0.08, -5.742784)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 33.445305, 0.08, -20.63456)
 use_collision = true
-polygon = PackedVector2Array(0, 0, 5, 0, -2.2627487, 5.882282)
+polygon = PackedVector2Array(0, 0, 5, 0, -1.1147909, 5.9521)
 depth = 3.1
 
 [node name="BoulderRollRamp" type="CSGBox3D" parent="." unique_id=384910300]
