@@ -45,6 +45,8 @@ const AIR_ACCEL_FACTOR := 0.35
 var gravity: float = 18.0
 var is_dead: bool = false
 var is_carrying_heavy_object: bool = false
+var is_paper_flattened: bool = false
+var paper_flatten_timer: float = 0.0
 var is_stamina_exhausted: bool = false
 var shift_must_be_released: bool = false
 var target_speed: float = 0.0
@@ -297,6 +299,74 @@ func rpc_toggle_character() -> void:
 		set_character("fat")
 	respawn()
 
+@rpc("any_peer", "call_local", "reliable")
+func rpc_flatten_into_paper(duration: float = 20.0) -> void:
+	if is_dead or is_paper_flattened:
+		return
+
+	is_paper_flattened = true
+	paper_flatten_timer = duration
+
+	# 1. Update Collision Shape to ultra-thin micro capsule (radius = 0.08m)
+	if collision_shape:
+		var thin_cap := CapsuleShape3D.new()
+		thin_cap.radius = 0.08
+		thin_cap.height = 0.3
+		collision_shape.shape = thin_cap
+		collision_shape.position.y = 0.15
+
+	# 2. Flatten Mesh Instance into a 4 cm paper sheet on the floor
+	if mesh_instance:
+		var pancake_scale := Vector3(2.2, 0.04, 2.2) # Super flat paper sheet!
+		var pancake_pos_y := 0.04
+
+		var tw := create_tween().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+		tw.tween_property(mesh_instance, "scale", pancake_scale, 0.08)
+		tw.parallel().tween_property(mesh_instance, "position:y", pancake_pos_y, 0.08)
+
+	# 3. Lower camera head to reflect paper sheet level
+	if head:
+		var tw_head := create_tween().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+		tw_head.tween_property(head, "position:y", 0.35, 0.10)
+
+	print("📜 PAPER FLATTENED: %s is now a paper-thin sheet! Can slip through narrow slits!" % name)
+
+@rpc("any_peer", "call_local", "reliable")
+func rpc_inflate_back_to_normal() -> void:
+	if not is_paper_flattened:
+		return
+
+	is_paper_flattened = false
+	paper_flatten_timer = 0.0
+
+	# 1. Restore original collision shape
+	if collision_shape:
+		var normal_cap := CapsuleShape3D.new()
+		var is_fat := (selected_character_id.to_lower() == "fat")
+		normal_cap.radius = 0.65 if is_fat else 0.28
+		normal_cap.height = stand_height
+		collision_shape.shape = normal_cap
+		collision_shape.position.y = stand_height * 0.5
+
+	# 2. Balloon inflation pop animation back to standing shape
+	if mesh_instance:
+		var orig_pos_y: float = stand_height * 0.5
+		var overinflated_scale := Vector3(1.35, 2.7, 1.35)
+		var normal_scale := Vector3.ONE
+
+		var tw := create_tween().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+		tw.tween_property(mesh_instance, "scale", overinflated_scale, 0.18)
+		tw.parallel().tween_property(mesh_instance, "position:y", orig_pos_y * 1.1, 0.18)
+		tw.tween_property(mesh_instance, "scale", normal_scale, 0.30).set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
+		tw.parallel().tween_property(mesh_instance, "position:y", orig_pos_y, 0.30)
+
+	# 3. Restore camera head position
+	if head:
+		var tw_head := create_tween().set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
+		tw_head.tween_property(head, "position:y", stand_head_y, 0.35)
+
+	print("🎈 RE-INFLATED: %s inflated back to full height!" % name)
+
 # Nausea & Vomit Delegation
 func trigger_vomit() -> void:
 	if vomit_component:
@@ -415,6 +485,13 @@ func _physics_process(delta: float) -> void:
 
 	_handle_stamina_regen(delta)
 	_update_camera_zoom(delta)
+
+	if is_paper_flattened:
+		paper_flatten_timer -= delta
+		if paper_flatten_timer <= 0.0:
+			rpc_inflate_back_to_normal.rpc()
+		elif is_multiplayer_authority() and Input.is_action_just_pressed("jump"):
+			rpc_inflate_back_to_normal.rpc()
 
 	if active_mechanics:
 		active_mechanics.update_mechanics(delta)

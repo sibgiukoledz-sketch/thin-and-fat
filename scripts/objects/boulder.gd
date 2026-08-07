@@ -442,7 +442,7 @@ func rpc_crush_player(player_path: NodePath) -> void:
 
 	_is_crushing = true
 	freeze = true
-	_show_warning("💥 СЛИШКОМ ТЯЖЁЛЫЙ ВАЛУН!\nТонкого раздавило в лепёшку!")
+	_show_warning("📜 ХУДОЩАВЫЙ СПЛЮЩИЛСЯ В ЛИСТОК БУМАГИ!\nТеперь вы можете пролезать в самые узкие щели!")
 
 	# Trigger full 4-tier impact VFX
 	_trigger_all_impact_vfx(p.global_position)
@@ -451,9 +451,9 @@ func rpc_crush_player(player_path: NodePath) -> void:
 	var tween: Tween = create_tween().set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
 	tween.tween_property(self, "global_position", p.global_position + Vector3(0, 0.8, 0), 0.4)
 
-	# Deal lethal crushing physical HP damage
-	p.take_damage(150.0)
-
+	# Flatten Thin into a 4cm paper sheet! Zero lethal damage!
+	if p.has_method("rpc_flatten_into_paper"):
+		p.rpc_flatten_into_paper.rpc(20.0)
 
 	get_tree().create_timer(1.2).timeout.connect(func():
 		freeze = false
@@ -575,6 +575,12 @@ func _on_physics_body_entered(body: Node) -> void:
 					# Fat is heavy and immune to normal boulder bumps/rolls while handling it!
 					if speed < 12.0:
 						return
+				elif p.selected_character_id.to_lower() == "thin":
+					# Thin gets flattened into paper sheet instead of dying!
+					if p.has_method("rpc_flatten_into_paper") and not p.is_paper_flattened:
+						p.rpc_flatten_into_paper.rpc(20.0)
+						_show_warning("📜 ХУДОЩАВОГО СПЛЮЩИЛО В ЛИСТОК БУМАГИ!\nПролезайте в самые узкие щели!")
+					return
 
 			if body.has_method("take_damage"):
 				var dmg: float = clampf(speed * 4.5 + 25.0, 35.0, damage_on_impact)
@@ -600,7 +606,10 @@ func _damage_nodes_recursive(node: Node, center: Vector3, speed: float) -> void:
 		if node is Player:
 			var p: Player = node as Player
 			if p.selected_character_id.to_lower() == "fat":
-				# Fat player is master of the heavy boulder -> 100% immune to boulder AOE impact damage!
+				return
+			elif p.selected_character_id.to_lower() == "thin":
+				if p.has_method("rpc_flatten_into_paper") and not p.is_paper_flattened:
+					p.rpc_flatten_into_paper.rpc(20.0)
 				return
 
 		var n3d: Node3D = node as Node3D
