@@ -23,6 +23,8 @@ extends Node3D
 @onready var wind_particles: GPUParticles3D = $WindParticles
 @onready var raycast_sensor: RayCast3D = $RayCastSensor
 
+var current_blade_speed: float = 18.0
+
 func _ready() -> void:
 	_apply_visual_rotations()
 	if raycast_sensor:
@@ -33,6 +35,13 @@ func _ready() -> void:
 
 	if wind_particles:
 		wind_particles.emitting = is_active and not Engine.is_editor_hint()
+
+func toggle_active() -> void:
+	set_active(not is_active)
+
+func set_active(active: bool) -> void:
+	is_active = active
+	print("🌀 WIND TUNNEL FAN %s!" % ["ACTIVATED" if is_active else "DEACTIVATED"])
 
 func _apply_visual_rotations() -> void:
 	# Enforce vertical 90 degree X rotation on all circular turbine shroud meshes
@@ -49,13 +58,6 @@ func _physics_process(delta: float) -> void:
 	# Ensure shroud meshes stay upright
 	_apply_visual_rotations()
 
-	# Spin turbine blades in editor and in-game!
-	if blades_mesh:
-		blades_mesh.rotate_z(18.0 * delta)
-
-	if Engine.is_editor_hint():
-		return
-
 	var wind_dir: Vector3 = global_transform.basis.z.normalized()
 	var fan_origin: Vector3 = global_position + Vector3(0, 1.8, 0)
 
@@ -63,11 +65,27 @@ func _physics_process(delta: float) -> void:
 	var is_blocked: bool = block_info.get("is_nozzle_blocked", false)
 	var hit_dist: float = block_info.get("distance", fan_reach_length)
 
+	# 1. Smooth Blade Rotation Spin-down / Spin-up
+	var target_blade_speed: float = 18.0 if (is_active and not is_blocked) else 0.0
+	current_blade_speed = lerpf(current_blade_speed, target_blade_speed, 3.5 * delta)
+
+	if blades_mesh and absf(current_blade_speed) > 0.01:
+		blades_mesh.rotate_z(current_blade_speed * delta)
+
+	# 2. Smooth Cyan Ring Emission & Particle Control
+	if cyan_glowing_ring and cyan_glowing_ring.material_override:
+		var mat: StandardMaterial3D = cyan_glowing_ring.material_override as StandardMaterial3D
+		var target_energy: float = 2.5 if (is_active and not is_blocked) else 0.2
+		mat.emission_energy_multiplier = lerpf(mat.emission_energy_multiplier, target_energy, 4.0 * delta)
+
+	if Engine.is_editor_hint():
+		return
+
 	if wind_particles:
-		if is_blocked:
+		if not is_active or is_blocked:
 			wind_particles.emitting = false
 		else:
-			wind_particles.emitting = is_active
+			wind_particles.emitting = true
 			# Dynamically adjust particle lifetime so particles DIE right upon touching the boulder!
 			var target_lifetime: float = clampf(hit_dist / 18.0, 0.08, 0.90)
 			wind_particles.lifetime = target_lifetime
