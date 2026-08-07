@@ -42,8 +42,7 @@ func _ready() -> void:
 	mass = 450.0
 	linear_damp = 0.4
 	angular_damp = 0.5
-	freeze_mode = FREEZE_MODE_STATIC
-	freeze = true
+	freeze = false
 
 	if interaction_area:
 		interaction_area.body_entered.connect(_on_interaction_body_entered)
@@ -394,28 +393,7 @@ func _process(delta: float) -> void:
 		rotation = _carrier_player.rotation
 
 func _physics_process(_delta: float) -> void:
-	if not _is_carried and not _is_crushing:
-		if freeze:
-			# Unfreeze only if Fat player is pressing movement keys towards the boulder
-			if interaction_area:
-				var bodies: Array[Node3D] = interaction_area.get_overlapping_bodies()
-				for body in bodies:
-					if body is Player:
-						var p: Player = body as Player
-						if p.selected_character_id.to_lower() == "fat" and not p.is_dead:
-							var move_dir: Vector3 = p.get_movement_input() if p.has_method("get_movement_input") else Vector3.ZERO
-							var dir_to_boulder: Vector3 = (global_position - p.global_position)
-							dir_to_boulder.y = 0.0
-							if dir_to_boulder.length_squared() > 0.001 and move_dir.length_squared() > 0.01:
-								dir_to_boulder = dir_to_boulder.normalized()
-								if move_dir.dot(dir_to_boulder) > 0.15:
-									freeze = false
-									sleeping = false
-									break
-		else:
-			# Refreeze into a static immovable rock when stopped
-			if linear_velocity.length() < 0.12 and angular_velocity.length() < 0.12:
-				freeze = true
+	pass
 
 func _unhandled_input(event: InputEvent) -> void:
 	var is_interact_pressed: bool = event.is_action_pressed("interact") or (event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_E)
@@ -513,6 +491,11 @@ func rpc_pick_up_boulder(player_path: NodePath) -> void:
 	boulder_picked_up.emit(p)
 	print("🪨 REALISTIC HEAVY LIFT: Boulder lifted by %s!" % p.name)
 
+func _reset_carrier_camera(p: Player) -> void:
+	if p and p.is_multiplayer_authority() and p.camera_3d:
+		var tw := p.create_tween().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+		tw.tween_property(p.camera_3d, "rotation:z", 0.0, 0.25)
+
 @rpc("any_peer", "call_local", "reliable")
 func rpc_detach_and_fall_back() -> void:
 	if not _is_carried:
@@ -524,6 +507,7 @@ func rpc_detach_and_fall_back() -> void:
 		back_dir = _carrier_player.global_transform.basis.z.normalized()
 		if _carrier_player.spring_arm:
 			_carrier_player.spring_arm.remove_excluded_object(self.get_rid())
+		_reset_carrier_camera(_carrier_player)
 		_carrier_player.is_carrying_heavy_object = false
 		_carrier_player = null
 
@@ -545,8 +529,7 @@ func rpc_throw_boulder(start_pos: Vector3, initial_velocity: Vector3) -> void:
 		if _carrier_player.spring_arm:
 			_carrier_player.spring_arm.remove_excluded_object(self.get_rid())
 		if _carrier_player.is_multiplayer_authority():
-			if _carrier_player.camera_3d:
-				_carrier_player.camera_3d.rotation.x = clampf(_carrier_player.camera_3d.rotation.x - deg_to_rad(12.0), deg_to_rad(-89.0), deg_to_rad(89.0))
+			_reset_carrier_camera(_carrier_player)
 			if _carrier_player.has_method("set_target_fov"):
 				_carrier_player.set_target_fov(92.0)
 
