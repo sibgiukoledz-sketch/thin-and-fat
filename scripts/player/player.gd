@@ -81,6 +81,8 @@ var stand_head_y: float = 1.5
 var crouch_head_y: float = 0.8
 
 func _ready() -> void:
+	collision_layer = 2
+	collision_mask = 7 # Layer 1 (Environment) + Layer 2 (Players) + Layer 3 (RigidBody Objects / Boulder / NPCs)
 	if ProjectSettings.has_setting("physics/3d/default_gravity"):
 		gravity = ProjectSettings.get_setting("physics/3d/default_gravity")
 
@@ -91,6 +93,11 @@ func _ready() -> void:
 		peer_id = multiplayer.get_unique_id()
 
 	set_multiplayer_authority(peer_id)
+
+	if NetworkManager:
+		var chosen := NetworkManager.get_character_for_peer(peer_id)
+		if chosen != "":
+			selected_character_id = chosen
 
 	if is_multiplayer_authority():
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
@@ -497,6 +504,45 @@ func apply_movement(dir: Vector3, move_spd: float, delta: float, accel_factor: f
 	velocity.x = lerpf(velocity.x, target_vel_x, accel * delta)
 	velocity.z = lerpf(velocity.z, target_vel_z, accel * delta)
 	move_and_slide()
+	_handle_rigidbody_pushing(delta)
+
+func _handle_rigidbody_pushing(delta: float) -> void:
+	var is_fat := (selected_character_id.to_lower() == "fat")
+
+	for i in range(get_slide_collision_count()):
+		var collision := get_slide_collision(i)
+		var collider := collision.get_collider()
+
+		if collider is RigidBody3D:
+			var rb := collider as RigidBody3D
+			if rb.freeze:
+				continue
+
+			var is_heavy := (rb is HeavyBoulder or rb.mass >= 100.0 or rb.is_in_group("heavy_objects"))
+
+			if is_heavy:
+				if not is_fat:
+					# Thin player CANNOT push heavy objects (like 450kg HeavyBoulder)!
+					var push_dir := -collision.get_normal()
+					var vel_dot := rb.linear_velocity.dot(push_dir)
+					# If the boulder is moving in Thin's pushing direction or at low speed, zero it out completely
+					if vel_dot >= 0.0 or rb.linear_velocity.length() < 3.5:
+						rb.linear_velocity = Vector3.ZERO
+						rb.angular_velocity = Vector3.ZERO
+				else:
+					# Fat player CAN push heavy objects, but at a controlled heavy rolling pace
+					if rb.linear_velocity.length() > 3.0:
+						rb.linear_velocity = rb.linear_velocity.normalized() * 3.0
+						rb.angular_velocity = rb.angular_velocity.normalized() * minf(rb.angular_velocity.length(), 4.0)
+			else:
+				# Light rigidbodies (mass < 100.0)
+				var push_dir := -collision.get_normal()
+				push_dir.y = 0.0
+				push_dir = push_dir.normalized()
+				var push_force := 20.0 if is_fat else 8.0
+				rb.apply_central_impulse(push_dir * push_force * delta * 60.0)
+
+
 
 func is_jump_requested() -> bool:
 	return Input.is_action_just_pressed("jump")

@@ -25,18 +25,21 @@ func _ready() -> void:
 	multiplayer.server_disconnected.connect(_on_server_disconnected)
 
 func set_local_character(character_id: String) -> void:
-	local_character_id = character_id
+	local_character_id = character_id.to_lower()
 	var my_id := 1
 	if multiplayer.multiplayer_peer and multiplayer.peer_connected:
 		my_id = multiplayer.get_unique_id()
-	player_character_choices[my_id] = character_id
+	player_character_choices[my_id] = local_character_id
+	player_character_choices[1] = local_character_id
 	character_choices_updated.emit()
 
 	if multiplayer.multiplayer_peer and multiplayer.multiplayer_peer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTED:
-		rpc_send_character_choice.rpc(character_id)
+		rpc_send_character_choice.rpc(local_character_id)
 
 func get_character_for_peer(peer_id: int) -> String:
-	return player_character_choices.get(peer_id, "fat")
+	if player_character_choices.has(peer_id):
+		return player_character_choices[peer_id]
+	return local_character_id
 
 func host_game(port: int = DEFAULT_PORT) -> Error:
 	current_port = port
@@ -48,11 +51,12 @@ func host_game(port: int = DEFAULT_PORT) -> Error:
 
 	multiplayer.multiplayer_peer = peer
 	connected_players.clear()
-	player_character_choices.clear()
 
 	# Register host choice
+	var my_id := multiplayer.get_unique_id()
+	player_character_choices[my_id] = local_character_id
 	player_character_choices[1] = local_character_id
-	_register_player(1, "Host Player")
+	_register_player(my_id, "Host Player")
 	connection_status_changed.emit("Комната создана! Ожидание игроков...")
 	return OK
 

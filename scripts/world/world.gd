@@ -43,6 +43,9 @@ func _spawn_player_for_peer(id: int) -> void:
 func _custom_spawn(id: int) -> Node:
 	var player_inst := player_scene.instantiate() as Player
 	player_inst.name = str(id)
+	if NetworkManager:
+		player_inst.selected_character_id = NetworkManager.get_character_for_peer(id)
+
 
 	# Select spawn point safely
 	var spawn_pos := Vector3(randf_range(-4.0, 4.0), 1.5, randf_range(-4.0, 4.0))

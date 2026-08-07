@@ -37,9 +37,13 @@ var _warning_text: String = ""
 var _last_impact_time: float = 0.0
 
 func _ready() -> void:
+	collision_layer = 4
+	collision_mask = 7
 	mass = 450.0
 	linear_damp = 0.4
 	angular_damp = 0.5
+	freeze_mode = FREEZE_MODE_STATIC
+	freeze = true
 
 	if interaction_area:
 		interaction_area.body_entered.connect(_on_interaction_body_entered)
@@ -317,6 +321,38 @@ func _update_prompt() -> void:
 		prompt_label.text = "🪨 ГИГАНТСКИЙ ТЯЖЁЛЫЙ ВАЛУН\n[E] — Поднять (Только для Жирдяя)"
 		prompt_label.modulate = Color(1.0, 1.0, 1.0)
 
+func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
+	if _is_carried or freeze:
+		return
+
+	# Enforce character mass interaction rules during physics contact resolution
+	for i in range(state.get_contact_count()):
+		var collider = state.get_contact_collider_object(i)
+		var p: Player = null
+		if collider is Player:
+			p = collider as Player
+		elif collider and collider.get_parent() is Player:
+			p = collider.get_parent() as Player
+
+		if p:
+			var char_id := p.selected_character_id.to_lower()
+			var contact_normal := state.get_contact_local_normal(i)
+			var vel_along_normal := state.linear_velocity.dot(contact_normal)
+
+			if char_id == "thin":
+				# Thin character cannot push/roll 450kg HeavyBoulder!
+				# If velocity is directed away from Thin (pushed by Thin), zero out push velocity completely!
+				if vel_along_normal < 0.0:
+					state.linear_velocity -= contact_normal * vel_along_normal
+					state.angular_velocity = Vector3.ZERO
+			elif char_id == "fat":
+				# Fat character pushes boulder at a controlled realistic heavy rolling speed
+				if state.linear_velocity.length() > 3.0 and state.linear_velocity.length() < 6.0:
+					state.linear_velocity = state.linear_velocity.normalized() * 3.0
+					state.angular_velocity = state.angular_velocity.normalized() * minf(state.angular_velocity.length(), 4.0)
+
+
+
 func _process(delta: float) -> void:
 	if _warning_timer > 0.0:
 		_warning_timer -= delta
@@ -356,6 +392,26 @@ func _process(delta: float) -> void:
 			global_position = global_position.lerp(target_pos, 18.0 * delta)
 
 		rotation = _carrier_player.rotation
+
+func _physics_process(_delta: float) -> void:
+	if not _is_carried and not _is_crushing:
+		if freeze:
+			# Unfreeze only if Fat player is actively pushing towards the boulder
+			if interaction_area:
+				var bodies: Array[Node3D] = interaction_area.get_overlapping_bodies()
+				for body in bodies:
+					if body is Player:
+						var p: Player = body as Player
+						if p.selected_character_id.to_lower() == "fat" and p.velocity.length() > 0.1:
+							var dir_to_boulder: Vector3 = (global_position - p.global_position).normalized()
+							if p.velocity.dot(dir_to_boulder) > 0.0:
+								freeze = false
+								sleeping = false
+								break
+		else:
+			# Refreeze into a static immovable rock when stopped
+			if linear_velocity.length() < 0.1 and angular_velocity.length() < 0.1:
+				freeze = true
 
 func _unhandled_input(event: InputEvent) -> void:
 	var is_interact_pressed: bool = event.is_action_pressed("interact") or (event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_E)
@@ -517,12 +573,13 @@ func _on_physics_body_entered(body: Node) -> void:
 		return
 
 	var speed: float = linear_velocity.length()
-	if speed > 1.2:
+	if speed > 2.0:
 		_last_impact_time = cur_time
 		var impact_pos: Vector3 = global_position
 
-		# Trigger full 4-tier impact VFX in global world space
-		_trigger_all_impact_vfx(impact_pos)
+		if speed > 3.5:
+			# Trigger full 4-tier impact VFX for fast rolling/falling impact
+			_trigger_all_impact_vfx(impact_pos)
 
 		if body is Node3D and body != self and body != _carrier_player:
 			if body is Player:
@@ -537,10 +594,14 @@ func _on_physics_body_entered(body: Node) -> void:
 				body.take_damage(dmg, (body as Node3D).global_position)
 				print("💥 PHYSICAL BOULDER CRUSH: Dealt %.1f damage to %s" % [dmg, body.name])
 
-		_apply_impact_aoe_damage(impact_pos, maxf(speed, 5.0))
+		if speed > 3.5:
+			_apply_impact_aoe_damage(impact_pos, maxf(speed, 5.0))
 		boulder_impact.emit(impact_pos)
 
+
 func _apply_impact_aoe_damage(center: Vector3, speed: float) -> void:
+	if speed < 3.5:
+		return
 	var root: Node = get_tree().root
 	_damage_nodes_recursive(root, center, speed)
 
@@ -569,5 +630,5 @@ func _damage_nodes_recursive(node: Node, center: Vector3, speed: float) -> void:
 func _on_interaction_body_entered(body: Node) -> void:
 	if not _is_carried and body is Player:
 		var p: Player = body as Player
-		if p.is_multiplayer_authority() and p.selected_character_id.to_lower() == "fat":
+		if p.is_multiplayer_authority():
 			_update_prompt()
