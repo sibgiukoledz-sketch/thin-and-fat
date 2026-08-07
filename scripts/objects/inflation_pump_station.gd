@@ -2,6 +2,7 @@ class_name InflationPumpStation
 extends StaticBody3D
 
 ## Physical 3D Inflation Hose Object (Standalone Hose on Floor Scene).
+## Nodes are saved directly in scenes/objects/inflation_pump_station.tscn for easy editing!
 ## Flow:
 ## 1. Hose is visible on the floor on ready.
 ## 2. Fat walks up to the hose on floor and presses [F] to GRAB IT.
@@ -36,7 +37,6 @@ func _ready() -> void:
 	collision_mask = 0
 
 	_setup_materials()
-	_build_3d_hose_visuals()
 	_setup_volumetric_hoses()
 	_setup_hand_nozzle()
 
@@ -50,26 +50,6 @@ func _setup_materials() -> void:
 	_brass_mat.albedo_color = Color(0.95, 0.82, 0.22, 1.0)
 	_brass_mat.metallic = 0.85
 	_brass_mat.roughness = 0.2
-
-func _build_3d_hose_visuals() -> void:
-	if not hose_ground_node:
-		hose_ground_node = Node3D.new()
-		hose_ground_node.name = "StandaloneHose3D"
-		add_child(hose_ground_node)
-
-	# Build continuous smooth 3D tube on floor
-	var path_points: Array[Vector3] = []
-	var total_steps: int = 30
-	var start_p := global_position + Vector3(0.35, 0.08, 0.0)
-	var end_p := global_position + Vector3(2.2, 0.08, 0.25)
-
-	for i in range(total_steps + 1):
-		var t: float = float(i) / float(total_steps)
-		var pos: Vector3 = start_p.lerp(end_p, t)
-		pos.z += sin(t * PI * 2.5) * 0.32
-		path_points.append(pos)
-
-	_render_volumetric_tube_local(hose_ground_node, path_points, 0.05, 10, _hose_mat)
 
 func _setup_volumetric_hoses() -> void:
 	_stretched_hose_mouth = MeshInstance3D.new()
@@ -241,13 +221,6 @@ func _render_volumetric_tube_world(mesh_inst: MeshInstance3D, points: Array[Vect
 			st.add_vertex(v4)
 
 	mesh_inst.mesh = st.commit()
-
-func _render_volumetric_tube_local(parent: Node3D, points: Array[Vector3], radius: float, sides: int, mat: Material) -> void:
-	var mesh_inst := MeshInstance3D.new()
-	mesh_inst.name = "ContinuousHoseMesh"
-	mesh_inst.material_override = mat
-	_render_volumetric_tube_world(mesh_inst, points, radius, sides)
-	parent.add_child(mesh_inst)
 
 # =================== RPC: GRAB / RETURN HOSE ===================
 

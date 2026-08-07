@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3 uid="uid://c8inflpump01"]
+[gd_scene load_steps=16 format=3 uid="uid://c8inflpump01"]
 
 [ext_resource type="Script" path="res://scripts/objects/inflation_pump_station.gd" id="1_pump"]
 
@@ -34,6 +34,22 @@ outer_radius = 0.38
 material = SubResource("StandardMaterial3D_rubber")
 inner_radius = 0.26
 outer_radius = 0.42
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_seg"]
+material = SubResource("StandardMaterial3D_rubber")
+top_radius = 0.05
+bottom_radius = 0.05
+height = 0.55
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_grip"]
+albedo_color = Color(0.12, 0.14, 0.18, 1)
+roughness = 0.8
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_grip"]
+material = SubResource("StandardMaterial3D_grip")
+top_radius = 0.07
+bottom_radius = 0.07
+height = 0.14
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_brass"]
 albedo_color = Color(0.95, 0.82, 0.22, 1)
@@ -73,6 +89,26 @@ mesh = SubResource("TorusMesh_coil1")
 [node name="HoseCoilFlat2" type="MeshInstance3D" parent="StandaloneHose3D"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.16, 0)
 mesh = SubResource("TorusMesh_coil2")
+
+[node name="HoseSeg1" type="MeshInstance3D" parent="StandaloneHose3D"]
+transform = Transform3D(0.939693, 0, 0.34202, 0, 1, 0, -0.34202, 0, 0.939693, 0.45, 0.08, 0.1)
+mesh = SubResource("CylinderMesh_seg")
+
+[node name="HoseSeg2" type="MeshInstance3D" parent="StandaloneHose3D"]
+transform = Transform3D(0.866025, 0, -0.5, 0, 1, 0, 0.5, 0, 0.866025, 0.95, 0.08, 0.22)
+mesh = SubResource("CylinderMesh_seg")
+
+[node name="HoseSeg3" type="MeshInstance3D" parent="StandaloneHose3D"]
+transform = Transform3D(0.965926, 0, 0.258819, 0, 1, 0, -0.258819, 0, 0.965926, 1.45, 0.08, 0.08)
+mesh = SubResource("CylinderMesh_seg")
+
+[node name="HoseSeg4" type="MeshInstance3D" parent="StandaloneHose3D"]
+transform = Transform3D(0.984808, 0, -0.173648, 0, 1, 0, 0.173648, 0, 0.984808, 1.95, 0.08, 0.2)
+mesh = SubResource("CylinderMesh_seg")
+
+[node name="NozzleGripHandle" type="MeshInstance3D" parent="StandaloneHose3D"]
+transform = Transform3D(-4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 0, 1, 2.22, 0.08, 0.25)
+mesh = SubResource("CylinderMesh_grip")
 
 [node name="BrassHoseNozzle" type="MeshInstance3D" parent="StandaloneHose3D"]
 transform = Transform3D(-4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 0, 1, 2.38, 0.08, 0.25)
