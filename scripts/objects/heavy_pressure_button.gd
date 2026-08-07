@@ -14,7 +14,8 @@ signal button_toggled(is_pressed: bool)
 
 @export var required_weight: float = 150.0 ## Minimum required weight in kg
 @export var is_toggle: bool = false ## Stay pressed until pressed again?
-@export var target_object: Node3D ## Target object to trigger (e.g. WindTunnelFan, Door, Elevator)
+@export var target_node_path: NodePath ## NodePath to target object (e.g. ../WindTunnelFan)
+@export var target_object: Node3D ## Direct reference to target object
 @export var target_method_on_press: String = "" ## Optional method name to invoke on target when pressed
 @export var target_method_on_release: String = "" ## Optional method name to invoke on target when released
 
@@ -185,13 +186,17 @@ func _release_button() -> void:
 func _get_target_node() -> Node:
 	if target_object:
 		return target_object
-	
-	# Fallback search for WindTunnelFan in room if not explicitly linked
+	if target_node_path and not target_node_path.is_empty():
+		var node_from_path: Node = get_node_or_null(target_node_path)
+		if node_from_path:
+			return node_from_path
+
+	# Robust fallback search for WindTunnelFan in room if not explicitly linked
 	var root: Node = get_tree().root
-	var fans: Array[Node] = root.find_children("*", "WindTunnelFan", true, false)
-	if not fans.is_empty():
-		return fans[0]
-	
+	for child in root.find_children("*", "", true, false):
+		if child is WindTunnelFan or child.name.to_lower().contains("windtunnelfan") or child.name.to_lower().contains("fan"):
+			return child
+
 	return null
 
 func _animate_plunger(delta: float) -> void:
