@@ -93,6 +93,7 @@ var nausea_intensity: float = 0.0
 var _respawn_timer: float = 0.0
 var _was_in_air: bool = false
 var _last_air_velocity_y: float = 0.0
+var _step_timer: float = 0.0
 
 # Roblox-style Camera Zoom
 var target_camera_zoom: float = 0.0
