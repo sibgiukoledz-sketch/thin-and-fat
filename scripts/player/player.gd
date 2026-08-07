@@ -60,6 +60,7 @@ var synced_state_name: String = "idle"
 @onready var camera_3d: Camera3D = $Head/SpringArm3D/Camera3D
 @onready var collision_shape: CollisionShape3D = $CollisionShape3D
 @onready var mesh_instance: MeshInstance3D = $MeshInstance3D
+@onready var overhead_ray_cast: RayCast3D = get_node_or_null("OverheadRayCast") as RayCast3D
 @onready var state_machine: StateMachine = $StateMachine
 var active_mechanics: BaseCharacterMechanics = null
 var vomit_component: VomitComponent = null
@@ -374,12 +375,17 @@ func rpc_inflate_back_to_normal() -> void:
 	print("🎈 RE-INFLATED: %s inflated back to full height!" % name)
 
 func is_overhead_clear() -> bool:
+	if overhead_ray_cast:
+		overhead_ray_cast.target_position = Vector3(0, stand_height + 0.3, 0)
+		overhead_ray_cast.force_raycast_update()
+		return not overhead_ray_cast.is_colliding()
+
 	var space_state := get_world_3d().direct_space_state
 	if not space_state:
 		return true
 
 	var start_pos := global_position + Vector3(0, 0.2, 0)
-	var end_pos := global_position + Vector3(0, stand_height + 0.2, 0)
+	var end_pos := global_position + Vector3(0, stand_height + 0.3, 0)
 
 	var query := PhysicsRayQueryParameters3D.create(start_pos, end_pos)
 	query.exclude = [self]
