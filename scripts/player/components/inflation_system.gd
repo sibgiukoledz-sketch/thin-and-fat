@@ -6,8 +6,8 @@ extends Node
 ## 1. Fat grabs physical 3D hose from ground [F].
 ## 2. End 1 -> Fat's mouth, End 2 -> Brass Nozzle in Fat's right hand.
 ## 3. Fat walks to Thin or DummyNPC mannequin and connects nozzle [F].
-## 4. QTE Rhythm Pump mini-game inflates target into a balloon!
-## 5. Tether rope carries Fat underneath the floating balloon!
+## 4. QTE Rhythm Pump mini-game inflates target into a floating balloon!
+## 5. Fat walks freely on the ground holding the long 8-meter tether leash, guiding Thin/DummyNPC above him!
 
 signal inflation_progress_changed(progress: float)
 signal balloon_mode_changed(active: bool)
@@ -28,7 +28,7 @@ var qte_speed: float = 1.6
 var qte_zone_min: float = 0.38
 var qte_zone_max: float = 0.62
 
-# 3D Volumetric Tether Rope Renderer (for balloon mode)
+# 3D Volumetric Tether Rope Renderer (8-meter long tether leash!)
 var _rope_mesh_instance: MeshInstance3D
 var _rope_material: StandardMaterial3D
 
@@ -117,8 +117,8 @@ func _update_3d_tether_rope() -> void:
 	var end_p: Vector3 = tether_partner.global_position + Vector3(0, 0.3, 0)
 
 	var pts: Array[Vector3] = []
-	var segs: int = 12
-	var sag: float = 0.25
+	var segs: int = 16
+	var sag: float = 0.4
 
 	for i in range(segs + 1):
 		var t: float = float(i) / float(segs)
@@ -126,7 +126,7 @@ func _update_3d_tether_rope() -> void:
 		p.y -= sin(t * PI) * sag
 		pts.append(p)
 
-	_render_volumetric_tube(_rope_mesh_instance, pts, 0.035, 6)
+	_render_volumetric_tube(_rope_mesh_instance, pts, 0.04, 8)
 	_rope_mesh_instance.show()
 
 func _render_volumetric_tube(mesh_inst: MeshInstance3D, points: Array[Vector3], radius: float, sides: int) -> void:
@@ -185,30 +185,43 @@ func _update_balloon_physics(delta: float) -> void:
 	if not is_balloon_mode or not tether_partner or not is_instance_valid(tether_partner):
 		return
 
-	# Handle Player OR DummyNPC Balloon Flight
+	# --- FAT WALKS FREELY ON GROUND (Zero vertical pull on Fat!) ---
+	# Fat stays on ground and guides/drags Thin / DummyNPC balloon above him!
+	var target_pos: Vector3 = tether_partner.global_position
+	var fat_pos: Vector3 = player.global_position
+
+	# 1. Target (Thin or DummyNPC) floats 7.5 meters high into the air!
+	var target_height: float = fat_pos.y + 7.5
 	if tether_partner is Player:
 		var p: Player = tether_partner as Player
 		if p.selected_character_id.to_lower() == "thin":
-			if not p.is_on_ceiling():
-				p.velocity.y = lerpf(p.velocity.y, 2.8, 6.0 * delta)
-
+			if p.global_position.y < target_height and not p.is_on_ceiling():
+				p.velocity.y = lerpf(p.velocity.y, 3.5, 5.0 * delta)
 			if p.mesh_instance:
 				p.mesh_instance.scale = Vector3(2.3, 2.3, 2.3)
 				p.mesh_instance.position.y = 1.15
 	elif tether_partner is DummyNPC:
 		var dummy: DummyNPC = tether_partner as DummyNPC
-		dummy.velocity.y = lerpf(dummy.velocity.y, 2.8, 6.0 * delta)
+		if dummy.global_position.y < target_height:
+			dummy.velocity.y = lerpf(dummy.velocity.y, 3.5, 5.0 * delta)
 		if dummy.mesh_instance:
 			dummy.mesh_instance.scale = Vector3(2.3, 2.3, 2.3)
 			dummy.mesh_instance.position.y = 1.15
 
-	# Pull Fat up underneath the balloon target!
-	if player and player.selected_character_id.to_lower() == "fat":
-		var target_fat_pos: Vector3 = tether_partner.global_position - Vector3(0, 2.2, 0)
-		var dist: float = player.global_position.distance_to(target_fat_pos)
-		if dist > 0.4:
-			var pull_dir: Vector3 = (target_fat_pos - player.global_position).normalized()
-			player.velocity = player.velocity.lerp(pull_dir * minf(dist * 6.0, 10.0), 12.0 * delta)
+	# 2. Horizontal 8-Meter Tether Leash: Fat on ground DRAGS balloon above!
+	var horiz_dist: float = Vector2(target_pos.x - fat_pos.x, target_pos.z - fat_pos.z).length()
+	if horiz_dist > 6.0:
+		var drag_dir := Vector3(fat_pos.x - target_pos.x, 0, fat_pos.z - target_pos.z).normalized()
+		var pull_force: float = (horiz_dist - 6.0) * 8.0
+
+		if tether_partner is Player:
+			var p: Player = tether_partner as Player
+			p.velocity.x += drag_dir.x * pull_force * delta
+			p.velocity.z += drag_dir.z * pull_force * delta
+		elif tether_partner is DummyNPC:
+			var dummy: DummyNPC = tether_partner as DummyNPC
+			dummy.velocity.x += drag_dir.x * pull_force * delta
+			dummy.velocity.z += drag_dir.z * pull_force * delta
 
 # =================== HOSE GRAB / DROP ===================
 
@@ -310,7 +323,7 @@ func rpc_activate_balloon_mode() -> void:
 			partner_infl.tether_partner = player
 
 	_trigger_puff_vfx()
-	print("🎈 BALLOON MODE ACTIVATED!")
+	print("🎈 BALLOON MODE ACTIVATED! Long 8m tether leash active!")
 
 @rpc("any_peer", "call_local", "reliable")
 func rpc_stop_inflation() -> void:

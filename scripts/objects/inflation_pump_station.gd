@@ -1,11 +1,12 @@
 class_name InflationPumpStation
 extends StaticBody3D
 
-## Scene-friendly Physical 3D Inflation Hose Object (Standalone Hose on Floor).
+## Physical 3D Inflation Hose Object (Standalone Hose on Floor Scene).
 ## Flow:
-## 1. Fat walks up to the hose on floor and presses [F] to GRAB IT.
-## 2. Hose attaches: End 1 -> Fat's mouth, End 2 -> Brass Nozzle in Fat's right hand!
-## 3. Fat walks to Thin or DummyNPC mannequin and presses [F] -> Plugs nozzle in to start pumping!
+## 1. Hose is visible on the floor on ready.
+## 2. Fat walks up to the hose on floor and presses [F] to GRAB IT.
+## 3. End 1 -> Fat's mouth (rotates with Fat), End 2 -> Brass Nozzle in Fat's right hand!
+## 4. Fat walks to Thin/DummyNPC and presses [F] -> Connects nozzle to start pumping!
 
 signal hose_grabbed(by_player: Player)
 signal hose_connected(fat: Player, target: Node3D)
@@ -35,6 +36,7 @@ func _ready() -> void:
 	collision_mask = 0
 
 	_setup_materials()
+	_build_3d_hose_visuals()
 	_setup_volumetric_hoses()
 	_setup_hand_nozzle()
 
@@ -48,6 +50,26 @@ func _setup_materials() -> void:
 	_brass_mat.albedo_color = Color(0.95, 0.82, 0.22, 1.0)
 	_brass_mat.metallic = 0.85
 	_brass_mat.roughness = 0.2
+
+func _build_3d_hose_visuals() -> void:
+	if not hose_ground_node:
+		hose_ground_node = Node3D.new()
+		hose_ground_node.name = "StandaloneHose3D"
+		add_child(hose_ground_node)
+
+	# Build continuous smooth 3D tube on floor
+	var path_points: Array[Vector3] = []
+	var total_steps: int = 30
+	var start_p := global_position + Vector3(0.35, 0.08, 0.0)
+	var end_p := global_position + Vector3(2.2, 0.08, 0.25)
+
+	for i in range(total_steps + 1):
+		var t: float = float(i) / float(total_steps)
+		var pos: Vector3 = start_p.lerp(end_p, t)
+		pos.z += sin(t * PI * 2.5) * 0.32
+		path_points.append(pos)
+
+	_render_volumetric_tube_local(hose_ground_node, path_points, 0.05, 10, _hose_mat)
 
 func _setup_volumetric_hoses() -> void:
 	_stretched_hose_mouth = MeshInstance3D.new()
@@ -124,12 +146,12 @@ func _update_volumetric_hoses() -> void:
 		_hand_nozzle_mesh.hide()
 		return
 
-	# Hand anchor & Mouth anchor
+	# Exact Mouth and Hand attachment points using Fat's global_transform!
 	var hose_origin: Vector3 = global_position + Vector3(0, 0.12, 0)
-	var fat_mouth: Vector3 = hose_carrier.global_position + Vector3(0, 1.45, 0.25)
-	var fat_hand: Vector3 = hose_carrier.global_position + Vector3(0.42, 0.85, 0.35)
+	var fat_mouth: Vector3 = hose_carrier.global_transform * Vector3(0, 1.45, 0.25)
+	var fat_hand: Vector3 = hose_carrier.global_transform * Vector3(0.42, 0.75, 0.35)
 
-	# Position the Brass Nozzle in Fat's right hand!
+	# Position the Brass Nozzle cleanly in Fat's right hand!
 	_hand_nozzle_mesh.show()
 	_hand_nozzle_mesh.global_position = fat_hand
 	_hand_nozzle_mesh.global_rotation = hose_carrier.global_rotation
@@ -137,13 +159,12 @@ func _update_volumetric_hoses() -> void:
 	var infl_sys := hose_carrier.get_node_or_null("InflationSystem") as InflationSystem
 	var target_end: Vector3 = fat_hand
 
-	# If connected to target (Thin or DummyNPC), End 2 goes to target!
+	# If connected to target (Thin or DummyNPC), End 2 goes into target!
 	if infl_sys and infl_sys.is_inflating and infl_sys.tether_partner and is_instance_valid(infl_sys.tether_partner):
 		target_end = infl_sys.tether_partner.global_position + Vector3(0, 1.0, 0)
-		# Snap nozzle to target
 		_hand_nozzle_mesh.global_position = target_end
 
-	# 1. Build Thick Volumetric 3D Hose: Origin -> Mouth
+	# 1. Build Thick Volumetric 3D Hose: Origin -> Fat's Mouth
 	var pts1: Array[Vector3] = []
 	var segs1: int = 14
 	var sag1: float = 0.65
@@ -153,10 +174,10 @@ func _update_volumetric_hoses() -> void:
 		p.y -= sin(t * PI) * sag1 * (1.0 - t * 0.4)
 		pts1.append(p)
 
-	_render_volumetric_tube(_stretched_hose_mouth, pts1, 0.045, 8)
+	_render_volumetric_tube_world(_stretched_hose_mouth, pts1, 0.045, 8)
 	_stretched_hose_mouth.show()
 
-	# 2. Build Thick Volumetric 3D Hose: Mouth -> Hand / Target
+	# 2. Build Thick Volumetric 3D Hose: Fat's Mouth -> Fat's Hand (or Target)
 	var pts2: Array[Vector3] = []
 	var segs2: int = 10
 	var sag2: float = 0.25
@@ -166,11 +187,10 @@ func _update_volumetric_hoses() -> void:
 		p.y -= sin(t * PI) * sag2
 		pts2.append(p)
 
-	_render_volumetric_tube(_stretched_hose_hand, pts2, 0.04, 8)
+	_render_volumetric_tube_world(_stretched_hose_hand, pts2, 0.04, 8)
 	_stretched_hose_hand.show()
 
-# Helper to render thick volumetric tube mesh dynamically
-func _render_volumetric_tube(mesh_inst: MeshInstance3D, points: Array[Vector3], radius: float, sides: int) -> void:
+func _render_volumetric_tube_world(mesh_inst: MeshInstance3D, points: Array[Vector3], radius: float, sides: int) -> void:
 	if points.size() < 2:
 		return
 
@@ -222,6 +242,13 @@ func _render_volumetric_tube(mesh_inst: MeshInstance3D, points: Array[Vector3], 
 
 	mesh_inst.mesh = st.commit()
 
+func _render_volumetric_tube_local(parent: Node3D, points: Array[Vector3], radius: float, sides: int, mat: Material) -> void:
+	var mesh_inst := MeshInstance3D.new()
+	mesh_inst.name = "ContinuousHoseMesh"
+	mesh_inst.material_override = mat
+	_render_volumetric_tube_world(mesh_inst, points, radius, sides)
+	parent.add_child(mesh_inst)
+
 # =================== RPC: GRAB / RETURN HOSE ===================
 
 @rpc("any_peer", "call_local", "reliable")
@@ -236,7 +263,7 @@ func rpc_grab_hose(player_path: NodePath) -> void:
 	if hose_ground_node:
 		hose_ground_node.hide()
 
-	print("🎈 HOSE GRABBED by %s! Attached to Mouth & Brass Nozzle in Hand!" % p.name)
+	print("🎈 HOSE GRABBED by %s! End 1 -> Mouth, End 2 -> Hand Nozzle!" % p.name)
 	hose_grabbed.emit(p)
 
 @rpc("any_peer", "call_local", "reliable")
