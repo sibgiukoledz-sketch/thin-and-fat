@@ -2,16 +2,15 @@ class_name InflationPumpStation
 extends StaticBody3D
 
 ## Scene-friendly Physical 3D Inflation Hose Object (Standalone Hose on Floor).
-## Can be edited directly in Godot Scene Editor (scenes/objects/inflation_pump_station.tscn)!
 ## Flow:
 ## 1. Fat walks up to the hose on floor and presses [F] to GRAB IT.
-## 2. Hose attaches: End 1 -> Fat's mouth, End 2 -> Fat's hand!
-## 3. Fat walks to Thin and presses [F] -> End 2 connects to Thin to inflate!
+## 2. Hose attaches: End 1 -> Fat's mouth, End 2 -> Brass Nozzle in Fat's right hand!
+## 3. Fat walks to Thin or DummyNPC mannequin and presses [F] -> Plugs nozzle in to start pumping!
 
 signal hose_grabbed(by_player: Player)
-signal hose_connected(fat: Player, thin: Player)
+signal hose_connected(fat: Player, target: Node3D)
 
-@export var interaction_radius: float = 3.0
+@export var interaction_radius: float = 3.5
 
 var is_hose_taken: bool = false
 var hose_carrier: Player = null
@@ -21,46 +20,83 @@ var hose_carrier: Player = null
 @onready var prompt_label: Label3D = $PromptLabel
 @onready var title_label: Label3D = $TitleLabel
 
-# Stretched hose lines (Origin -> Mouth, Mouth -> Hand / Thin)
-var _stretched_mesh_mouth: ImmediateMesh
-var _stretched_rope_mouth: MeshInstance3D
-var _stretched_mesh_hand: ImmediateMesh
-var _stretched_rope_hand: MeshInstance3D
+# Volumetric 3D Stretched Hose Renderers (Thick 3D Rubber Tubes!)
+var _stretched_hose_mouth: MeshInstance3D
+var _stretched_hose_hand: MeshInstance3D
+
+# Hand-held 3D Brass Nozzle mesh (shown when Fat carries hose)
+var _hand_nozzle_mesh: Node3D
+
+var _hose_mat: StandardMaterial3D
+var _brass_mat: StandardMaterial3D
 
 func _ready() -> void:
 	collision_layer = 1
 	collision_mask = 0
 
-	_setup_stretched_hoses()
+	_setup_materials()
+	_setup_volumetric_hoses()
+	_setup_hand_nozzle()
 
-func _setup_stretched_hoses() -> void:
-	var rope_mat := StandardMaterial3D.new()
-	rope_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	rope_mat.albedo_color = Color(0.12, 0.78, 0.92, 1.0)
+func _setup_materials() -> void:
+	_hose_mat = StandardMaterial3D.new()
+	_hose_mat.albedo_color = Color(0.12, 0.78, 0.92, 1.0)
+	_hose_mat.roughness = 0.35
+	_hose_mat.metallic = 0.15
 
-	# 1. Line from floor origin -> Fat's Mouth
-	_stretched_mesh_mouth = ImmediateMesh.new()
-	_stretched_rope_mouth = MeshInstance3D.new()
-	_stretched_rope_mouth.name = "StretchedHoseToMouth"
-	_stretched_rope_mouth.top_level = true
-	_stretched_rope_mouth.mesh = _stretched_mesh_mouth
-	_stretched_rope_mouth.material_override = rope_mat
-	_stretched_rope_mouth.hide()
-	add_child(_stretched_rope_mouth)
+	_brass_mat = StandardMaterial3D.new()
+	_brass_mat.albedo_color = Color(0.95, 0.82, 0.22, 1.0)
+	_brass_mat.metallic = 0.85
+	_brass_mat.roughness = 0.2
 
-	# 2. Line from Fat's Mouth -> Fat's Hand (or Thin)
-	_stretched_mesh_hand = ImmediateMesh.new()
-	_stretched_rope_hand = MeshInstance3D.new()
-	_stretched_rope_hand.name = "StretchedHoseToHand"
-	_stretched_rope_hand.top_level = true
-	_stretched_rope_hand.mesh = _stretched_mesh_hand
-	_stretched_rope_hand.material_override = rope_mat
-	_stretched_rope_hand.hide()
-	add_child(_stretched_rope_hand)
+func _setup_volumetric_hoses() -> void:
+	_stretched_hose_mouth = MeshInstance3D.new()
+	_stretched_hose_mouth.name = "VolumetricHoseMouth"
+	_stretched_hose_mouth.top_level = true
+	_stretched_hose_mouth.material_override = _hose_mat
+	_stretched_hose_mouth.hide()
+	add_child(_stretched_hose_mouth)
+
+	_stretched_hose_hand = MeshInstance3D.new()
+	_stretched_hose_hand.name = "VolumetricHoseHand"
+	_stretched_hose_hand.top_level = true
+	_stretched_hose_hand.material_override = _hose_mat
+	_stretched_hose_hand.hide()
+	add_child(_stretched_hose_hand)
+
+func _setup_hand_nozzle() -> void:
+	_hand_nozzle_mesh = Node3D.new()
+	_hand_nozzle_mesh.name = "HandHeldBrassNozzle"
+
+	var body := MeshInstance3D.new()
+	var cyl := CylinderMesh.new()
+	cyl.top_radius = 0.035
+	cyl.bottom_radius = 0.065
+	cyl.height = 0.32
+	cyl.material = _brass_mat
+	body.mesh = cyl
+	body.rotation_degrees = Vector3(0, 0, 90)
+	_hand_nozzle_mesh.add_child(body)
+
+	var grip := MeshInstance3D.new()
+	var grip_cyl := CylinderMesh.new()
+	grip_cyl.top_radius = 0.075
+	grip_cyl.bottom_radius = 0.075
+	grip_cyl.height = 0.12
+	var grip_mat := StandardMaterial3D.new()
+	grip_mat.albedo_color = Color(0.12, 0.14, 0.18, 1.0)
+	grip_cyl.material = grip_mat
+	grip.mesh = grip_cyl
+	grip.position = Vector3(-0.06, 0, 0)
+	grip.rotation_degrees = Vector3(0, 0, 90)
+	_hand_nozzle_mesh.add_child(grip)
+
+	_hand_nozzle_mesh.hide()
+	add_child(_hand_nozzle_mesh)
 
 func _process(_delta: float) -> void:
 	_update_prompt_visibility()
-	_update_stretched_hoses()
+	_update_volumetric_hoses()
 
 func _update_prompt_visibility() -> void:
 	if not hose_pickup_area or not prompt_label:
@@ -81,53 +117,110 @@ func _update_prompt_visibility() -> void:
 
 	prompt_label.visible = show
 
-func _update_stretched_hoses() -> void:
-	if not _stretched_mesh_mouth or not _stretched_mesh_hand:
-		return
-
-	_stretched_mesh_mouth.clear_surfaces()
-	_stretched_mesh_hand.clear_surfaces()
-
+func _update_volumetric_hoses() -> void:
 	if not is_hose_taken or not hose_carrier or not is_instance_valid(hose_carrier):
-		_stretched_rope_mouth.hide()
-		_stretched_rope_hand.hide()
+		_stretched_hose_mouth.hide()
+		_stretched_hose_hand.hide()
+		_hand_nozzle_mesh.hide()
 		return
 
-	# Anchors:
+	# Hand anchor & Mouth anchor
 	var hose_origin: Vector3 = global_position + Vector3(0, 0.12, 0)
 	var fat_mouth: Vector3 = hose_carrier.global_position + Vector3(0, 1.45, 0.25)
-	var fat_hand: Vector3 = hose_carrier.global_position + Vector3(0.4, 0.85, 0.3)
+	var fat_hand: Vector3 = hose_carrier.global_position + Vector3(0.42, 0.85, 0.35)
+
+	# Position the Brass Nozzle in Fat's right hand!
+	_hand_nozzle_mesh.show()
+	_hand_nozzle_mesh.global_position = fat_hand
+	_hand_nozzle_mesh.global_rotation = hose_carrier.global_rotation
 
 	var infl_sys := hose_carrier.get_node_or_null("InflationSystem") as InflationSystem
 	var target_end: Vector3 = fat_hand
 
-	# If connected to Thin for pumping, End 2 goes from Fat's mouth -> Thin!
+	# If connected to target (Thin or DummyNPC), End 2 goes to target!
 	if infl_sys and infl_sys.is_inflating and infl_sys.tether_partner and is_instance_valid(infl_sys.tether_partner):
 		target_end = infl_sys.tether_partner.global_position + Vector3(0, 1.0, 0)
+		# Snap nozzle to target
+		_hand_nozzle_mesh.global_position = target_end
 
-	# 1. Draw Line 1: Hose Floor Origin -> Fat's Mouth
-	_stretched_rope_mouth.show()
-	_stretched_mesh_mouth.surface_begin(Mesh.PRIMITIVE_LINE_STRIP)
+	# 1. Build Thick Volumetric 3D Hose: Origin -> Mouth
+	var pts1: Array[Vector3] = []
 	var segs1: int = 14
 	var sag1: float = 0.65
 	for i in range(segs1 + 1):
 		var t: float = float(i) / float(segs1)
-		var pos: Vector3 = hose_origin.lerp(fat_mouth, t)
-		pos.y -= sin(t * PI) * sag1 * (1.0 - t * 0.4)
-		_stretched_mesh_mouth.surface_add_vertex(pos)
-	_stretched_mesh_mouth.surface_end()
+		var p: Vector3 = hose_origin.lerp(fat_mouth, t)
+		p.y -= sin(t * PI) * sag1 * (1.0 - t * 0.4)
+		pts1.append(p)
 
-	# 2. Draw Line 2: Fat's Mouth -> Fat's Hand (or Thin)
-	_stretched_rope_hand.show()
-	_stretched_mesh_hand.surface_begin(Mesh.PRIMITIVE_LINE_STRIP)
+	_render_volumetric_tube(_stretched_hose_mouth, pts1, 0.045, 8)
+	_stretched_hose_mouth.show()
+
+	# 2. Build Thick Volumetric 3D Hose: Mouth -> Hand / Target
+	var pts2: Array[Vector3] = []
 	var segs2: int = 10
 	var sag2: float = 0.25
 	for i in range(segs2 + 1):
 		var t: float = float(i) / float(segs2)
-		var pos: Vector3 = fat_mouth.lerp(target_end, t)
-		pos.y -= sin(t * PI) * sag2
-		_stretched_mesh_hand.surface_add_vertex(pos)
-	_stretched_mesh_hand.surface_end()
+		var p: Vector3 = fat_mouth.lerp(target_end, t)
+		p.y -= sin(t * PI) * sag2
+		pts2.append(p)
+
+	_render_volumetric_tube(_stretched_hose_hand, pts2, 0.04, 8)
+	_stretched_hose_hand.show()
+
+# Helper to render thick volumetric tube mesh dynamically
+func _render_volumetric_tube(mesh_inst: MeshInstance3D, points: Array[Vector3], radius: float, sides: int) -> void:
+	if points.size() < 2:
+		return
+
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+
+	var ring_verts: Array[Array] = []
+
+	for i in range(points.size()):
+		var p: Vector3 = points[i]
+		var fwd: Vector3 = Vector3.FORWARD
+		if i < points.size() - 1:
+			fwd = (points[i + 1] - p).normalized()
+		elif i > 0:
+			fwd = (p - points[i - 1]).normalized()
+
+		var right: Vector3 = fwd.cross(Vector3.UP).normalized()
+		if right.length_squared() < 0.001:
+			right = Vector3.RIGHT
+		var up: Vector3 = right.cross(fwd).normalized()
+
+		var ring: Array[Vector3] = []
+		for s in range(sides):
+			var angle: float = (float(s) / float(sides)) * TAU
+			var offset: Vector3 = right * (cos(angle) * radius) + up * (sin(angle) * radius)
+			ring.append(p + offset)
+		ring_verts.append(ring)
+
+	for i in range(points.size() - 1):
+		var r1: Array = ring_verts[i]
+		var r2: Array = ring_verts[i + 1]
+
+		for s in range(sides):
+			var next_s: int = (s + 1) % sides
+			var v1: Vector3 = r1[s]
+			var v2: Vector3 = r1[next_s]
+			var v3: Vector3 = r2[next_s]
+			var v4: Vector3 = r2[s]
+
+			st.set_normal((v2 - v1).cross(v4 - v1).normalized())
+			st.add_vertex(v1)
+			st.add_vertex(v2)
+			st.add_vertex(v4)
+
+			st.set_normal((v3 - v2).cross(v4 - v2).normalized())
+			st.add_vertex(v2)
+			st.add_vertex(v3)
+			st.add_vertex(v4)
+
+	mesh_inst.mesh = st.commit()
 
 # =================== RPC: GRAB / RETURN HOSE ===================
 
@@ -143,7 +236,7 @@ func rpc_grab_hose(player_path: NodePath) -> void:
 	if hose_ground_node:
 		hose_ground_node.hide()
 
-	print("🎈 HOSE GRABBED by %s (Attached to Mouth & Hand)!" % p.name)
+	print("🎈 HOSE GRABBED by %s! Attached to Mouth & Brass Nozzle in Hand!" % p.name)
 	hose_grabbed.emit(p)
 
 @rpc("any_peer", "call_local", "reliable")
@@ -154,8 +247,9 @@ func rpc_return_hose() -> void:
 	if hose_ground_node:
 		hose_ground_node.show()
 
-	_stretched_rope_mouth.hide()
-	_stretched_rope_hand.hide()
+	_stretched_hose_mouth.hide()
+	_stretched_hose_hand.hide()
+	_hand_nozzle_mesh.hide()
 	print("🎈 HOSE RETURNED to floor.")
 
 func get_hose_nozzle_world_pos() -> Vector3:

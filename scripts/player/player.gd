@@ -460,11 +460,11 @@ func _unhandled_input(event: InputEvent) -> void:
 				infl_sys.rpc_stop_inflation.rpc()
 				get_viewport().set_input_as_handled()
 				return
-			# Step 2: Fat is carrying hose -> connect to nearby Thin
+			# Step 2: Fat is carrying hose -> connect to nearby Thin Player OR DummyNPC mannequin!
 			elif infl_sys.is_carrying_hose and selected_character_id.to_lower() == "fat":
-				var thin_partner: Player = _find_nearby_thin_player()
-				if thin_partner:
-					infl_sys.rpc_start_inflation.rpc(thin_partner.get_path())
+				var target: Node3D = _find_nearby_inflation_target()
+				if target:
+					infl_sys.rpc_start_inflation.rpc(target.get_path())
 					get_viewport().set_input_as_handled()
 					return
 			# Step 1: Fat grabs hose from pump station on the ground
@@ -494,11 +494,12 @@ func _unhandled_input(event: InputEvent) -> void:
 	if active_mechanics:
 		active_mechanics.handle_ability_input(event)
 
-func _find_nearby_thin_player() -> Player:
-	var players := get_tree().get_nodes_in_group("players")
-	var closest: Player = null
-	var closest_dist: float = 3.5 # Max interaction distance for inflation
+func _find_nearby_inflation_target() -> Node3D:
+	var closest: Node3D = null
+	var closest_dist: float = 4.0 # Max interaction radius for connecting hose
 
+	# 1. Search Thin Players
+	var players := get_tree().get_nodes_in_group("players")
 	for node in players:
 		if node == self or not node is Player:
 			continue
@@ -509,7 +510,26 @@ func _find_nearby_thin_player() -> Player:
 				closest_dist = dist
 				closest = p
 
+	# 2. Search DummyNPC Mannequins (For instant solo testing!)
+	var dummies: Array = []
+	_find_nodes_of_type_recursive(get_tree().root, "DummyNPC", dummies)
+	for d in dummies:
+		if d is DummyNPC:
+			var dummy: DummyNPC = d as DummyNPC
+			var dist: float = global_position.distance_to(dummy.global_position)
+			if dist < closest_dist:
+				closest_dist = dist
+				closest = dummy
+
 	return closest
+
+func _find_nodes_of_type_recursive(node: Node, type_name: String, result: Array) -> void:
+	if not node:
+		return
+	if node.get_class() == type_name or node.is_class(type_name) or (node.get_script() and node.get_script().get_global_name() == type_name):
+		result.append(node)
+	for child in node.get_children():
+		_find_nodes_of_type_recursive(child, type_name, result)
 
 func _perform_melee_attack() -> void:
 	if not is_multiplayer_authority() or not camera_3d:
