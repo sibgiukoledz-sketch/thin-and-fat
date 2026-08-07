@@ -37,8 +37,8 @@ var _current_weight: float = 0.0
 var _primary_trigger: Node = null
 
 # Plunger Y positions
-const UNPRESSED_Y: float = 0.14
-const PRESSED_Y: float = -0.04
+const UNPRESSED_Y: float = 0.24
+const PRESSED_Y: float = 0.08
 
 # Indicator colors
 const INACTIVE_COLOR: Color = Color(1.0, 0.15, 0.1, 1.0) # Ruby Red
@@ -180,7 +180,8 @@ func _animate_plunger(delta: float) -> void:
 	plunger.position.y = lerpf(plunger.position.y, target_y, 14.0 * delta)
 
 	# Animate 4 corner hydraulic pistons downward proportionally!
-	var piston_y: float = lerpf(0.15, -0.02, (UNPRESSED_Y - plunger.position.y) / (UNPRESSED_Y - PRESSED_Y))
+	var progress: float = clampf((UNPRESSED_Y - plunger.position.y) / (UNPRESSED_Y - PRESSED_Y), 0.0, 1.0)
+	var piston_y: float = lerpf(0.15, 0.04, progress)
 	if piston_nw: piston_nw.position.y = piston_y
 	if piston_ne: piston_ne.position.y = piston_y
 	if piston_sw: piston_sw.position.y = piston_y
