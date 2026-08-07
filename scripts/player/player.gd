@@ -792,6 +792,7 @@ func can_uncrouch() -> bool:
 	return result.is_empty()
 
 var character_model: Node3D = null
+var _is_ragdoll_active: bool = false
 
 func _start_ragdoll() -> void:
 	_is_ragdoll_active = true
