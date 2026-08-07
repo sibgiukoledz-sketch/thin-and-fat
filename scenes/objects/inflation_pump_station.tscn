@@ -1,6 +1,106 @@
-[gd_scene format=3 uid="uid://c8inflpump01"]
+[gd_scene load_steps=12 format=3 uid="uid://c8inflpump01"]
 
 [ext_resource type="Script" path="res://scripts/objects/inflation_pump_station.gd" id="1_pump"]
 
-[node name="InflationPumpStation" type="StaticBody3D"]
+[sub_resource type="BoxShape3D" id="BoxShape3D_mount"]
+size = Vector3(1, 0.12, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_metal"]
+albedo_color = Color(0.22, 0.25, 0.3, 1)
+metallic = 0.75
+roughness = 0.3
+
+[sub_resource type="BoxMesh" id="BoxMesh_base"]
+material = SubResource("StandardMaterial3D_metal")
+size = Vector3(1, 0.08, 1)
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_hub"]
+material = SubResource("StandardMaterial3D_metal")
+top_radius = 0.22
+bottom_radius = 0.24
+height = 0.14
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_rubber"]
+albedo_color = Color(0.12, 0.78, 0.92, 1)
+metallic = 0.15
+roughness = 0.35
+
+[sub_resource type="TorusMesh" id="TorusMesh_coil1"]
+material = SubResource("StandardMaterial3D_rubber")
+inner_radius = 0.22
+outer_radius = 0.38
+
+[sub_resource type="TorusMesh" id="TorusMesh_coil2"]
+material = SubResource("StandardMaterial3D_rubber")
+inner_radius = 0.26
+outer_radius = 0.42
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_brass"]
+albedo_color = Color(0.95, 0.82, 0.22, 1)
+metallic = 0.85
+roughness = 0.2
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_nozzle"]
+material = SubResource("StandardMaterial3D_brass")
+top_radius = 0.035
+bottom_radius = 0.065
+height = 0.35
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_area"]
+radius = 3.0
+
+[node name="InflationPumpStation" type="StaticBody3D" groups=["inflation_stations"]]
 script = ExtResource("1_pump")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.06, 0)
+shape = SubResource("BoxShape3D_mount")
+
+[node name="StandaloneHose3D" type="Node3D" parent="."]
+
+[node name="HoseSpoolBase" type="MeshInstance3D" parent="StandaloneHose3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.04, 0)
+mesh = SubResource("BoxMesh_base")
+
+[node name="HoseHub" type="MeshInstance3D" parent="StandaloneHose3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.11, 0)
+mesh = SubResource("CylinderMesh_hub")
+
+[node name="HoseCoilFlat1" type="MeshInstance3D" parent="StandaloneHose3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.12, 0)
+mesh = SubResource("TorusMesh_coil1")
+
+[node name="HoseCoilFlat2" type="MeshInstance3D" parent="StandaloneHose3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.16, 0)
+mesh = SubResource("TorusMesh_coil2")
+
+[node name="BrassHoseNozzle" type="MeshInstance3D" parent="StandaloneHose3D"]
+transform = Transform3D(-4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 0, 1, 2.38, 0.08, 0.25)
+mesh = SubResource("CylinderMesh_nozzle")
+
+[node name="HosePickupArea" type="Area3D" parent="."]
+collision_layer = 0
+collision_mask = 2
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="HosePickupArea"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.38, 0.5, 0.25)
+shape = SubResource("SphereShape3D_area")
+
+[node name="TitleLabel" type="Label3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.8, 0)
+billboard = 1
+double_sided = false
+modulate = Color(0.2, 0.85, 0.95, 1)
+text = "🎈 ВОЗДУШНЫЙ ШЛАНГ"
+font_size = 28
+outline_size = 8
+
+[node name="PromptLabel" type="Label3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.38, 1.1, 0.25)
+visible = false
+billboard = 1
+double_sided = false
+modulate = Color(1, 0.92, 0.25, 1)
+text = "💨 [F] ВЗЯТЬ ШЛАНГ!"
+font_size = 26
+outline_size = 8
