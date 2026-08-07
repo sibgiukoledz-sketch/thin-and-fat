@@ -105,7 +105,7 @@ func _handle_input_and_capture() -> void:
 
 	if not _is_speaking or not _capture_effect:
 		if _capture_effect and _capture_effect.get_frames_available() > 0:
-			_capture_effect.clear()
+			_capture_effect.get_buffer(_capture_effect.get_frames_available())
 		return
 
 	# Capture frames available
@@ -120,7 +120,7 @@ func _compress_pcm_frames(frames: PackedVector2Array) -> PackedByteArray:
 	# Downsample & Quantize 32-bit Vector2 PCM frames into low-bandwidth 8-bit PCM byte array
 	var step: int = maxi(1, int(44100.0 / float(sample_rate)))
 	var bytes := PackedByteArray()
-	bytes.resize(int(frames.size() / step))
+	bytes.resize(int(float(frames.size()) / float(step)))
 
 	var idx: int = 0
 	var i: int = 0
@@ -146,7 +146,6 @@ func rpc_receive_voice_chunk(sender_id: int, audio_bytes: PackedByteArray) -> vo
 	_set_peer_speaking(sender_id, true)
 
 	# Decompress 8-bit PCM back into AudioStreamGeneratorPlayback frames
-	var sample_step: float = 1.0 / float(sample_rate)
 	for i in range(audio_bytes.size()):
 		var sample_f8: float = float(audio_bytes.decode_s8(i)) / 127.0
 		var vec := Vector2(sample_f8, sample_f8)
