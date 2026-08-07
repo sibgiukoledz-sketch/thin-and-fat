@@ -200,18 +200,7 @@ func set_character(char_id: String) -> void:
 		if collision_shape:
 			collision_shape.shape = cap_shape
 
-		var cap_mesh := CapsuleMesh.new()
-		cap_mesh.radius = 0.65
-		cap_mesh.height = 1.5
-
-		var fat_mat := StandardMaterial3D.new()
-		fat_mat.albedo_color = Color(0.88, 0.48, 0.18, 1.0) # Warm Amber Heavy Physique
-		fat_mat.roughness = 0.45
-		cap_mesh.material = fat_mat
-
-		if mesh_instance:
-			mesh_instance.mesh = cap_mesh
-
+		_build_character_visuals(true)
 		# Attach Fat Mechanics Component
 		_attach_mechanics_component("res://scripts/player/characters/fat_mechanics.gd")
 
@@ -234,18 +223,7 @@ func set_character(char_id: String) -> void:
 		if collision_shape:
 			collision_shape.shape = cap_shape
 
-		var cap_mesh := CapsuleMesh.new()
-		cap_mesh.radius = 0.28
-		cap_mesh.height = 2.4
-
-		var thin_mat := StandardMaterial3D.new()
-		thin_mat.albedo_color = Color(0.18, 0.65, 0.95, 1.0) # Neon Cyan Athletic Physique
-		thin_mat.roughness = 0.3
-		cap_mesh.material = thin_mat
-
-		if mesh_instance:
-			mesh_instance.mesh = cap_mesh
-
+		_build_character_visuals(false)
 		# Attach Thin Mechanics Component
 		_attach_mechanics_component("res://scripts/player/characters/thin_mechanics.gd")
 
@@ -808,3 +786,147 @@ func can_uncrouch() -> bool:
 	query.exclude = [self]
 	var result: Dictionary = space_state.intersect_ray(query)
 	return result.is_empty()
+
+func _build_character_visuals(is_fat: bool) -> void:
+	if not mesh_instance:
+		return
+
+	# Clear any previous child detail nodes from mesh_instance
+	for child in mesh_instance.get_children():
+		child.queue_free()
+
+	# Check for external GLTF/GLB custom character model in res://assets/models/
+	var glb_path := "res://assets/models/%s.glb" % ("fat" if is_fat else "thin")
+	if ResourceLoader.exists(glb_path):
+		var glb_scene := load(glb_path) as PackedScene
+		if glb_scene:
+			var custom_model := glb_scene.instantiate()
+			mesh_instance.mesh = null
+			mesh_instance.add_child(custom_model)
+			print("🎨 CUSTOM 3D MODEL LOADED: %s" % glb_path)
+			return
+
+	# Procedural AAA Multi-Part Stylized 3D Character Model Construction
+	if is_fat:
+		# --- FAT CHARACTER (Warm Amber Heavyweight Juggernaut) ---
+		var cap_mesh := CapsuleMesh.new()
+		cap_mesh.radius = 0.65
+		cap_mesh.height = 1.5
+
+		var fat_mat := StandardMaterial3D.new()
+		fat_mat.albedo_color = Color(0.88, 0.48, 0.18, 1.0) # Heavy Amber Jumpsuit
+		fat_mat.roughness = 0.4
+		fat_mat.metallic = 0.15
+		cap_mesh.material = fat_mat
+		mesh_instance.mesh = cap_mesh
+
+		# 1. Heavy Chest Armor Plate
+		var chest := MeshInstance3D.new()
+		chest.name = "ChestArmor"
+		var c_mesh := BoxMesh.new()
+		c_mesh.size = Vector3(1.1, 0.6, 0.35)
+		var c_mat := StandardMaterial3D.new()
+		c_mat.albedo_color = Color(0.2, 0.22, 0.25, 1.0) # Dark Steel Armor
+		c_mat.metallic = 0.8
+		c_mat.roughness = 0.25
+		chest.mesh = c_mesh
+		chest.material_override = c_mat
+		chest.position = Vector3(0, 0.15, 0.5)
+		mesh_instance.add_child(chest)
+
+		# 2. Glowing Visor Eyes
+		var visor := MeshInstance3D.new()
+		visor.name = "GlowingVisor"
+		var v_mesh := BoxMesh.new()
+		v_mesh.size = Vector3(0.65, 0.14, 0.25)
+		var v_mat := StandardMaterial3D.new()
+		v_mat.albedo_color = Color(1.0, 0.6, 0.1, 1.0)
+		v_mat.emission_enabled = true
+		v_mat.emission = Color(1.0, 0.55, 0.0)
+		v_mat.emission_energy_multiplier = 4.0
+		visor.mesh = v_mesh
+		visor.material_override = v_mat
+		visor.position = Vector3(0, 0.5, 0.55)
+		mesh_instance.add_child(visor)
+
+		# 3. Dual Heavy Shoulder Pads
+		for side in [-1.0, 1.0]:
+			var pad := MeshInstance3D.new()
+			pad.name = "ShoulderPad_" + ("L" if side < 0 else "R")
+			var p_mesh := SphereMesh.new()
+			p_mesh.radius = 0.35
+			p_mesh.height = 0.5
+			pad.mesh = p_mesh
+			pad.material_override = c_mat
+			pad.position = Vector3(side * 0.72, 0.45, 0.0)
+			mesh_instance.add_child(pad)
+
+		# 4. Back Stench Pressure Tank
+		var tank := MeshInstance3D.new()
+		tank.name = "BackTank"
+		var t_mesh := CylinderMesh.new()
+		t_mesh.top_radius = 0.22
+		t_mesh.bottom_radius = 0.22
+		t_mesh.height = 0.85
+		var t_mat := StandardMaterial3D.new()
+		t_mat.albedo_color = Color(0.3, 0.75, 0.2, 1.0) # Toxic Stench Green Tank
+		t_mat.emission_enabled = true
+		t_mat.emission = Color(0.1, 0.5, 0.1)
+		t_mat.emission_energy_multiplier = 1.2
+		tank.mesh = t_mesh
+		tank.material_override = t_mat
+		tank.position = Vector3(0, 0.1, -0.55)
+		tank.rotation_degrees.z = 90.0
+		mesh_instance.add_child(tank)
+
+	else:
+		# --- THIN CHARACTER (Electric Neon Cyan Ultra-Slender Scout) ---
+		var cap_mesh := CapsuleMesh.new()
+		cap_mesh.radius = 0.28
+		cap_mesh.height = 2.4
+
+		var thin_mat := StandardMaterial3D.new()
+		thin_mat.albedo_color = Color(0.15, 0.65, 0.95, 1.0) # Electric Cyan Suit
+		thin_mat.roughness = 0.25
+		thin_mat.metallic = 0.2
+		cap_mesh.material = thin_mat
+		mesh_instance.mesh = cap_mesh
+
+		# 1. High-Tech Chest Harness
+		var harness := MeshInstance3D.new()
+		harness.name = "ChestHarness"
+		var h_mesh := BoxMesh.new()
+		h_mesh.size = Vector3(0.48, 0.7, 0.22)
+		var h_mat := StandardMaterial3D.new()
+		h_mat.albedo_color = Color(0.12, 0.15, 0.2, 1.0) # Matte Carbon Black
+		h_mat.metallic = 0.6
+		h_mat.roughness = 0.3
+		harness.mesh = h_mesh
+		harness.material_override = h_mat
+		harness.position = Vector3(0, 0.3, 0.2)
+		mesh_instance.add_child(harness)
+
+		# 2. Sleek Cyber Visor
+		var visor := MeshInstance3D.new()
+		visor.name = "CyberVisor"
+		var v_mesh := BoxMesh.new()
+		v_mesh.size = Vector3(0.42, 0.10, 0.2)
+		var v_mat := StandardMaterial3D.new()
+		v_mat.albedo_color = Color(0.0, 1.0, 0.9, 1.0)
+		v_mat.emission_enabled = true
+		v_mat.emission = Color(0.0, 0.95, 1.0)
+		v_mat.emission_energy_multiplier = 4.5
+		visor.mesh = v_mesh
+		visor.material_override = v_mat
+		visor.position = Vector3(0, 0.82, 0.22)
+		mesh_instance.add_child(visor)
+
+		# 3. Aerodynamic Back Thruster Pack
+		var thruster := MeshInstance3D.new()
+		thruster.name = "ThrusterPack"
+		var t_mesh := BoxMesh.new()
+		t_mesh.size = Vector3(0.35, 0.9, 0.18)
+		thruster.mesh = t_mesh
+		thruster.material_override = h_mat
+		thruster.position = Vector3(0, 0.2, -0.22)
+		mesh_instance.add_child(thruster)
