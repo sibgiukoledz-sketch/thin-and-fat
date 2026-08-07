@@ -280,6 +280,10 @@ func can_uncrouch() -> bool:
 func set_target_fov(_fov: float) -> void:
 	pass
 
+func trigger_nausea(amount: float) -> void:
+	if vomit_component:
+		vomit_component.trigger_nausea(amount)
+
 func _attach_mechanics_component(script_path: String) -> void:
 	if active_mechanics:
 		active_mechanics.queue_free()

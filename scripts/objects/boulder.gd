@@ -93,6 +93,20 @@ func _update_prompt() -> void:
 		prompt_label.text = "🪨 ГРОМАДНЫЙ ВАЛУН (450 КГ)\n[E] - ПОДНЯТЬ (ТОЛЬКО ЖИРДЯЙ)"
 		prompt_label.modulate = Color(0.9, 0.9, 0.9)
 
+func _unhandled_input(event: InputEvent) -> void:
+	if event.is_action_pressed("interact"):
+		if _is_carried and _carrier_player and _carrier_player.is_multiplayer_authority():
+			try_interact_boulder(_carrier_player)
+			return
+
+		if interaction_area:
+			for body in interaction_area.get_overlapping_bodies():
+				if body is Player:
+					var p: Player = body as Player
+					if p.is_multiplayer_authority():
+						try_interact_boulder(p)
+						break
+
 func _on_interaction_body_entered(body: Node) -> void:
 	if body is Player:
 		var p: Player = body as Player

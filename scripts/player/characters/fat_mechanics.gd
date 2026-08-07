@@ -352,7 +352,7 @@ func _trigger_pancake_squish_animation() -> void:
 		return
 
 	var orig_scale: Vector3 = Vector3.ONE
-	var orig_pos_y: float = player.stand_height * 0.5 if ("stand_height" in player) else 0.75
+	var orig_pos_y: float = 0.0
 
 	var pancake_scale_max: Vector3 = Vector3(2.45, 0.11, 2.45) # Super flat wide pancake!
 	var pancake_scale_mid: Vector3 = Vector3(2.20, 0.15, 2.20)
