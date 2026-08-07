@@ -297,6 +297,16 @@ func _unhandled_input(event: InputEvent) -> void:
 	if not is_multiplayer_authority() or is_dead:
 		return
 
+	if event.is_action_pressed("ui_cancel"):
+		if hud and hud.has_method("toggle_pause_menu"):
+			hud.toggle_pause_menu()
+		else:
+			if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
+				Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+			else:
+				Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+		return
+
 	if hud and hud.has_method("is_pause_menu_open") and hud.is_pause_menu_open():
 		return
 
@@ -312,6 +322,20 @@ func _unhandled_input(event: InputEvent) -> void:
 
 	if active_mechanics:
 		active_mechanics.handle_ability_input(event)
+
+@rpc("any_peer", "call_local", "reliable")
+func rpc_toggle_character() -> void:
+	if selected_character_id.to_lower() == "fat":
+		set_character("thin")
+	else:
+		set_character("fat")
+	respawn()
+
+@rpc("any_peer", "call_local", "reliable")
+func rpc_flatten_into_paper(duration: float = 20.0) -> void:
+	if is_dead or is_paper_flattened:
+		return
+	apply_paper_flatten(duration)
 
 var _last_carry_state: bool = false
 
