@@ -150,7 +150,8 @@ func rpc_trigger_vomit() -> void:
 
 	# Emit all 3 particle passes & SFX on ALL clients!
 	if AudioManager:
-		AudioManager.play_sfx_3d("vomit_burst", global_position)
+		var pos: Vector3 = player.global_position if player else Vector3.ZERO
+		AudioManager.play_sfx_3d("vomit_burst", pos)
 
 	if _vomit_particles:
 		_vomit_particles.restart()
