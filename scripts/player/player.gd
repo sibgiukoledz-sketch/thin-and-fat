@@ -246,6 +246,11 @@ func set_character(char_id: String) -> void:
 
 	character_switched.emit(selected_character_id)
 
+func get_movement_input() -> Vector3:
+	var raw_input := Input.get_vector("move_left", "move_right", "move_forward", "move_back")
+	var dir := (transform.basis * Vector3(raw_input.x, 0, raw_input.y)).normalized()
+	return dir
+
 func _attach_mechanics_component(script_path: String) -> void:
 	if active_mechanics:
 		active_mechanics.queue_free()

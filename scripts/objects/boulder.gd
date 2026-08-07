@@ -20,11 +20,6 @@ signal boulder_impact(position: Vector3)
 
 var _is_carried: bool = false
 var _carrier_player: Player = null
-var _is_crushing: bool = false
-
-# Lifting Interpolation
-var _lift_progress: float = 1.0
-var _lift_start_pos: Vector3 = Vector3.ZERO
 
 # 4-Tier AAA VFX Nodes (Top-level World Space)
 var _vfx_dict: Dictionary = {}
@@ -166,7 +161,7 @@ func rpc_throw_boulder(player_path: NodePath, throw_dir: Vector3) -> void:
 		AudioManager.play_sfx_3d("boulder_throw", global_position)
 	print("🪨 BOULDER THROWN WITH IMPULSE: %s" % str(impulse_vector))
 
-func _on_physics_body_entered(body: Node) -> void:
+func _on_physics_body_entered(_body: Node) -> void:
 	var now: float = Time.get_ticks_msec() / 1000.0
 	if now - _last_impact_time < 0.20:
 		return
