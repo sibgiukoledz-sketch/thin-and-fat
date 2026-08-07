@@ -105,6 +105,13 @@ func _invoke_target_object() -> void:
 func _get_target_node() -> Node:
 	if target_object:
 		return target_object
+
+	# Fallback search for WindTunnelFan in room if not explicitly linked
+	var root: Node = get_tree().root
+	var fans: Array[Node] = root.find_children("*", "WindTunnelFan", true, false)
+	if not fans.is_empty():
+		return fans[0]
+
 	return null
 
 func _animate_lever(delta: float) -> void:
