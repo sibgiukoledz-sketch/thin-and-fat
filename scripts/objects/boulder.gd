@@ -563,7 +563,7 @@ func rpc_throw_boulder(start_pos: Vector3, initial_velocity: Vector3) -> void:
 		AudioManager.play_sfx_3d("boulder_throw", start_pos)
 
 	_update_prompt()
-	print("🚀 BOULDER THROWN WITH VELOCITY: %s" % String(initial_velocity))
+	print("🚀 BOULDER THROWN WITH VELOCITY: %s" % str(initial_velocity))
 
 func _on_physics_body_entered(body: Node) -> void:
 	if _is_carried:
