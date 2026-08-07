@@ -367,6 +367,21 @@ func rpc_inflate_back_to_normal() -> void:
 
 	print("🎈 RE-INFLATED: %s inflated back to full height!" % name)
 
+func is_overhead_clear() -> bool:
+	var space_state := get_world_3d().direct_space_state
+	if not space_state:
+		return true
+
+	var start_pos := global_position + Vector3(0, 0.2, 0)
+	var end_pos := global_position + Vector3(0, stand_height + 0.2, 0)
+
+	var query := PhysicsRayQueryParameters3D.create(start_pos, end_pos)
+	query.exclude = [self]
+	query.collision_mask = 1 | 4 # World environment + Heavy Objects / Doors
+
+	var result := space_state.intersect_ray(query)
+	return result.is_empty()
+
 # Nausea & Vomit Delegation
 func trigger_vomit() -> void:
 	if vomit_component:
@@ -487,11 +502,16 @@ func _physics_process(delta: float) -> void:
 	_update_camera_zoom(delta)
 
 	if is_paper_flattened:
-		paper_flatten_timer -= delta
-		if paper_flatten_timer <= 0.0:
-			rpc_inflate_back_to_normal.rpc()
-		elif is_multiplayer_authority() and Input.is_action_just_pressed("jump"):
-			rpc_inflate_back_to_normal.rpc()
+		var overhead_open := is_overhead_clear()
+		if overhead_open:
+			paper_flatten_timer -= delta
+			if paper_flatten_timer <= 0.0:
+				rpc_inflate_back_to_normal.rpc()
+			elif is_multiplayer_authority() and Input.is_action_just_pressed("jump"):
+				rpc_inflate_back_to_normal.rpc()
+		else:
+			# Pause timer while under narrow ceiling/doorway so player never gets stuck or crushed!
+			paper_flatten_timer = maxf(paper_flatten_timer, 15.0)
 
 	if active_mechanics:
 		active_mechanics.update_mechanics(delta)
