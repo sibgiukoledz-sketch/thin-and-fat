@@ -6,7 +6,7 @@ extends Node3D
 ##   * Fat player ("Жирдяй", 160 kg)
 ##   * Heavy Boulder ("HeavyBoulder", 450 kg)
 ## - Thin player ("Худой", 80 kg) is too light and CANNOT activate it alone!
-## - Triggers mechanical plunger depression, sound effects, particle shockwave, and target object signals!
+## - Premium industrial design with octagonal hazard base, 4 hydraulic pistons, center emblem, and dynamic light!
 
 signal button_pressed(trigger_object: Node)
 signal button_released()
@@ -19,17 +19,25 @@ signal button_toggled(is_pressed: bool)
 @export var target_method_on_release: String = "" ## Optional method name to invoke on target when released
 
 @onready var plunger: MeshInstance3D = $Plunger
+@onready var center_emblem: MeshInstance3D = $Plunger/CenterEmblem
 @onready var indicator_ring: MeshInstance3D = $Base/IndicatorRing
+@onready var button_light: OmniLight3D = $ButtonLight
 @onready var detection_area: Area3D = $DetectionArea
 @onready var press_particles: GPUParticles3D = $PressParticles
+@onready var idle_aura_particles: GPUParticles3D = $IdleAuraParticles
 @onready var audio_stream_player: AudioStreamPlayer3D = $AudioStreamPlayer3D
+
+@onready var piston_nw: MeshInstance3D = $Base/PistonNW
+@onready var piston_ne: MeshInstance3D = $Base/PistonNE
+@onready var piston_sw: MeshInstance3D = $Base/PistonSW
+@onready var piston_se: MeshInstance3D = $Base/PistonSE
 
 var is_pressed: bool = false
 var _current_weight: float = 0.0
 var _primary_trigger: Node = null
 
 # Plunger Y positions
-const UNPRESSED_Y: float = 0.12
+const UNPRESSED_Y: float = 0.14
 const PRESSED_Y: float = -0.04
 
 # Indicator colors
@@ -37,6 +45,7 @@ const INACTIVE_COLOR: Color = Color(1.0, 0.15, 0.1, 1.0) # Ruby Red
 const ACTIVE_COLOR: Color = Color(0.0, 1.0, 0.85, 1.0) # Neon Electric Cyan
 
 var _indicator_mat: StandardMaterial3D
+var _emblem_mat: StandardMaterial3D
 
 func _ready() -> void:
 	if indicator_ring:
@@ -45,8 +54,16 @@ func _ready() -> void:
 		_indicator_mat.albedo_color = INACTIVE_COLOR
 		_indicator_mat.emission_enabled = true
 		_indicator_mat.emission = INACTIVE_COLOR
-		_indicator_mat.emission_energy_multiplier = 2.5
+		_indicator_mat.emission_energy_multiplier = 3.5
 		indicator_ring.material_override = _indicator_mat
+
+	if center_emblem:
+		_emblem_mat = StandardMaterial3D.new()
+		_emblem_mat.albedo_color = INACTIVE_COLOR
+		_emblem_mat.emission_enabled = true
+		_emblem_mat.emission = INACTIVE_COLOR
+		_emblem_mat.emission_energy_multiplier = 4.0
+		center_emblem.material_override = _emblem_mat
 
 	if detection_area:
 		detection_area.body_entered.connect(_on_body_entered)
@@ -104,7 +121,16 @@ func _press_button(trigger: Node) -> void:
 	if _indicator_mat:
 		_indicator_mat.albedo_color = ACTIVE_COLOR
 		_indicator_mat.emission = ACTIVE_COLOR
-		_indicator_mat.emission_energy_multiplier = 4.0
+		_indicator_mat.emission_energy_multiplier = 4.5
+
+	if _emblem_mat:
+		_emblem_mat.albedo_color = ACTIVE_COLOR
+		_emblem_mat.emission = ACTIVE_COLOR
+		_emblem_mat.emission_energy_multiplier = 5.0
+
+	if button_light:
+		button_light.light_color = ACTIVE_COLOR
+		button_light.light_energy = 4.5
 
 	if press_particles:
 		press_particles.restart()
@@ -126,7 +152,16 @@ func _release_button() -> void:
 	if _indicator_mat:
 		_indicator_mat.albedo_color = INACTIVE_COLOR
 		_indicator_mat.emission = INACTIVE_COLOR
-		_indicator_mat.emission_energy_multiplier = 2.5
+		_indicator_mat.emission_energy_multiplier = 3.5
+
+	if _emblem_mat:
+		_emblem_mat.albedo_color = INACTIVE_COLOR
+		_emblem_mat.emission = INACTIVE_COLOR
+		_emblem_mat.emission_energy_multiplier = 4.0
+
+	if button_light:
+		button_light.light_color = INACTIVE_COLOR
+		button_light.light_energy = 2.5
 
 	button_released.emit()
 	button_toggled.emit(false)
@@ -143,6 +178,13 @@ func _animate_plunger(delta: float) -> void:
 
 	var target_y: float = PRESSED_Y if is_pressed else UNPRESSED_Y
 	plunger.position.y = lerpf(plunger.position.y, target_y, 14.0 * delta)
+
+	# Animate 4 corner hydraulic pistons downward proportionally!
+	var piston_y: float = lerpf(0.15, -0.02, (UNPRESSED_Y - plunger.position.y) / (UNPRESSED_Y - PRESSED_Y))
+	if piston_nw: piston_nw.position.y = piston_y
+	if piston_ne: piston_ne.position.y = piston_y
+	if piston_sw: piston_sw.position.y = piston_y
+	if piston_se: piston_se.position.y = piston_y
 
 func _on_body_entered(body: Node) -> void:
 	if body is Player:

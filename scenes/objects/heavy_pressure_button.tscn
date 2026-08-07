@@ -1,88 +1,179 @@
-[gd_scene load_steps=12 format=3 uid="uid://c8pressbutton001"]
+[gd_scene load_steps=22 format=3 uid="uid://c8pressbutton001"]
 
 [ext_resource type="Script" path="res://scripts/objects/heavy_pressure_button.gd" id="1_button"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_base"]
-albedo_color = Color(0.18, 0.20, 0.24, 1)
-metallic = 0.85
-roughness = 0.35
+albedo_color = Color(0.12, 0.14, 0.18, 1)
+metallic = 0.9
+roughness = 0.25
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_base"]
 material = SubResource("StandardMaterial3D_base")
-top_radius = 2.4
-bottom_radius = 2.6
-height = 0.2
-radial_segments = 32
+top_radius = 2.7
+bottom_radius = 2.9
+height = 0.24
+radial_segments = 8
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_rim"]
+albedo_color = Color(0.9, 0.65, 0.1, 1)
+metallic = 0.6
+roughness = 0.4
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_rim"]
+material = SubResource("StandardMaterial3D_rim")
+top_radius = 2.55
+bottom_radius = 2.7
+height = 0.26
+radial_segments = 8
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ring"]
 albedo_color = Color(1, 0.15, 0.1, 1)
 emission_enabled = true
 emission = Color(1, 0.15, 0.1, 1)
-emission_energy_multiplier = 2.5
+emission_energy_multiplier = 3.5
 
 [sub_resource type="TorusMesh" id="TorusMesh_ring"]
 material = SubResource("StandardMaterial3D_ring")
-inner_radius = 2.15
-outer_radius = 2.38
+inner_radius = 2.25
+outer_radius = 2.48
 rings = 16
 ring_segments = 32
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_plunger"]
-albedo_color = Color(0.35, 0.38, 0.42, 1)
-metallic = 0.7
-roughness = 0.4
+albedo_color = Color(0.22, 0.25, 0.30, 1)
+metallic = 0.8
+roughness = 0.3
+uv1_scale = Vector3(2, 2, 2)
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_plunger"]
 material = SubResource("StandardMaterial3D_plunger")
-top_radius = 2.05
-bottom_radius = 2.05
-height = 0.16
+top_radius = 2.2
+bottom_radius = 2.2
+height = 0.18
 radial_segments = 32
 
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_center_decal"]
+albedo_color = Color(1, 0.15, 0.1, 1)
+emission_enabled = true
+emission = Color(1, 0.15, 0.1, 1)
+emission_energy_multiplier = 4.0
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_center_decal"]
+material = SubResource("StandardMaterial3D_center_decal")
+top_radius = 0.9
+bottom_radius = 0.9
+height = 0.02
+radial_segments = 16
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_piston"]
+albedo_color = Color(0.7, 0.75, 0.8, 1)
+metallic = 0.95
+roughness = 0.15
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_piston"]
+material = SubResource("StandardMaterial3D_piston")
+top_radius = 0.18
+bottom_radius = 0.18
+height = 0.35
+radial_segments = 16
+
 [sub_resource type="CylinderShape3D" id="CylinderShape3D_base_col"]
-height = 0.2
-radius = 2.4
+height = 0.24
+radius = 2.7
 
 [sub_resource type="CylinderShape3D" id="CylinderShape3D_detect"]
-height = 0.9
-radius = 2.2
+height = 1.0
+radius = 2.3
 
 [sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_press"]
 direction = Vector3(0, 1, 0)
-spread = 80.0
-initial_velocity_min = 4.0
-initial_velocity_max = 8.0
+spread = 85.0
+initial_velocity_min = 5.0
+initial_velocity_max = 9.0
 gravity = Vector3(0, -9.8, 0)
-scale_min = 0.15
-scale_max = 0.4
+scale_min = 0.2
+scale_max = 0.5
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_spark"]
+albedo_color = Color(0, 1, 0.85, 1)
+emission_enabled = true
+emission = Color(0, 1, 0.85, 1)
+emission_energy_multiplier = 5.0
 
 [sub_resource type="SphereMesh" id="SphereMesh_particle"]
-radius = 0.1
-height = 0.2
+material = SubResource("StandardMaterial3D_spark")
+radius = 0.12
+height = 0.24
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_idle"]
+emission_shape = 2
+emission_sphere_radius = 2.3
+direction = Vector3(0, 1, 0)
+spread = 20.0
+initial_velocity_min = 0.4
+initial_velocity_max = 1.0
+gravity = Vector3(0, 0.2, 0)
+scale_min = 0.08
+scale_max = 0.18
+
+[sub_resource type="SphereMesh" id="SphereMesh_idle_particle"]
+material = SubResource("StandardMaterial3D_ring")
+radius = 0.06
+height = 0.12
 
 [node name="HeavyPressureButton" type="Node3D"]
 script = ExtResource("1_button")
 
 [node name="Base" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.1, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.12, 0)
 mesh = SubResource("CylinderMesh_base")
 
+[node name="HazardRim" type="MeshInstance3D" parent="Base"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.01, 0)
+mesh = SubResource("CylinderMesh_rim")
+
 [node name="IndicatorRing" type="MeshInstance3D" parent="Base"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.11, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.13, 0)
 mesh = SubResource("TorusMesh_ring")
 
+[node name="PistonNW" type="MeshInstance3D" parent="Base"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.8, 0.15, -1.8)
+mesh = SubResource("CylinderMesh_piston")
+
+[node name="PistonNE" type="MeshInstance3D" parent="Base"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.8, 0.15, -1.8)
+mesh = SubResource("CylinderMesh_piston")
+
+[node name="PistonSW" type="MeshInstance3D" parent="Base"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.8, 0.15, 1.8)
+mesh = SubResource("CylinderMesh_piston")
+
+[node name="PistonSE" type="MeshInstance3D" parent="Base"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.8, 0.15, 1.8)
+mesh = SubResource("CylinderMesh_piston")
+
 [node name="Plunger" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.12, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.14, 0)
 mesh = SubResource("CylinderMesh_plunger")
 
+[node name="CenterEmblem" type="MeshInstance3D" parent="Plunger"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.09, 0)
+mesh = SubResource("CylinderMesh_center_decal")
+
+[node name="ButtonLight" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+light_color = Color(1, 0.15, 0.1, 1)
+light_energy = 2.5
+omni_range = 8.0
+
 [node name="BaseStatic" type="StaticBody3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.1, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.12, 0)
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="BaseStatic"]
 shape = SubResource("CylinderShape3D_base_col")
 
 [node name="DetectionArea" type="Area3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.55, 0)
 collision_layer = 0
 collision_mask = 7
 
@@ -90,14 +181,21 @@ collision_mask = 7
 shape = SubResource("CylinderShape3D_detect")
 
 [node name="PressParticles" type="GPUParticles3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.25, 0)
 emitting = false
-amount = 24
+amount = 32
 lifetime = 0.5
 one_shot = true
-explosiveness = 0.9
+explosiveness = 0.95
 process_material = SubResource("ParticleProcessMaterial_press")
 draw_pass_1 = SubResource("SphereMesh_particle")
+
+[node name="IdleAuraParticles" type="GPUParticles3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.25, 0)
+amount = 16
+lifetime = 1.5
+process_material = SubResource("ParticleProcessMaterial_idle")
+draw_pass_1 = SubResource("SphereMesh_idle_particle")
 
 [node name="AudioStreamPlayer3D" type="AudioStreamPlayer3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0)
