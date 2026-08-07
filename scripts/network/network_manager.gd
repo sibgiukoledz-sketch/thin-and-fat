@@ -77,6 +77,21 @@ func get_character_for_peer(peer_id: int) -> String:
 		return player_character_choices[peer_id]
 	return local_character_id
 
+func get_spawn_position_for_peer(peer_id: int) -> Vector3:
+	var world_node := get_tree().root.get_node_or_null("World")
+	if world_node and world_node.has_node("SpawnPoints"):
+		var spawn_points: Node = world_node.get_node("SpawnPoints")
+		var idx := 0 if (peer_id == 1 or (multiplayer and peer_id == multiplayer.get_unique_id())) else 1
+		if spawn_points.get_child_count() > idx:
+			var sp: Node3D = spawn_points.get_child(idx) as Node3D
+			if sp:
+				return sp.global_position
+
+	if peer_id == 1:
+		return Vector3(-2.0, 1.5, 0.0)
+	else:
+		return Vector3(2.0, 1.5, 0.0)
+
 func get_radmin_ip() -> String:
 	var ip_list := IP.get_local_addresses()
 	for ip in ip_list:

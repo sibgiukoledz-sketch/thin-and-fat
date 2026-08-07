@@ -625,7 +625,7 @@ func respawn() -> void:
 	if hud and "death_overlay" in hud and hud.death_overlay:
 		hud.death_overlay.hide()
 
-	if NetworkManager:
+	if NetworkManager and NetworkManager.has_method("get_spawn_position_for_peer"):
 		var spawn_pos: Vector3 = NetworkManager.get_spawn_position_for_peer(peer_id)
 		global_position = spawn_pos
 	else:
