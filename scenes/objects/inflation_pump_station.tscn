@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://c8inflpump01"]
+
+[ext_resource type="Script" path="res://scripts/objects/inflation_pump_station.gd" id="1_pump"]
+
+[node name="InflationPumpStation" type="StaticBody3D"]
+script = ExtResource("1_pump")
