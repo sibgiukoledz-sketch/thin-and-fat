@@ -307,24 +307,30 @@ func rpc_flatten_into_paper(duration: float = 20.0) -> void:
 	is_paper_flattened = true
 	paper_flatten_timer = duration
 
-	# 1. Update Collision Shape to ultra-thin micro capsule (radius = 0.08m)
+	# 1. Update Collision Shape to low, ultra-flat disc capsule (height = 0.15m, radius = 0.35m)
+	# This allows Thin to slide under low horizontal door slits, low wall vents, and tight gaps!
 	if collision_shape:
-		var thin_cap := CapsuleShape3D.new()
-		thin_cap.radius = 0.08
-		thin_cap.height = stand_height
-		collision_shape.shape = thin_cap
-		collision_shape.position.y = stand_height * 0.5
+		var flat_cap := CapsuleShape3D.new()
+		flat_cap.radius = 0.35
+		flat_cap.height = 0.15
+		collision_shape.shape = flat_cap
+		collision_shape.position.y = 0.08
 
-	# 2. Transform Mesh Instance into a 2D Paper Cutout Sheet (5cm thin!)
+	# 2. Flatten Mesh Instance into a 4 cm thin pancake disc lying flat on the ground floor!
 	if mesh_instance:
-		var paper_scale := Vector3(0.05, 1.0, 1.4) # 2D Paper Cutout Sheet!
-		var orig_pos_y: float = stand_height * 0.5
+		var pancake_scale := Vector3(1.8, 0.04, 1.8) # Wide, ultra-flat floor pancake!
+		var pancake_pos_y := 0.04 # Pressed flat directly onto the ground floor
 
 		var tw := create_tween().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-		tw.tween_property(mesh_instance, "scale", paper_scale, 0.12)
-		tw.parallel().tween_property(mesh_instance, "position:y", orig_pos_y, 0.12)
+		tw.tween_property(mesh_instance, "scale", pancake_scale, 0.10)
+		tw.parallel().tween_property(mesh_instance, "position:y", pancake_pos_y, 0.10)
 
-	print("📜 2D PAPER CUTOUT: %s turned into a 2D paper cutout! Can slip through narrow door slits!" % name)
+	# 3. Lower camera head to near-floor level for flat pancake perspective
+	if head:
+		var tw_head := create_tween().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+		tw_head.tween_property(head, "position:y", 0.25, 0.12)
+
+	print("🥞 FLOOR PANCAKE: %s squished into a flat floor pancake by the heavy boulder! Can slide under low slits!" % name)
 
 @rpc("any_peer", "call_local", "reliable")
 func rpc_inflate_back_to_normal() -> void:
