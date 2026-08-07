@@ -22,6 +22,7 @@
 [ext_resource type="Script" uid="uid://cjmkcj8hwm7ts" path="res://addons/sky_3d/src/TimeOfDay.gd" id="11_ts3gi"]
 [ext_resource type="PackedScene" uid="uid://dqknjse4ig1eq" path="res://scenes/objects/wind_tunnel_fan.tscn" id="12_fan_scene"]
 [ext_resource type="PackedScene" uid="uid://bsksw0irpi601" path="res://scenes/objects/heavy_pressure_button.tscn" id="13_button_scene"]
+[ext_resource type="PackedScene" uid="uid://c8heavylever01" path="res://scenes/objects/heavy_lever.tscn" id="14_lever_scene"]
 [ext_resource type="Texture2D" uid="uid://cxn2xyrsehric" path="res://addons/lowpolytrees/tex3.png" id="16_0nbtd"]
 [ext_resource type="Texture2D" uid="uid://dk3sax7qgv6cy" path="res://addons/lowpolytrees/tex1.png" id="17_37qwj"]
 [ext_resource type="Texture2D" uid="uid://dev8auypr0qs5" path="res://addons/lowpolytrees/tex4.png" id="18_navra"]
@@ -572,8 +573,14 @@ transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 32, 
 [node name="HeavyPressureButton" parent="." unique_id=384910314 instance=ExtResource("13_button_scene")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 37.04643, 0.08, 2.743454)
 target_object = NodePath("../WindTunnelFan")
-target_method_on_press = "toggle_active"
-target_method_on_release = "toggle_active"
+target_method_on_press = "deactivate"
+target_method_on_release = "activate"
+
+[node name="HeavyLever" parent="." unique_id=384910315 instance=ExtResource("14_lever_scene")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 41.5, 0.08, 2.743454)
+target_object = NodePath("../WindTunnelFan")
+target_method_on_enable = "activate"
+target_method_on_disable = "deactivate"
 
 [node name="WindTestDummy" parent="." unique_id=384910312 instance=ExtResource("2_dummy")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 32, 1.48, 3.8517208)

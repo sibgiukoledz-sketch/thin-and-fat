@@ -1,0 +1,186 @@
+[gd_scene load_steps=22 format=3 uid="uid://c8heavylever01"]
+
+[ext_resource type="Script" path="res://scripts/objects/heavy_lever.gd" id="1_lever"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_base"]
+albedo_color = Color(0.14, 0.16, 0.20, 1)
+metallic = 0.9
+roughness = 0.25
+
+[sub_resource type="BoxMesh" id="BoxMesh_base"]
+material = SubResource("StandardMaterial3D_base")
+size = Vector3(0.95, 1.05, 0.65)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_top_panel"]
+albedo_color = Color(0.22, 0.25, 0.30, 1)
+metallic = 0.85
+roughness = 0.3
+
+[sub_resource type="BoxMesh" id="BoxMesh_top_panel"]
+material = SubResource("StandardMaterial3D_top_panel")
+size = Vector3(0.9, 0.08, 0.6)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_slot"]
+albedo_color = Color(0.08, 0.09, 0.11, 1)
+metallic = 0.95
+roughness = 0.1
+
+[sub_resource type="BoxMesh" id="BoxMesh_slot"]
+material = SubResource("StandardMaterial3D_slot")
+size = Vector3(0.18, 0.09, 0.55)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_bezel"]
+albedo_color = Color(0.7, 0.5, 0.08, 1)
+metallic = 0.7
+roughness = 0.35
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_bezel"]
+material = SubResource("StandardMaterial3D_bezel")
+top_radius = 0.11
+bottom_radius = 0.12
+height = 0.04
+radial_segments = 24
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_led_off"]
+albedo_color = Color(1, 0.1, 0.1, 1)
+emission_enabled = true
+emission = Color(1, 0.1, 0.1, 1)
+emission_energy_multiplier = 4.0
+
+[sub_resource type="SphereMesh" id="SphereMesh_led_off"]
+material = SubResource("StandardMaterial3D_led_off")
+radius = 0.08
+height = 0.16
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_led_on"]
+albedo_color = Color(0.15, 0.15, 0.15, 1)
+
+[sub_resource type="SphereMesh" id="SphereMesh_led_on"]
+material = SubResource("StandardMaterial3D_led_on")
+radius = 0.08
+height = 0.16
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_shaft"]
+albedo_color = Color(0.85, 0.88, 0.92, 1)
+metallic = 0.98
+roughness = 0.1
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_shaft"]
+material = SubResource("StandardMaterial3D_shaft")
+top_radius = 0.045
+bottom_radius = 0.06
+height = 0.85
+radial_segments = 24
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_knob"]
+albedo_color = Color(0.85, 0.15, 0.1, 1)
+metallic = 0.4
+roughness = 0.4
+
+[sub_resource type="SphereMesh" id="SphereMesh_knob"]
+material = SubResource("StandardMaterial3D_knob")
+radius = 0.13
+height = 0.26
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_base_col"]
+size = Vector3(1, 1.1, 0.7)
+
+[sub_resource type="CylinderShape3D" id="CylinderShape3D_interact"]
+height = 2.2
+radius = 2.5
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_sparks"]
+direction = Vector3(0, 1, 0)
+spread = 70.0
+initial_velocity_min = 3.5
+initial_velocity_max = 7.0
+gravity = Vector3(0, -9.8, 0)
+scale_min = 0.15
+scale_max = 0.35
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_spark_mat"]
+albedo_color = Color(1, 0.8, 0.2, 1)
+emission_enabled = true
+emission = Color(1, 0.8, 0.2, 1)
+emission_energy_multiplier = 5.0
+
+[sub_resource type="SphereMesh" id="SphereMesh_spark"]
+material = SubResource("StandardMaterial3D_spark_mat")
+radius = 0.07
+height = 0.14
+
+[node name="HeavyLever" type="Node3D"]
+script = ExtResource("1_lever")
+
+[node name="Base" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.525, 0)
+mesh = SubResource("BoxMesh_base")
+
+[node name="TopPanel" type="MeshInstance3D" parent="Base"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.53, 0)
+mesh = SubResource("BoxMesh_top_panel")
+
+[node name="RecessedSlot" type="MeshInstance3D" parent="Base/TopPanel"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.01, 0)
+mesh = SubResource("BoxMesh_slot")
+
+[node name="BezelOff" type="MeshInstance3D" parent="Base/TopPanel"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.32, 0.03, -0.18)
+mesh = SubResource("CylinderMesh_bezel")
+
+[node name="LedOff" type="MeshInstance3D" parent="Base/TopPanel/BezelOff"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.03, 0)
+mesh = SubResource("SphereMesh_led_off")
+
+[node name="BezelOn" type="MeshInstance3D" parent="Base/TopPanel"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.32, 0.03, -0.18)
+mesh = SubResource("CylinderMesh_bezel")
+
+[node name="LedOn" type="MeshInstance3D" parent="Base/TopPanel/BezelOn"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.03, 0)
+mesh = SubResource("SphereMesh_led_on")
+
+[node name="LeverPivot" type="Node3D" parent="Base"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.48, 0)
+
+[node name="LeverArm" type="MeshInstance3D" parent="Base/LeverPivot"]
+transform = Transform3D(0.788011, 0, 0.615661, 0, 1, 0, -0.615661, 0, 0.788011, 0, 0.42, 0)
+mesh = SubResource("CylinderMesh_shaft")
+
+[node name="Knob" type="MeshInstance3D" parent="Base/LeverPivot/LeverArm"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.42, 0)
+mesh = SubResource("SphereMesh_knob")
+
+[node name="ConsoleLight" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.3, 0)
+light_color = Color(1, 0.15, 0.1, 1)
+light_energy = 2.0
+omni_range = 6.0
+
+[node name="BaseStatic" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.55, 0)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="BaseStatic"]
+shape = SubResource("BoxShape3D_base_col")
+
+[node name="InteractionArea" type="Area3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 0)
+collision_layer = 0
+collision_mask = 2
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="InteractionArea"]
+shape = SubResource("CylinderShape3D_interact")
+
+[node name="SparkParticles" type="GPUParticles3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.1, 0)
+emitting = false
+amount = 24
+lifetime = 0.4
+one_shot = true
+explosiveness = 0.92
+process_material = SubResource("ParticleProcessMaterial_sparks")
+draw_pass_1 = SubResource("SphereMesh_spark")
+
+[node name="AudioStreamPlayer3D" type="AudioStreamPlayer3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.95, 0)
+max_distance = 25.0
