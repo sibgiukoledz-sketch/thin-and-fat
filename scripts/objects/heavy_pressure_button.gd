@@ -137,6 +137,9 @@ func _press_button(trigger: Node) -> void:
 		press_particles.restart()
 		press_particles.emitting = true
 
+	if AudioManager:
+		AudioManager.play_sfx_3d("button_press", global_position)
+
 	button_pressed.emit(trigger)
 	button_toggled.emit(true)
 
@@ -168,6 +171,9 @@ func _release_button() -> void:
 	if button_light:
 		button_light.light_color = INACTIVE_COLOR
 		button_light.light_energy = 2.5
+
+	if AudioManager:
+		AudioManager.play_sfx_3d("button_release", global_position)
 
 	button_released.emit()
 	button_toggled.emit(false)

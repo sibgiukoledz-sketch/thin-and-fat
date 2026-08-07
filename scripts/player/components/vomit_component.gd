@@ -148,7 +148,10 @@ func rpc_trigger_vomit() -> void:
 	if player:
 		player.nausea_intensity = nausea_intensity
 
-	# Emit all 3 particle passes on ALL clients!
+	# Emit all 3 particle passes & SFX on ALL clients!
+	if AudioManager:
+		AudioManager.play_sfx_3d("vomit_burst", global_position)
+
 	if _vomit_particles:
 		_vomit_particles.restart()
 		_vomit_particles.emitting = true

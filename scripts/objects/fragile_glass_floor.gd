@@ -267,6 +267,8 @@ func rpc_crack_glass(step_c: int) -> void:
 	_step_count = step_c
 	if _glass_material and _cracked_texture:
 		_glass_material.albedo_texture = _cracked_texture
+	if AudioManager:
+		AudioManager.play_sfx_3d("glass_crack", global_position)
 
 func _handle_heavy_step() -> void:
 	_step_count += 1
@@ -291,6 +293,8 @@ func rpc_start_shatter_sequence() -> void:
 	if _glass_material and _cracked_texture:
 		_glass_material.albedo_texture = _cracked_texture
 		_glass_material.albedo_color.a = 0.75
+	if AudioManager:
+		AudioManager.play_sfx_3d("glass_crack", global_position)
 
 	get_tree().create_timer(break_delay_fat).timeout.connect(shatter)
 
@@ -301,6 +305,9 @@ func shatter() -> void:
 func rpc_shatter() -> void:
 	is_broken = true
 	_is_breaking = false
+
+	if AudioManager:
+		AudioManager.play_sfx_3d("glass_shatter", global_position)
 
 	if collision_shape:
 		collision_shape.set_deferred("disabled", true)
@@ -443,6 +450,9 @@ func rpc_restore_floor() -> void:
 	_is_breaking = false
 	_step_count = 0
 	_clear_shards()
+
+	if AudioManager:
+		AudioManager.play_sfx_3d("glass_restore", global_position)
 
 	if collision_shape:
 		collision_shape.set_deferred("disabled", false)

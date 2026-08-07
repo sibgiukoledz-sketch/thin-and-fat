@@ -323,6 +323,9 @@ func rpc_seismic_earthquake(center_pos: Vector3, impact_speed: float) -> void:
 	var is_pancake := (impact_speed >= 7.0)
 	var radius: float = 12.5 if is_pancake else 7.5
 
+	if AudioManager:
+		AudioManager.play_sfx_3d("seismic_shockwave", center_pos)
+
 	if _seismic_shockwave_particles:
 		_seismic_shockwave_particles.global_position = center_pos + Vector3(0, 0.1, 0)
 		_seismic_shockwave_particles.restart()
@@ -528,7 +531,10 @@ func rpc_slingshot_launch(target_path: NodePath, launch_velocity: Vector3) -> vo
 		dummy.velocity = launch_velocity
 		dummy.take_damage(20.0, dummy.global_position)
 
-	# Trigger Particle Blast VFX at launch point
+	# Trigger Particle Blast VFX & Audio at launch point
+	if AudioManager:
+		AudioManager.play_sfx_3d("slingshot_launch", target_node.global_position)
+
 	if _slingshot_blast_particles:
 		_slingshot_blast_particles.global_position = target_node.global_position + Vector3(0, 1.0, 0)
 		_slingshot_blast_particles.restart()

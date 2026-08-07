@@ -21,8 +21,10 @@ config/icon="res://icon.svg"
 
 [autoload]
 
+AudioManager="*res://scripts/audio/audio_manager.gd"
 InputManager="*res://scripts/managers/input_manager.gd"
 NetworkManager="*res://scripts/network/network_manager.gd"
+VoiceChatManager="*res://scripts/network/voice_chat_manager.gd"
 
 [display]
 

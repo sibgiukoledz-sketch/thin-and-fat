@@ -114,10 +114,33 @@ func _enter_tree() -> void:
 
 	set_multiplayer_authority(peer_id)
 
+var voice_indicator_label: Label3D = null
+
 func _ready() -> void:
 	add_to_group("players")
 	collision_layer = 2
 	collision_mask = 7 # Layer 1 (Environment) + Layer 2 (Players) + Layer 3 (RigidBody Objects / Boulder / NPCs)
+	_setup_voice_indicator()
+
+func _setup_voice_indicator() -> void:
+	if not voice_indicator_label:
+		voice_indicator_label = Label3D.new()
+		voice_indicator_label.name = "VoiceIndicatorLabel3D"
+		voice_indicator_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+		voice_indicator_label.text = "🔊 [ГОВОРИТ]"
+		voice_indicator_label.modulate = Color(0.2, 1.0, 0.4)
+		voice_indicator_label.font_size = 34
+		voice_indicator_label.outline_size = 8
+		voice_indicator_label.position = Vector3(0, 2.3, 0)
+		voice_indicator_label.hide()
+		add_child(voice_indicator_label)
+
+func set_voice_indicator(is_speaking: bool) -> void:
+	if not voice_indicator_label:
+		_setup_voice_indicator()
+
+	if voice_indicator_label:
+		voice_indicator_label.visible = is_speaking
 	if ProjectSettings.has_setting("physics/3d/default_gravity"):
 		gravity = ProjectSettings.get_setting("physics/3d/default_gravity")
 
@@ -306,6 +329,10 @@ func die() -> void:
 		mesh_instance.hide()
 	if hud and "death_overlay" in hud and hud.death_overlay and is_multiplayer_authority():
 		hud.death_overlay.show()
+
+	if AudioManager:
+		AudioManager.play_sfx_3d("player_die", global_position)
+
 	print("💀 PLAYER DIED: %s" % name)
 
 func respawn() -> void:
@@ -334,6 +361,9 @@ func respawn() -> void:
 		global_position = sp.global_position
 	else:
 		global_position = Vector3(randf_range(-4.0, 4.0), 1.5, randf_range(-4.0, 4.0))
+
+	if AudioManager:
+		AudioManager.play_sfx_3d("player_respawn", global_position)
 
 	print("✨ PLAYER RESPAWNED: %s" % name)
 
@@ -551,10 +581,12 @@ func _physics_process(delta: float) -> void:
 				rpc_respawn.rpc()
 		return
 
-	# Landing impact calculation
+	# Landing impact & audio calculation
 	if is_on_floor() and _was_in_air:
 		var fall_impact: float = absf(_last_air_velocity_y)
 		player_landed.emit(fall_impact)
+		if AudioManager and fall_impact > 1.5:
+			AudioManager.play_sfx_3d("land", global_position)
 		if fall_impact > 12.0:
 			var fall_dmg: float = (fall_impact - 12.0) * 4.0
 			take_damage(fall_dmg)
@@ -562,6 +594,18 @@ func _physics_process(delta: float) -> void:
 	_was_in_air = not is_on_floor()
 	if not is_on_floor():
 		_last_air_velocity_y = velocity.y
+	else:
+		# Footstep audio player
+		var horiz_vel := Vector2(velocity.x, velocity.z).length()
+		if horiz_vel > 0.5:
+			var step_interval := 0.48 if selected_character_id.to_lower() == "fat" else 0.32
+			if synced_state_name.to_lower() == "sprint":
+				step_interval *= 0.7
+			_step_timer += delta
+			if _step_timer >= step_interval:
+				_step_timer = 0.0
+				if AudioManager:
+					AudioManager.play_sfx_3d("step_" + selected_character_id.to_lower(), global_position)
 
 	_handle_stamina_regen(delta)
 	_update_camera_zoom(delta)
@@ -729,6 +773,9 @@ func apply_jump_impulse() -> void:
 		velocity.y = jump_velocity * 0.55
 	else:
 		velocity.y = jump_velocity
+
+	if AudioManager:
+		AudioManager.play_sfx_3d("jump_" + selected_character_id.to_lower(), global_position)
 
 func set_target_fov(fov_val: float) -> void:
 	if camera_3d:

@@ -18,15 +18,30 @@ func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 
 	if host_instant_btn:
-		host_instant_btn.pressed.connect(_on_host_instant_pressed)
+		host_instant_btn.pressed.connect(func():
+			if AudioManager: AudioManager.play_sfx_2d("ui_click")
+			_on_host_instant_pressed()
+		)
 	if lobby_btn:
-		lobby_btn.pressed.connect(func(): get_tree().change_scene_to_file("res://scenes/lobby_menu.tscn"))
+		lobby_btn.pressed.connect(func():
+			if AudioManager: AudioManager.play_sfx_2d("ui_click")
+			get_tree().change_scene_to_file("res://scenes/lobby_menu.tscn")
+		)
 	if char_select_btn:
-		char_select_btn.pressed.connect(_on_toggle_character)
+		char_select_btn.pressed.connect(func():
+			if AudioManager: AudioManager.play_sfx_2d("ui_click")
+			_on_toggle_character()
+		)
 	if quit_btn:
-		quit_btn.pressed.connect(func(): get_tree().quit())
+		quit_btn.pressed.connect(func():
+			if AudioManager: AudioManager.play_sfx_2d("ui_click")
+			get_tree().quit()
+		)
 	if copy_ip_btn:
-		copy_ip_btn.pressed.connect(_on_copy_ip_pressed)
+		copy_ip_btn.pressed.connect(func():
+			if AudioManager: AudioManager.play_sfx_2d("ui_click")
+			_on_copy_ip_pressed()
+		)
 
 	_update_network_info()
 	_update_character_ui("fat")

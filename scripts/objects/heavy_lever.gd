@@ -76,6 +76,9 @@ func set_lever_state(new_state: bool) -> void:
 	is_on = new_state
 	_update_led_materials()
 
+	if AudioManager:
+		AudioManager.play_sfx_3d("lever_flip", global_position)
+
 	if spark_particles:
 		spark_particles.restart()
 		spark_particles.emitting = true

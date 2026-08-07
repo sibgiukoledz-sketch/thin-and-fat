@@ -64,7 +64,10 @@ func _process(delta: float) -> void:
 		if fps_label:
 			var fps: int = int(Engine.get_frames_per_second())
 			var ms: float = (1.0 / maxf(float(fps), 1.0)) * 1000.0
-			fps_label.text = "⚡ %d FPS (%.1f ms)" % [fps, ms]
+			var voice_status := "🎙️ [V] ВОЙС-ЧАТ"
+			if VoiceChatManager and VoiceChatManager._is_speaking:
+				voice_status = "🔊 [V] ВЫ ГОВОРИТЕ"
+			fps_label.text = "⚡ %d FPS (%.1f ms) | %s" % [fps, ms, voice_status]
 
 func setup(player_node: Player) -> void:
 	player = player_node

@@ -278,6 +278,8 @@ func _setup_impact_vfx() -> void:
 	add_child(_spark_particles)
 
 func _trigger_all_impact_vfx(at_position: Vector3) -> void:
+	if AudioManager:
+		AudioManager.play_sfx_3d("boulder_impact", at_position)
 	if _dust_particles:
 		_dust_particles.global_position = at_position
 		_dust_particles.restart()
@@ -496,6 +498,8 @@ func rpc_pick_up_boulder(player_path: NodePath) -> void:
 		_dust_particles.emitting = true
 
 	boulder_picked_up.emit(p)
+	if AudioManager:
+		AudioManager.play_sfx_3d("boulder_lift", global_position)
 	print("🪨 REALISTIC HEAVY LIFT: Boulder lifted by %s!" % p.name)
 
 func _reset_carrier_camera(p: Player) -> void:
@@ -555,8 +559,11 @@ func rpc_throw_boulder(start_pos: Vector3, initial_velocity: Vector3) -> void:
 		_dust_particles.restart()
 		_dust_particles.emitting = true
 
+	if AudioManager:
+		AudioManager.play_sfx_3d("boulder_throw", start_pos)
+
 	_update_prompt()
-	print("🪨 REALISTIC HEAVY THROW! Velocity: %s" % str(initial_velocity))
+	print("🚀 BOULDER THROWN WITH VELOCITY: %s" % String(initial_velocity))
 
 func _on_physics_body_entered(body: Node) -> void:
 	if _is_carried:
