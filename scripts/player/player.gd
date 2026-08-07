@@ -123,25 +123,6 @@ func _ready() -> void:
 	collision_mask = 7 # Layer 1 (Environment) + Layer 2 (Players) + Layer 3 (RigidBody Objects / Boulder / NPCs)
 	_setup_voice_indicator()
 
-func _setup_voice_indicator() -> void:
-	if not voice_indicator_label:
-		voice_indicator_label = Label3D.new()
-		voice_indicator_label.name = "VoiceIndicatorLabel3D"
-		voice_indicator_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-		voice_indicator_label.text = "🔊 [ГОВОРИТ]"
-		voice_indicator_label.modulate = Color(0.2, 1.0, 0.4)
-		voice_indicator_label.font_size = 34
-		voice_indicator_label.outline_size = 8
-		voice_indicator_label.position = Vector3(0, 2.3, 0)
-		voice_indicator_label.hide()
-		add_child(voice_indicator_label)
-
-func set_voice_indicator(is_speaking: bool) -> void:
-	if not voice_indicator_label:
-		_setup_voice_indicator()
-
-	if voice_indicator_label:
-		voice_indicator_label.visible = is_speaking
 	if ProjectSettings.has_setting("physics/3d/default_gravity"):
 		gravity = ProjectSettings.get_setting("physics/3d/default_gravity")
 
@@ -176,6 +157,26 @@ func set_voice_indicator(is_speaking: bool) -> void:
 		add_child(vomit_component)
 
 	set_character(selected_character_id)
+
+func _setup_voice_indicator() -> void:
+	if not voice_indicator_label:
+		voice_indicator_label = Label3D.new()
+		voice_indicator_label.name = "VoiceIndicatorLabel3D"
+		voice_indicator_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+		voice_indicator_label.text = "🔊 [ГОВОРИТ]"
+		voice_indicator_label.modulate = Color(0.2, 1.0, 0.4)
+		voice_indicator_label.font_size = 34
+		voice_indicator_label.outline_size = 8
+		voice_indicator_label.position = Vector3(0, 2.3, 0)
+		voice_indicator_label.hide()
+		add_child(voice_indicator_label)
+
+func set_voice_indicator(is_speaking: bool) -> void:
+	if not voice_indicator_label:
+		_setup_voice_indicator()
+
+	if voice_indicator_label:
+		voice_indicator_label.visible = is_speaking
 
 func set_character(char_id: String) -> void:
 	selected_character_id = char_id.to_lower()
