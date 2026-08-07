@@ -1,8 +1,7 @@
 class_name InflationPumpStation
 extends StaticBody3D
 
-## Physical 3D Inflation Hose Object (Standalone Hose on Floor Scene).
-## Nodes are saved directly in scenes/objects/inflation_pump_station.tscn for easy editing!
+## Prominent AAA Physical 3D Inflation Hose Station Object.
 ## Flow:
 ## 1. Hose is visible on the floor on ready.
 ## 2. Fat walks up to the hose on floor and presses [F] to GRAB IT.
@@ -12,7 +11,7 @@ extends StaticBody3D
 signal hose_grabbed(by_player: Player)
 signal hose_connected(fat: Player, target: Node3D)
 
-@export var interaction_radius: float = 3.5
+@export var interaction_radius: float = 4.0
 
 var is_hose_taken: bool = false
 var hose_carrier: Player = null
@@ -42,14 +41,14 @@ func _ready() -> void:
 
 func _setup_materials() -> void:
 	_hose_mat = StandardMaterial3D.new()
-	_hose_mat.albedo_color = Color(0.12, 0.78, 0.92, 1.0)
-	_hose_mat.roughness = 0.35
+	_hose_mat.albedo_color = Color(0.1, 0.82, 0.95, 1.0)
+	_hose_mat.roughness = 0.3
 	_hose_mat.metallic = 0.15
 
 	_brass_mat = StandardMaterial3D.new()
-	_brass_mat.albedo_color = Color(0.95, 0.82, 0.22, 1.0)
-	_brass_mat.metallic = 0.85
-	_brass_mat.roughness = 0.2
+	_brass_mat.albedo_color = Color(0.98, 0.85, 0.2, 1.0)
+	_brass_mat.metallic = 0.9
+	_brass_mat.roughness = 0.15
 
 func _setup_volumetric_hoses() -> void:
 	_stretched_hose_mouth = MeshInstance3D.new()
@@ -72,9 +71,9 @@ func _setup_hand_nozzle() -> void:
 
 	var body := MeshInstance3D.new()
 	var cyl := CylinderMesh.new()
-	cyl.top_radius = 0.035
-	cyl.bottom_radius = 0.065
-	cyl.height = 0.32
+	cyl.top_radius = 0.08
+	cyl.bottom_radius = 0.15
+	cyl.height = 0.65
 	cyl.material = _brass_mat
 	body.mesh = cyl
 	body.rotation_degrees = Vector3(0, 0, 90)
@@ -82,14 +81,14 @@ func _setup_hand_nozzle() -> void:
 
 	var grip := MeshInstance3D.new()
 	var grip_cyl := CylinderMesh.new()
-	grip_cyl.top_radius = 0.075
-	grip_cyl.bottom_radius = 0.075
-	grip_cyl.height = 0.12
+	grip_cyl.top_radius = 0.16
+	grip_cyl.bottom_radius = 0.16
+	grip_cyl.height = 0.28
 	var grip_mat := StandardMaterial3D.new()
 	grip_mat.albedo_color = Color(0.12, 0.14, 0.18, 1.0)
 	grip_cyl.material = grip_mat
 	grip.mesh = grip_cyl
-	grip.position = Vector3(-0.06, 0, 0)
+	grip.position = Vector3(-0.15, 0, 0)
 	grip.rotation_degrees = Vector3(0, 0, 90)
 	_hand_nozzle_mesh.add_child(grip)
 
@@ -127,9 +126,9 @@ func _update_volumetric_hoses() -> void:
 		return
 
 	# Exact Mouth and Hand attachment points using Fat's global_transform!
-	var hose_origin: Vector3 = global_position + Vector3(0, 0.12, 0)
-	var fat_mouth: Vector3 = hose_carrier.global_transform * Vector3(0, 1.45, 0.25)
-	var fat_hand: Vector3 = hose_carrier.global_transform * Vector3(0.42, 0.75, 0.35)
+	var hose_origin: Vector3 = global_position + Vector3(0, 0.35, 0)
+	var fat_mouth: Vector3 = hose_carrier.global_transform * Vector3(0, 1.45, 0.35)
+	var fat_hand: Vector3 = hose_carrier.global_transform * Vector3(0.55, 0.75, 0.45)
 
 	# Position the Brass Nozzle cleanly in Fat's right hand!
 	_hand_nozzle_mesh.show()
@@ -144,7 +143,7 @@ func _update_volumetric_hoses() -> void:
 		target_end = infl_sys.tether_partner.global_position + Vector3(0, 1.0, 0)
 		_hand_nozzle_mesh.global_position = target_end
 
-	# 1. Build Thick Volumetric 3D Hose: Origin -> Fat's Mouth
+	# 1. Build Thick Volumetric 3D Hose: Origin -> Fat's Mouth (14cm thick tube!)
 	var pts1: Array[Vector3] = []
 	var segs1: int = 14
 	var sag1: float = 0.65
@@ -154,7 +153,7 @@ func _update_volumetric_hoses() -> void:
 		p.y -= sin(t * PI) * sag1 * (1.0 - t * 0.4)
 		pts1.append(p)
 
-	_render_volumetric_tube_world(_stretched_hose_mouth, pts1, 0.045, 8)
+	_render_volumetric_tube_world(_stretched_hose_mouth, pts1, 0.12, 8)
 	_stretched_hose_mouth.show()
 
 	# 2. Build Thick Volumetric 3D Hose: Fat's Mouth -> Fat's Hand (or Target)
@@ -167,7 +166,7 @@ func _update_volumetric_hoses() -> void:
 		p.y -= sin(t * PI) * sag2
 		pts2.append(p)
 
-	_render_volumetric_tube_world(_stretched_hose_hand, pts2, 0.04, 8)
+	_render_volumetric_tube_world(_stretched_hose_hand, pts2, 0.10, 8)
 	_stretched_hose_hand.show()
 
 func _render_volumetric_tube_world(mesh_inst: MeshInstance3D, points: Array[Vector3], radius: float, sides: int) -> void:
@@ -253,4 +252,4 @@ func rpc_return_hose() -> void:
 	print("🎈 HOSE RETURNED to floor.")
 
 func get_hose_nozzle_world_pos() -> Vector3:
-	return global_position + Vector3(2.38, 0.08, 0.25)
+	return global_position + Vector3(2.95, 0.18, 0.35)
