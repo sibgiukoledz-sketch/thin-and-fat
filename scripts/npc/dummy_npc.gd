@@ -33,7 +33,16 @@ func _ready() -> void:
 
 	update_hp_display()
 
+var is_balloon_floating: bool = false
+
 func _physics_process(delta: float) -> void:
+	if is_balloon_floating:
+		velocity.y = lerpf(velocity.y, 3.5, 6.0 * delta)
+		velocity.x = lerpf(velocity.x, 0.0, 1.2 * delta)
+		velocity.z = lerpf(velocity.z, 0.0, 1.2 * delta)
+		move_and_slide()
+		return
+
 	# Flight, wind pushing, and gravity physics for DummyNPC
 	if not is_on_floor() or velocity.length_squared() > 0.01:
 		if not is_on_floor():

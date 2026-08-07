@@ -169,16 +169,15 @@ func _render_volumetric_tube(mesh_inst: MeshInstance3D, points: Array[Vector3], 
 			var v3: Vector3 = r2[next_s]
 			var v4: Vector3 = r2[s]
 
-			st.set_normal((v2 - v1).cross(v4 - v1).normalized())
 			st.add_vertex(v1)
 			st.add_vertex(v2)
 			st.add_vertex(v4)
 
-			st.set_normal((v3 - v2).cross(v4 - v2).normalized())
 			st.add_vertex(v2)
 			st.add_vertex(v3)
 			st.add_vertex(v4)
 
+	st.generate_normals()
 	mesh_inst.mesh = st.commit()
 
 func _update_balloon_physics(delta: float) -> void:
@@ -196,14 +195,15 @@ func _update_balloon_physics(delta: float) -> void:
 		var p: Player = tether_partner as Player
 		if p.selected_character_id.to_lower() == "thin":
 			if p.global_position.y < target_height and not p.is_on_ceiling():
-				p.velocity.y = lerpf(p.velocity.y, 3.5, 5.0 * delta)
+				p.velocity.y = lerpf(p.velocity.y, 4.5, 6.0 * delta)
 			if p.mesh_instance:
 				p.mesh_instance.scale = Vector3(2.3, 2.3, 2.3)
 				p.mesh_instance.position.y = 1.15
 	elif tether_partner is DummyNPC:
 		var dummy: DummyNPC = tether_partner as DummyNPC
+		dummy.is_balloon_floating = true
 		if dummy.global_position.y < target_height:
-			dummy.velocity.y = lerpf(dummy.velocity.y, 3.5, 5.0 * delta)
+			dummy.velocity.y = lerpf(dummy.velocity.y, 4.5, 6.0 * delta)
 		if dummy.mesh_instance:
 			dummy.mesh_instance.scale = Vector3(2.3, 2.3, 2.3)
 			dummy.mesh_instance.position.y = 1.15
@@ -342,6 +342,8 @@ func rpc_stop_inflation() -> void:
 			var partner_infl := tether_partner.get_node_or_null("InflationSystem") as InflationSystem
 			if partner_infl:
 				partner_infl.is_balloon_mode = false
+		elif tether_partner is DummyNPC:
+			(tether_partner as DummyNPC).is_balloon_floating = false
 		tether_partner = null
 
 	if hose_station and is_instance_valid(hose_station):

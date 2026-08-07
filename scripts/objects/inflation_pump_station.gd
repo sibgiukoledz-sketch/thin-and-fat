@@ -143,7 +143,7 @@ func _update_volumetric_hoses() -> void:
 		target_end = infl_sys.tether_partner.global_position + Vector3(0, 1.0, 0)
 		_hand_nozzle_mesh.global_position = target_end
 
-	# 1. Build Thick Volumetric 3D Hose: Origin -> Fat's Mouth (14cm thick tube!)
+	# 1. Build Thick Volumetric 3D Hose: Origin -> Fat's Mouth (12cm thick tube!)
 	var pts1: Array[Vector3] = []
 	var segs1: int = 14
 	var sag1: float = 0.65
@@ -209,16 +209,15 @@ func _render_volumetric_tube_world(mesh_inst: MeshInstance3D, points: Array[Vect
 			var v3: Vector3 = r2[next_s]
 			var v4: Vector3 = r2[s]
 
-			st.set_normal((v2 - v1).cross(v4 - v1).normalized())
 			st.add_vertex(v1)
 			st.add_vertex(v2)
 			st.add_vertex(v4)
 
-			st.set_normal((v3 - v2).cross(v4 - v2).normalized())
 			st.add_vertex(v2)
 			st.add_vertex(v3)
 			st.add_vertex(v4)
 
+	st.generate_normals()
 	mesh_inst.mesh = st.commit()
 
 # =================== RPC: GRAB / RETURN HOSE ===================
