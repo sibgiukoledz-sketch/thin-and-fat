@@ -141,9 +141,14 @@ func _press_button(trigger: Node) -> void:
 
 	print("🔘 HEAVY BUTTON PRESSED! Total Weight: %.1f kg (Trigger: %s)" % [_current_weight, trigger.name if trigger else "Unknown"])
 
-	if target_object:
-		if target_method_on_press != "" and target_object.has_method(target_method_on_press):
-			target_object.call(target_method_on_press)
+	var target: Node = _get_target_node()
+	if target:
+		if target_method_on_press != "" and target.has_method(target_method_on_press):
+			target.call(target_method_on_press)
+		elif target.has_method("deactivate"):
+			target.call("deactivate")
+		elif target.has_method("set_active"):
+			target.call("set_active", false)
 
 func _release_button() -> void:
 	is_pressed = false
@@ -168,9 +173,26 @@ func _release_button() -> void:
 
 	print("🔘 HEAVY BUTTON RELEASED!")
 
+	var target: Node = _get_target_node()
+	if target:
+		if target_method_on_release != "" and target.has_method(target_method_on_release):
+			target.call(target_method_on_release)
+		elif target.has_method("activate"):
+			target.call("activate")
+		elif target.has_method("set_active"):
+			target.call("set_active", true)
+
+func _get_target_node() -> Node:
 	if target_object:
-		if target_method_on_release != "" and target_object.has_method(target_method_on_release):
-			target_object.call(target_method_on_release)
+		return target_object
+	
+	# Fallback search for WindTunnelFan in room if not explicitly linked
+	var root: Node = get_tree().root
+	var fans: Array[Node] = root.find_children("*", "WindTunnelFan", true, false)
+	if not fans.is_empty():
+		return fans[0]
+	
+	return null
 
 func _animate_plunger(delta: float) -> void:
 	if not plunger:

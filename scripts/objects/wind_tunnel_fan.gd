@@ -43,6 +43,12 @@ func set_active(active: bool) -> void:
 	is_active = active
 	print("🌀 WIND TUNNEL FAN %s!" % ["ACTIVATED" if is_active else "DEACTIVATED"])
 
+func deactivate() -> void:
+	set_active(false)
+
+func activate() -> void:
+	set_active(true)
+
 func _apply_visual_rotations() -> void:
 	# Enforce vertical 90 degree X rotation on all circular turbine shroud meshes
 	if outer_shroud:
