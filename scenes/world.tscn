@@ -21,6 +21,7 @@
 [ext_resource type="PackedScene" uid="uid://bfjw80nfoixcq" path="res://scenes/objects/seesaw_catapult.tscn" id="11_seesaw_scene"]
 [ext_resource type="Script" uid="uid://cjmkcj8hwm7ts" path="res://addons/sky_3d/src/TimeOfDay.gd" id="11_ts3gi"]
 [ext_resource type="PackedScene" uid="uid://dqknjse4ig1eq" path="res://scenes/objects/wind_tunnel_fan.tscn" id="12_fan_scene"]
+[ext_resource type="PackedScene" uid="uid://c8pressbutton001" path="res://scenes/objects/heavy_pressure_button.tscn" id="13_button_scene"]
 [ext_resource type="Texture2D" uid="uid://cxn2xyrsehric" path="res://addons/lowpolytrees/tex3.png" id="16_0nbtd"]
 [ext_resource type="Texture2D" uid="uid://dk3sax7qgv6cy" path="res://addons/lowpolytrees/tex1.png" id="17_37qwj"]
 [ext_resource type="Texture2D" uid="uid://dev8auypr0qs5" path="res://addons/lowpolytrees/tex4.png" id="18_navra"]
@@ -570,6 +571,11 @@ room_color = Color(0.2, 0.8, 1, 1)
 
 [node name="WindTunnelFan" parent="." unique_id=384910311 instance=ExtResource("12_fan_scene")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 32, 0.07999998, 10.851721)
+
+[node name="HeavyPressureButton" parent="." unique_id=384910314 instance=ExtResource("13_button_scene")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 32, 0.08, -1.5)
+target_object = NodePath("../WindTunnelFan")
+target_method_on_press = "toggle_active"
 
 [node name="WindTestDummy" parent="." unique_id=384910312 instance=ExtResource("2_dummy")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 32, 1.48, 3.8517208)
