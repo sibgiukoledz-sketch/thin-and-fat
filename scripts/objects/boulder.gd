@@ -27,10 +27,7 @@ var _lift_progress: float = 1.0
 var _lift_start_pos: Vector3 = Vector3.ZERO
 
 # 4-Tier AAA VFX Nodes (Top-level World Space)
-var _dust_particles: GPUParticles3D
-var _debris_particles: GPUParticles3D
-var _shockwave_particles: GPUParticles3D
-var _spark_particles: GPUParticles3D
+var _vfx_dict: Dictionary = {}
 
 var _warning_timer: float = 0.0
 var _warning_text: String = ""
@@ -52,7 +49,7 @@ func _ready() -> void:
 	body_entered.connect(_on_physics_body_entered)
 
 	_setup_boulder_visuals()
-	_setup_impact_vfx()
+	_vfx_dict = BoulderVFXBuilder.build_impact_vfx(self)
 	_update_prompt()
 
 func _setup_boulder_visuals() -> void:
@@ -63,7 +60,7 @@ func _setup_boulder_visuals() -> void:
 		sphere.radial_segments = 32
 		sphere.rings = 24
 
-		var textures: Array[ImageTexture] = _generate_high_detail_rock_textures()
+		var textures: Array[ImageTexture] = BoulderTextureGenerator.generate_rock_textures()
 		var mat: StandardMaterial3D = StandardMaterial3D.new()
 		mat.albedo_texture = textures[0]
 		mat.normal_enabled = true
@@ -81,564 +78,131 @@ func _setup_boulder_visuals() -> void:
 		caps.radius = 1.8
 		collision_shape.shape = caps
 
-func _generate_high_detail_rock_textures() -> Array[ImageTexture]:
-	var width: int = 512
-	var height: int = 512
-	var albedo_img: Image = Image.create(width, height, false, Image.FORMAT_RGBA8)
-	var normal_img: Image = Image.create(width, height, false, Image.FORMAT_RGBA8)
-	var rough_img: Image = Image.create(width, height, false, Image.FORMAT_RGBA8)
-
-	var noise_base: FastNoiseLite = FastNoiseLite.new()
-	noise_base.seed = 12345
-	noise_base.noise_type = FastNoiseLite.TYPE_PERLIN
-	noise_base.frequency = 0.02
-	noise_base.fractal_octaves = 6
-
-	var noise_cracks: FastNoiseLite = FastNoiseLite.new()
-	noise_cracks.seed = 99999
-	noise_cracks.noise_type = FastNoiseLite.TYPE_CELLULAR
-	noise_cracks.frequency = 0.06
-
-	var noise_lichen: FastNoiseLite = FastNoiseLite.new()
-	noise_lichen.seed = 77777
-	noise_lichen.noise_type = FastNoiseLite.TYPE_SIMPLEX_SMOOTH
-	noise_lichen.frequency = 0.09
-
-	for y in range(height):
-		for x in range(width):
-			var fx: float = float(x)
-			var fy: float = float(y)
-
-			var n_base: float = (noise_base.get_noise_2d(fx, fy) + 1.0) * 0.5
-			var n_crack: float = (noise_cracks.get_noise_2d(fx, fy) + 1.0) * 0.5
-			var n_lichen: float = (noise_lichen.get_noise_2d(fx, fy) + 1.0) * 0.5
-
-			var granite_col: Color = Color(0.20, 0.18, 0.16, 1.0).lerp(Color(0.55, 0.50, 0.42, 1.0), n_base)
-			if n_crack < 0.35:
-				var crack_factor: float = smoothstep(0.35, 0.1, n_crack)
-				granite_col = granite_col.lerp(Color(0.12, 0.09, 0.07, 1.0), crack_factor * 0.85)
-			if n_lichen > 0.62:
-				var moss_factor: float = smoothstep(0.62, 0.85, n_lichen)
-				granite_col = granite_col.lerp(Color(0.32, 0.38, 0.22, 1.0), moss_factor * 0.7)
-
-			albedo_img.set_pixel(x, y, granite_col)
-
-			var nx: float = (noise_base.get_noise_2d(fx + 1.0, fy) - noise_base.get_noise_2d(fx - 1.0, fy)) * 6.0
-			var ny: float = (noise_base.get_noise_2d(fx, fy + 1.0) - noise_base.get_noise_2d(fx, fy - 1.0)) * 6.0
-			var normal_vec: Vector3 = Vector3(-nx, -ny, 1.0).normalized()
-			var norm_col: Color = Color(normal_vec.x * 0.5 + 0.5, normal_vec.y * 0.5 + 0.5, normal_vec.z * 0.5 + 0.5, 1.0)
-			normal_img.set_pixel(x, y, norm_col)
-
-			var rough_val: float = clampf(0.85 + (n_base - 0.5) * 0.3 - (n_lichen * 0.25), 0.35, 0.98)
-			rough_img.set_pixel(x, y, Color(rough_val, rough_val, rough_val, 1.0))
-
-	var albedo_tex: ImageTexture = ImageTexture.create_from_image(albedo_img)
-	var normal_tex: ImageTexture = ImageTexture.create_from_image(normal_img)
-	var rough_tex: ImageTexture = ImageTexture.create_from_image(rough_img)
-	return [albedo_tex, normal_tex, rough_tex]
-
-func _setup_impact_vfx() -> void:
-	# === 1. FINE DUST PLUME CLOUD (High-density micro dust particles) ===
-	_dust_particles = GPUParticles3D.new()
-	_dust_particles.name = "VFX_DustPlume"
-	_dust_particles.top_level = true # Stay pinned in global world space!
-	_dust_particles.amount = 140
-	_dust_particles.lifetime = 1.4
-	_dust_particles.one_shot = true
-	_dust_particles.explosiveness = 0.94
-	_dust_particles.emitting = false
-
-	var mat_proc: ParticleProcessMaterial = ParticleProcessMaterial.new()
-	mat_proc.direction = Vector3(0, 1, 0)
-	mat_proc.spread = 85.0
-	mat_proc.initial_velocity_min = 4.0
-	mat_proc.initial_velocity_max = 9.5
-	mat_proc.gravity = Vector3(0, -2.5, 0)
-	mat_proc.damping_min = 1.0
-	mat_proc.damping_max = 3.0
-	mat_proc.scale_min = 0.08
-	mat_proc.scale_max = 0.25
-	mat_proc.color = Color(0.55, 0.48, 0.40, 0.65)
-
-	var draw_mat: StandardMaterial3D = StandardMaterial3D.new()
-	draw_mat.shading_mode = StandardMaterial3D.SHADING_MODE_UNSHADED
-	draw_mat.albedo_color = Color(0.55, 0.48, 0.40, 0.55)
-	draw_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	draw_mat.proximity_fade_enabled = true
-	draw_mat.proximity_fade_distance = 0.3
-
-	var sphere: SphereMesh = SphereMesh.new()
-	sphere.material = draw_mat
-	sphere.radius = 0.08
-	sphere.height = 0.16
-
-	_dust_particles.process_material = mat_proc
-	_dust_particles.draw_pass_1 = sphere
-	add_child(_dust_particles)
-
-	# === 2. DETAILED MICRO ROCK SHARDS (Sharp stone splinters) ===
-	_debris_particles = GPUParticles3D.new()
-	_debris_particles.name = "VFX_RockShards"
-	_debris_particles.top_level = true # Stay pinned in global world space!
-	_debris_particles.amount = 90
-	_debris_particles.lifetime = 1.2
-	_debris_particles.one_shot = true
-	_debris_particles.explosiveness = 0.98
-	_debris_particles.emitting = false
-
-	var dmat: ParticleProcessMaterial = ParticleProcessMaterial.new()
-	dmat.direction = Vector3(0, 1, 0)
-	dmat.spread = 75.0
-	dmat.initial_velocity_min = 6.0
-	dmat.initial_velocity_max = 14.0
-	dmat.gravity = Vector3(0, -20.0, 0)
-	dmat.scale_min = 0.04
-	dmat.scale_max = 0.12
-	dmat.color = Color(0.32, 0.28, 0.24, 1.0)
-
-	var dmesh: PrismMesh = PrismMesh.new()
-	var ddraw: StandardMaterial3D = StandardMaterial3D.new()
-	ddraw.albedo_color = Color(0.32, 0.28, 0.24, 1.0)
-	ddraw.roughness = 0.95
-	dmesh.material = ddraw
-	dmesh.size = Vector3(0.06, 0.06, 0.06)
-
-	_debris_particles.process_material = dmat
-	_debris_particles.draw_pass_1 = dmesh
-	add_child(_debris_particles)
-
-	# === 3. EXPANDING HORIZONTAL SHOCKWAVE RING ===
-	_shockwave_particles = GPUParticles3D.new()
-	_shockwave_particles.name = "VFX_ShockwaveRing"
-	_shockwave_particles.top_level = true
-	_shockwave_particles.amount = 30
-	_shockwave_particles.lifetime = 0.6
-	_shockwave_particles.one_shot = true
-	_shockwave_particles.explosiveness = 0.95
-	_shockwave_particles.emitting = false
-
-	var smat: ParticleProcessMaterial = ParticleProcessMaterial.new()
-	smat.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_RING
-	smat.emission_ring_radius = 1.2
-	smat.emission_ring_inner_radius = 0.3
-	smat.emission_ring_axis = Vector3(0, 1, 0)
-	smat.direction = Vector3(0, 0, 0)
-	smat.spread = 180.0
-	smat.initial_velocity_min = 8.0
-	smat.initial_velocity_max = 16.0
-	smat.gravity = Vector3(0, -1.0, 0)
-	smat.scale_min = 0.06
-	smat.scale_max = 0.18
-	smat.color = Color(0.65, 0.58, 0.48, 0.7)
-
-	var sw_draw: StandardMaterial3D = StandardMaterial3D.new()
-	sw_draw.shading_mode = StandardMaterial3D.SHADING_MODE_UNSHADED
-	sw_draw.albedo_color = Color(0.65, 0.58, 0.48, 0.6)
-	sw_draw.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-
-	var sw_mesh: QuadMesh = QuadMesh.new()
-	sw_mesh.material = sw_draw
-	sw_mesh.size = Vector2(0.15, 0.15)
-
-	_shockwave_particles.process_material = smat
-	_shockwave_particles.draw_pass_1 = sw_mesh
-	add_child(_shockwave_particles)
-
-	# === 4. FRICTION SPARKS (Glowing orange mineral spark droplets) ===
-	_spark_particles = GPUParticles3D.new()
-	_spark_particles.name = "VFX_FrictionSparks"
-	_spark_particles.top_level = true
-	_spark_particles.amount = 50
-	_spark_particles.lifetime = 0.5
-	_spark_particles.one_shot = true
-	_spark_particles.explosiveness = 0.99
-	_spark_particles.emitting = false
-
-	var spmat: ParticleProcessMaterial = ParticleProcessMaterial.new()
-	spmat.direction = Vector3(0, 1, 0)
-	spmat.spread = 90.0
-	spmat.initial_velocity_min = 8.0
-	spmat.initial_velocity_max = 16.0
-	spmat.gravity = Vector3(0, -16.0, 0)
-	spmat.scale_min = 0.01
-	spmat.scale_max = 0.03
-	spmat.color = Color(1.0, 0.7, 0.2, 1.0)
-
-	var spdraw: StandardMaterial3D = StandardMaterial3D.new()
-	spdraw.shading_mode = StandardMaterial3D.SHADING_MODE_UNSHADED
-	spdraw.albedo_color = Color(1.0, 0.75, 0.25, 1.0)
-
-	var spmesh: SphereMesh = SphereMesh.new()
-	spmesh.material = spdraw
-	spmesh.radius = 0.015
-	spmesh.height = 0.03
-
-	_spark_particles.process_material = spmat
-	_spark_particles.draw_pass_1 = spmesh
-	add_child(_spark_particles)
-
-func _trigger_all_impact_vfx(at_position: Vector3) -> void:
-	if AudioManager:
-		AudioManager.play_sfx_3d("boulder_impact", at_position)
-	if _dust_particles:
-		_dust_particles.global_position = at_position
-		_dust_particles.restart()
-		_dust_particles.emitting = true
-	if _debris_particles:
-		_debris_particles.global_position = at_position
-		_debris_particles.restart()
-		_debris_particles.emitting = true
-	if _shockwave_particles:
-		_shockwave_particles.global_position = at_position
-		_shockwave_particles.restart()
-		_shockwave_particles.emitting = true
-	if _spark_particles:
-		_spark_particles.global_position = at_position
-		_spark_particles.restart()
-		_spark_particles.emitting = true
-
-	var root: Node = get_tree().root
-	_break_nearby_glass_recursive(root, at_position, 6.5)
-
-func _break_nearby_glass_recursive(node: Node, center: Vector3, radius: float) -> void:
-	if not node:
-		return
-	if node is FragileGlassFloor:
-		var glass: FragileGlassFloor = node as FragileGlassFloor
-		if glass.global_position.distance_to(center) <= radius:
-			glass.trigger_seismic_break()
-	for child in node.get_children():
-		_break_nearby_glass_recursive(child, center, radius)
-
+func _process(delta: float) -> void:
+	if _warning_timer > 0.0:
+		_warning_timer -= delta
+		if prompt_label:
+			prompt_label.text = _warning_text
+			prompt_label.modulate = Color(1.0, 0.25, 0.25)
+	else:
+		_update_prompt()
 
 func _update_prompt() -> void:
 	if not prompt_label:
 		return
 
-	if _warning_timer > 0.0:
-		prompt_label.text = _warning_text
-		prompt_label.modulate = Color(1.0, 0.2, 0.2)
-	elif _is_carried:
-		prompt_label.text = "🪨 ГИГАНТСКИЙ ВАЛУН В РУКАХ ЖИРДЯЯ!\n[E] / [ЛКМ] — БРОСИТЬ ВАЛУН!"
+	if _is_carried:
+		prompt_label.text = "🪨 ВАЛУН (В РУКАХ)\n[E] - БРОСИТЬ ВАЛУН"
 		prompt_label.modulate = Color(1.0, 0.85, 0.2)
 	else:
-		prompt_label.text = "🪨 ГИГАНТСКИЙ ТЯЖЁЛЫЙ ВАЛУН\n[E] — Поднять (Только для Жирдяя)"
-		prompt_label.modulate = Color(1.0, 1.0, 1.0)
+		prompt_label.text = "🪨 ГРОМАДНЫЙ ВАЛУН (450 КГ)\n[E] - ПОДНЯТЬ (ТОЛЬКО ЖИРДЯЙ)"
+		prompt_label.modulate = Color(0.9, 0.9, 0.9)
 
-func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
-	if not is_multiplayer_authority():
-		return
-	if _is_carried or freeze:
-		return
+func _on_interaction_body_entered(body: Node) -> void:
+	if body is Player:
+		var p: Player = body as Player
+		if p.is_multiplayer_authority() and Input.is_action_just_pressed("interact"):
+			try_interact_boulder(p)
 
-	# Enforce character mass interaction rules during physics contact resolution
-	for i in range(state.get_contact_count()):
-		var collider = state.get_contact_collider_object(i)
-		var p: Player = null
-		if collider is Player:
-			p = collider as Player
-		elif collider and collider.get_parent() is Player:
-			p = collider.get_parent() as Player
-
-		if p:
-			var char_id := p.selected_character_id.to_lower()
-			var contact_normal := state.get_contact_local_normal(i)
-			var vel_along_normal := state.linear_velocity.dot(contact_normal)
-
-			if char_id == "thin":
-				# Thin character cannot push/roll 450kg HeavyBoulder!
-				# If velocity is directed away from Thin (pushed by Thin), zero out push velocity completely!
-				if vel_along_normal < 0.0:
-					state.linear_velocity -= contact_normal * vel_along_normal
-					state.angular_velocity = Vector3.ZERO
-			elif char_id == "fat":
-				# Fat character pushes boulder at a controlled realistic heavy rolling speed
-				if state.linear_velocity.length() > 3.0 and state.linear_velocity.length() < 6.0:
-					state.linear_velocity = state.linear_velocity.normalized() * 3.0
-					state.angular_velocity = state.angular_velocity.normalized() * minf(state.angular_velocity.length(), 4.0)
-
-
-
-func _process(delta: float) -> void:
-	if _warning_timer > 0.0:
-		_warning_timer -= delta
-		if _warning_timer <= 0.0:
-			_update_prompt()
-
-	# Handling smooth physical carrying position above Fat player's head
-	if _is_carried and is_instance_valid(_carrier_player):
-		var _carrier_head: Vector3 = _carrier_player.global_position + Vector3(0, 1.8, 0)
-		var desired_pos: Vector3 = _carrier_player.global_position + Vector3(0, 2.8, 0)
-
-		# 1. Environment Collision Check using SphereShape3D sweep cast for 3.4m boulder
-		var space_state := get_world_3d().direct_space_state
-		if space_state:
-			var sphere_shape := SphereShape3D.new()
-			sphere_shape.radius = 1.70 # 3.4m boulder physical collision sphere
-
-			var shape_query := PhysicsShapeQueryParameters3D.new()
-			shape_query.shape = sphere_shape
-			shape_query.transform = Transform3D(Basis.IDENTITY, desired_pos)
-			shape_query.exclude = [self.get_rid(), _carrier_player.get_rid()]
-			shape_query.collision_mask = 1 # Static Environment / Doorframes / Walls
-
-			var collisions: Array[Dictionary] = space_state.intersect_shape(shape_query, 4)
-			if collisions.size() > 0:
-				# Boulder hit a doorway frame or ceiling! Detach and slip backwards!
-				rpc_detach_and_fall_back.rpc()
-				return
-
-		var target_pos: Vector3 = desired_pos
-
-		if _lift_progress < 1.0:
-			_lift_progress = minf(_lift_progress + delta * 1.8, 1.0)
-			var ease_p: float = 1.0 - pow(1.0 - _lift_progress, 3.0)
-			global_position = _lift_start_pos.lerp(target_pos, ease_p)
-		else:
-			global_position = global_position.lerp(target_pos, 18.0 * delta)
-
-		rotation = _carrier_player.rotation
-
-func _physics_process(_delta: float) -> void:
-	pass
-
-func _unhandled_input(event: InputEvent) -> void:
-	var is_interact_pressed: bool = event.is_action_pressed("interact") or (event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_E)
-	var is_lmb_pressed: bool = (event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT)
-
-	# Case 1: Fat player is carrying boulder -> THROW IT!
-	if _is_carried and _carrier_player and _carrier_player.is_multiplayer_authority():
-		if is_interact_pressed or is_lmb_pressed:
-			get_viewport().set_input_as_handled()
-			var throw_dir: Vector3 = -_carrier_player.global_transform.basis.z
-			if _carrier_player.camera_3d:
-				throw_dir = -_carrier_player.camera_3d.global_transform.basis.z
-			
-			throw_dir = (throw_dir + Vector3(0, 0.30, 0)).normalized()
-			rpc_throw_boulder.rpc(_carrier_player.global_position + Vector3(0, 2.5, 0), throw_dir * throw_force)
-			return
-
-	# Case 2: Player is standing near boulder and tries to pick it up
-	if not _is_carried and not _is_crushing and is_interact_pressed and interaction_area:
-		var bodies: Array[Node3D] = interaction_area.get_overlapping_bodies()
-		for body in bodies:
-			if body is Player and (body as Player).is_multiplayer_authority():
-				var player_node: Player = body as Player
-				_attempt_pick_up(player_node)
-				get_viewport().set_input_as_handled()
-				break
-
-func _attempt_pick_up(player_node: Player) -> void:
-	if player_node.selected_character_id.to_lower() != "fat":
-		rpc_crush_player.rpc(player_node.get_path())
-		print("💥 THIN PLAYER SQUASHED BY BOULDER!")
+func try_interact_boulder(player: Player) -> void:
+	if not player:
 		return
 
-	rpc_pick_up_boulder.rpc(player_node.get_path())
+	if player.selected_character_id.to_lower() != "fat":
+		_show_warning("❌ ТОЛЬКО ЖИРДЯЙ МОЖЕТ ПОДНЯТЬ 450 КГ!")
+		if AudioManager:
+			AudioManager.play_sfx_3d("fail_buzz", global_position)
+		return
 
-func _show_warning(msg: String) -> void:
-	_warning_text = msg
-	_warning_timer = 3.0
-	_update_prompt()
+	if not _is_carried:
+		rpc_pickup_boulder.rpc(player.get_path())
+	else:
+		if _carrier_player == player:
+			rpc_throw_boulder.rpc(player.get_path(), player.global_transform.basis.z * -1.0)
 
 @rpc("any_peer", "call_local", "reliable")
-func rpc_crush_player(player_path: NodePath) -> void:
-	var p: Player = get_node_or_null(player_path) as Player
-	if not p:
-		return
-
-	_is_crushing = true
-	freeze = true
-	_show_warning("📜 ХУДОЩАВЫЙ СПЛЮЩИЛСЯ В ЛИСТОК БУМАГИ!\nТеперь вы можете пролезать в самые узкие щели!")
-
-	# Trigger full 4-tier impact VFX
-	_trigger_all_impact_vfx(p.global_position)
-
-	# Tilt physical boulder over onto Thin player
-	var tween: Tween = create_tween().set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
-	tween.tween_property(self, "global_position", p.global_position + Vector3(0, 0.8, 0), 0.4)
-
-	# Flatten Thin into a 4cm paper sheet! Zero lethal damage!
-	if p.has_method("rpc_flatten_into_paper"):
-		p.rpc_flatten_into_paper.rpc(20.0)
-
-	var unfreeze_tw: Tween = create_tween()
-	unfreeze_tw.tween_interval(1.2)
-	unfreeze_tw.tween_callback(func() -> void:
-		freeze = false
-		_is_crushing = false
-	)
-
-@rpc("any_peer", "call_local", "reliable")
-func rpc_pick_up_boulder(player_path: NodePath) -> void:
-	var p: Player = get_node_or_null(player_path) as Player
-	if not p:
+func rpc_pickup_boulder(player_path: NodePath) -> void:
+	var player_node := get_node_or_null(player_path) as Player
+	if not player_node:
 		return
 
 	_is_carried = true
-	_carrier_player = p
-	p.is_carrying_heavy_object = true
+	_carrier_player = player_node
+	player_node.is_carrying_heavy_object = true
 	freeze = true
-	linear_velocity = Vector3.ZERO
-	angular_velocity = Vector3.ZERO
 
-	_lift_progress = 0.0
-	_lift_start_pos = global_position
-	_update_prompt()
+	reparent(player_node)
+	position = Vector3(0, 2.4, -0.6)
+	rotation = Vector3.ZERO
 
-	if p.spring_arm:
-		p.spring_arm.add_excluded_object(self.get_rid())
-
-	if p.is_multiplayer_authority() and p.camera_3d:
-		p.camera_3d.rotation.z = deg_to_rad(8.0)
-
-	if _dust_particles:
-		_dust_particles.global_position = p.global_position
-		_dust_particles.restart()
-		_dust_particles.emitting = true
-
-	boulder_picked_up.emit(p)
+	boulder_picked_up.emit(player_node)
 	if AudioManager:
-		AudioManager.play_sfx_3d("boulder_lift", global_position)
-	print("🪨 REALISTIC HEAVY LIFT: Boulder lifted by %s!" % p.name)
-
-func _reset_carrier_camera(p: Player) -> void:
-	if p and p.is_multiplayer_authority() and p.camera_3d:
-		var tw := p.create_tween().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-		tw.tween_property(p.camera_3d, "rotation:z", 0.0, 0.25)
+		AudioManager.play_sfx_3d("heavy_lift", global_position)
+	print("🪨 BOULDER PICKED UP by %s" % player_node.name)
 
 @rpc("any_peer", "call_local", "reliable")
-func rpc_detach_and_fall_back() -> void:
-	if not _is_carried:
-		return
-
-	var drop_pos: Vector3 = global_position
-	var back_dir: Vector3 = Vector3.BACK
-	if _carrier_player:
-		back_dir = _carrier_player.global_transform.basis.z.normalized()
-		if _carrier_player.spring_arm:
-			_carrier_player.spring_arm.remove_excluded_object(self.get_rid())
-		_reset_carrier_camera(_carrier_player)
-		_carrier_player.is_carrying_heavy_object = false
-		_carrier_player = null
+func rpc_throw_boulder(player_path: NodePath, throw_dir: Vector3) -> void:
+	var player_node := get_node_or_null(player_path) as Player
+	if not player_node:
+		player_node = _carrier_player
 
 	_is_carried = false
+	if player_node:
+		player_node.is_carrying_heavy_object = false
+	_carrier_player = null
+
+	var current_global_pos := global_position
+	var main_world := get_tree().current_scene
+	reparent(main_world)
+	global_position = current_global_pos
+
 	freeze = false
+	var impulse_vector := (throw_dir.normalized() + Vector3(0, 0.45, 0)).normalized() * throw_force * mass
+	apply_central_impulse(impulse_vector)
+	apply_torque_impulse(Vector3(randf_range(-40, 40), randf_range(-40, 40), randf_range(-40, 40)))
 
-	# Tumble and roll backward with heavy physical velocity!
-	linear_velocity = back_dir * 5.5 + Vector3(0, 1.5, 0)
-	angular_velocity = Vector3(randf_range(6.0, 10.0), randf_range(-2.0, 2.0), randf_range(-2.0, 2.0))
-
-	_trigger_all_impact_vfx(drop_pos)
-	_show_warning("💥 ВАЛУН НЕ ПРОЛЕЗ В ПРОЁМ!\nВалун выскользнул из рук и упал назад!")
-	print("💥 BOULDER DETACHED: Hit doorframe, dropped backward!")
-
-@rpc("any_peer", "call_local", "reliable")
-func rpc_throw_boulder(start_pos: Vector3, initial_velocity: Vector3) -> void:
-	global_position = start_pos
-	if _carrier_player:
-		if _carrier_player.spring_arm:
-			_carrier_player.spring_arm.remove_excluded_object(self.get_rid())
-		if _carrier_player.is_multiplayer_authority():
-			_reset_carrier_camera(_carrier_player)
-			if _carrier_player.has_method("set_target_fov"):
-				_carrier_player.set_target_fov(92.0)
-
-		_carrier_player.is_carrying_heavy_object = false
-		boulder_thrown.emit(_carrier_player)
-		_carrier_player = null
-
-	_is_carried = false
-	freeze = false
-
-	linear_velocity = initial_velocity
-	angular_velocity = Vector3(randf_range(-10.0, -14.0), randf_range(-4.0, 4.0), randf_range(-4.0, 4.0))
-
-	if _dust_particles:
-		_dust_particles.global_position = start_pos
-		_dust_particles.restart()
-		_dust_particles.emitting = true
-
+	boulder_thrown.emit(player_node)
 	if AudioManager:
-		AudioManager.play_sfx_3d("boulder_throw", start_pos)
-
-	_update_prompt()
-	print("🚀 BOULDER THROWN WITH VELOCITY: %s" % str(initial_velocity))
+		AudioManager.play_sfx_3d("boulder_throw", global_position)
+	print("🪨 BOULDER THROWN WITH IMPULSE: %s" % str(impulse_vector))
 
 func _on_physics_body_entered(body: Node) -> void:
-	if _is_carried:
+	var now: float = Time.get_ticks_msec() / 1000.0
+	if now - _last_impact_time < 0.20:
 		return
+	_last_impact_time = now
 
-	var cur_time: float = Time.get_ticks_msec() * 0.001
-	if cur_time - _last_impact_time < 0.25:
-		return
+	var impact_vel := linear_velocity.length()
+	if impact_vel > 2.5:
+		BoulderVFXBuilder.trigger_impact_vfx(_vfx_dict, global_position)
+		if AudioManager:
+			AudioManager.play_sfx_3d("boulder_impact", global_position)
+		boulder_impact.emit(global_position)
 
-	var speed: float = linear_velocity.length()
-	if speed > 2.0:
-		_last_impact_time = cur_time
-		var impact_pos: Vector3 = global_position
+		if impact_vel > 6.0:
+			_apply_area_crush_damage()
 
-		if speed > 3.5:
-			# Trigger full 4-tier impact VFX for fast rolling/falling impact
-			_trigger_all_impact_vfx(impact_pos)
+func _apply_area_crush_damage() -> void:
+	var space_state := get_world_3d().direct_space_state
+	var shape := SphereShape3D.new()
+	shape.radius = impact_radius
 
-		if body is Node3D and body != self and body != _carrier_player:
-			if body is Player:
-				var p: Player = body as Player
-				if p.selected_character_id.to_lower() == "fat":
-					# Fat is heavy and immune to normal boulder bumps/rolls while handling it!
-					if speed < 12.0:
-						return
-				elif p.selected_character_id.to_lower() == "thin":
-					# Thin gets flattened into paper sheet instead of dying!
-					if p.has_method("rpc_flatten_into_paper") and not p.is_paper_flattened:
-						p.rpc_flatten_into_paper.rpc(20.0)
-						_show_warning("📜 ХУДОЩАВОГО СПЛЮЩИЛО В ЛИСТОК БУМАГИ!\nПролезайте в самые узкие щели!")
-					return
+	var query := PhysicsShapeQueryParameters3D.new()
+	query.shape = shape
+	query.transform = global_transform
+	query.collision_mask = 3
 
-			if body.has_method("take_damage"):
-				var dmg: float = clampf(speed * 4.5 + 25.0, 35.0, damage_on_impact)
-				body.take_damage(dmg, (body as Node3D).global_position)
-				print("💥 PHYSICAL BOULDER CRUSH: Dealt %.1f damage to %s" % [dmg, body.name])
+	var results := space_state.intersect_shape(query)
+	for res in results:
+		var collider: Object = res.collider
+		if collider is Player and collider != _carrier_player:
+			var p: Player = collider as Player
+			if p.selected_character_id.to_lower() == "thin":
+				p.apply_paper_flatten(10.0)
+				print("💥 BOULDER CRUSHED THIN PLAYER INTO PAPER!")
+			else:
+				p.take_damage(damage_on_impact, global_position)
 
-		if speed > 3.5:
-			_apply_impact_aoe_damage(impact_pos, maxf(speed, 5.0))
-		boulder_impact.emit(impact_pos)
-
-
-func _apply_impact_aoe_damage(center: Vector3, speed: float) -> void:
-	if speed < 3.5:
-		return
-	var root: Node = get_tree().root
-	_damage_nodes_recursive(root, center, speed)
-
-func _damage_nodes_recursive(node: Node, center: Vector3, speed: float) -> void:
-	if not node:
-		return
-
-	if node is Node3D and node != self and node != _carrier_player:
-		var n3d: Node3D = node as Node3D
-		var dist: float = center.distance_to(n3d.global_position)
-		if dist <= impact_radius:
-			if node is Player:
-				var p: Player = node as Player
-				if p.selected_character_id.to_lower() == "fat":
-					return
-				elif p.selected_character_id.to_lower() == "thin":
-					if p.has_method("rpc_flatten_into_paper") and not p.is_paper_flattened:
-						p.rpc_flatten_into_paper.rpc(20.0)
-					return
-
-			if node.has_method("take_damage"):
-				var falloff: float = 1.0 - (dist / impact_radius)
-				var final_dmg: float = maxf(damage_on_impact * (speed / 15.0) * falloff, 15.0)
-				node.take_damage(final_dmg, n3d.global_position)
-
-	for child in node.get_children():
-		_damage_nodes_recursive(child, center, speed)
-
-func _on_interaction_body_entered(body: Node) -> void:
-	if not _is_carried and body is Player:
-		var p: Player = body as Player
-		if p.is_multiplayer_authority():
-			_update_prompt()
+func _show_warning(msg: String) -> void:
+	_warning_text = msg
+	_warning_timer = 2.5
