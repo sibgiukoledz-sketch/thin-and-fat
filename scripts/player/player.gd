@@ -247,9 +247,36 @@ func set_character(char_id: String) -> void:
 	character_switched.emit(selected_character_id)
 
 func get_movement_input() -> Vector3:
-	var raw_input := Input.get_vector("move_left", "move_right", "move_forward", "move_back")
+	var raw_input := Input.get_vector("move_left", "move_right", "move_forward", "move_backward")
 	var dir := (transform.basis * Vector3(raw_input.x, 0, raw_input.y)).normalized()
 	return dir
+
+func apply_gravity(delta: float) -> void:
+	if not is_on_floor():
+		velocity.y -= gravity * delta
+
+func apply_movement(input_dir: Vector3, target_spd: float, delta: float, accel_factor: float = 1.0) -> void:
+	var accel := 14.0 * accel_factor if input_dir.length_squared() > 0.01 else 10.0
+	velocity.x = lerpf(velocity.x, input_dir.x * target_spd, accel * delta)
+	velocity.z = lerpf(velocity.z, input_dir.z * target_spd, accel * delta)
+	move_and_slide()
+
+func apply_jump_impulse() -> void:
+	velocity.y = jump_velocity
+	if AudioManager:
+		AudioManager.play_sfx_3d("jump_" + selected_character_id.to_lower(), global_position)
+
+func is_jump_requested() -> bool:
+	return Input.is_action_just_pressed("jump")
+
+func is_crouch_requested() -> bool:
+	return Input.is_action_pressed("crouch")
+
+func can_uncrouch() -> bool:
+	return is_overhead_clear()
+
+func set_target_fov(_fov: float) -> void:
+	pass
 
 func _attach_mechanics_component(script_path: String) -> void:
 	if active_mechanics:
