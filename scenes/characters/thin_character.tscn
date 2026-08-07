@@ -1,0 +1,111 @@
+[gd_scene load_steps=12 format=3 uid="uid://c8thinchar001"]
+
+[ext_resource type="Script" path="res://scripts/characters/thin_character.gd" id="1_thinchar"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_skin"]
+albedo_color = Color(0.52, 0.5, 0.48, 1)
+roughness = 0.55
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_torso"]
+material = SubResource("StandardMaterial3D_skin")
+top_radius = 0.16
+bottom_radius = 0.15
+height = 1.35
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_pants"]
+albedo_color = Color(0.18, 0.2, 0.26, 1)
+roughness = 0.65
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_leg"]
+material = SubResource("StandardMaterial3D_pants")
+top_radius = 0.09
+bottom_radius = 0.08
+height = 1.25
+
+[sub_resource type="BoxMesh" id="BoxMesh_foot"]
+material = SubResource("StandardMaterial3D_pants")
+size = Vector3(0.14, 0.1, 0.25)
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_arm"]
+material = SubResource("StandardMaterial3D_skin")
+top_radius = 0.08
+bottom_radius = 0.06
+height = 1.15
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_neck"]
+material = SubResource("StandardMaterial3D_skin")
+top_radius = 0.08
+bottom_radius = 0.09
+height = 0.32
+
+[sub_resource type="SphereMesh" id="SphereMesh_head"]
+material = SubResource("StandardMaterial3D_skin")
+radius = 0.26
+height = 0.52
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_face"]
+albedo_color = Color(0.08, 0.08, 0.08, 1)
+roughness = 0.8
+
+[sub_resource type="SphereMesh" id="SphereMesh_eye"]
+material = SubResource("StandardMaterial3D_face")
+radius = 0.024
+height = 0.045
+
+[sub_resource type="TorusMesh" id="TorusMesh_smile"]
+material = SubResource("StandardMaterial3D_face")
+inner_radius = 0.042
+outer_radius = 0.06
+
+[node name="ThinCharacter" type="Node3D"]
+script = ExtResource("1_thinchar")
+
+[node name="Skeleton3D" type="Skeleton3D" parent="."]
+
+[node name="SlenderTorso" type="MeshInstance3D" parent="Skeleton3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.25, 0)
+mesh = SubResource("CylinderMesh_torso")
+
+[node name="Leg_L" type="MeshInstance3D" parent="Skeleton3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.14, -0.65, 0)
+mesh = SubResource("CylinderMesh_leg")
+
+[node name="Foot_L" type="MeshInstance3D" parent="Skeleton3D/Leg_L"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.6, -0.04)
+mesh = SubResource("BoxMesh_foot")
+
+[node name="Leg_R" type="MeshInstance3D" parent="Skeleton3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.14, -0.65, 0)
+mesh = SubResource("CylinderMesh_leg")
+
+[node name="Foot_R" type="MeshInstance3D" parent="Skeleton3D/Leg_R"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.6, -0.04)
+mesh = SubResource("BoxMesh_foot")
+
+[node name="Arm_L" type="MeshInstance3D" parent="Skeleton3D"]
+transform = Transform3D(0, 1, 0, -1, 0, 0, 0, 0, 1, -0.72, 0.75, 0)
+mesh = SubResource("CylinderMesh_arm")
+
+[node name="Arm_R" type="MeshInstance3D" parent="Skeleton3D"]
+transform = Transform3D(0, -1, 0, 1, 0, 0, 0, 0, 1, 0.72, 0.75, 0)
+mesh = SubResource("CylinderMesh_arm")
+
+[node name="ThinNeck" type="MeshInstance3D" parent="Skeleton3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.98, 0)
+mesh = SubResource("CylinderMesh_neck")
+
+[node name="RoundHead" type="MeshInstance3D" parent="Skeleton3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.25, 0)
+mesh = SubResource("SphereMesh_head")
+
+[node name="Eye_L" type="MeshInstance3D" parent="Skeleton3D/RoundHead"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.07, 0.03, -0.245)
+mesh = SubResource("SphereMesh_eye")
+
+[node name="Eye_R" type="MeshInstance3D" parent="Skeleton3D/RoundHead"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.07, 0.03, -0.245)
+mesh = SubResource("SphereMesh_eye")
+
+[node name="Smile" type="MeshInstance3D" parent="Skeleton3D/RoundHead"]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, -0.06, -0.248)
+mesh = SubResource("TorusMesh_smile")

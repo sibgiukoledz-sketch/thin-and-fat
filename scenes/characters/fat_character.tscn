@@ -1,0 +1,97 @@
+[gd_scene load_steps=10 format=3 uid="uid://c8fatchar001"]
+
+[ext_resource type="Script" path="res://scripts/characters/fat_character.gd" id="1_fatchar"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_skin"]
+albedo_color = Color(0.52, 0.5, 0.48, 1)
+roughness = 0.55
+
+[sub_resource type="SphereMesh" id="SphereMesh_belly"]
+material = SubResource("StandardMaterial3D_skin")
+radius = 0.75
+height = 1.35
+radial_segments = 32
+rings = 24
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_pants"]
+albedo_color = Color(0.18, 0.2, 0.26, 1)
+roughness = 0.65
+
+[sub_resource type="SphereMesh" id="SphereMesh_pants"]
+material = SubResource("StandardMaterial3D_pants")
+radius = 0.7
+height = 0.75
+
+[sub_resource type="BoxMesh" id="BoxMesh_foot"]
+material = SubResource("StandardMaterial3D_pants")
+size = Vector3(0.26, 0.14, 0.32)
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_arm"]
+material = SubResource("StandardMaterial3D_skin")
+top_radius = 0.24
+bottom_radius = 0.12
+height = 0.95
+
+[sub_resource type="SphereMesh" id="SphereMesh_head"]
+material = SubResource("StandardMaterial3D_skin")
+radius = 0.28
+height = 0.56
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_face"]
+albedo_color = Color(0.08, 0.08, 0.08, 1)
+roughness = 0.8
+
+[sub_resource type="SphereMesh" id="SphereMesh_eye"]
+material = SubResource("StandardMaterial3D_face")
+radius = 0.026
+height = 0.05
+
+[sub_resource type="TorusMesh" id="TorusMesh_smile"]
+material = SubResource("StandardMaterial3D_face")
+inner_radius = 0.045
+outer_radius = 0.065
+
+[node name="FatCharacter" type="Node3D"]
+script = ExtResource("1_fatchar")
+
+[node name="Skeleton3D" type="Skeleton3D" parent="."]
+
+[node name="GiantBelly" type="MeshInstance3D" parent="Skeleton3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.15, 0)
+mesh = SubResource("SphereMesh_belly")
+
+[node name="DarkPants" type="MeshInstance3D" parent="Skeleton3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.32, 0)
+mesh = SubResource("SphereMesh_pants")
+
+[node name="Foot_L" type="MeshInstance3D" parent="Skeleton3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.28, -0.68, -0.05)
+mesh = SubResource("BoxMesh_foot")
+
+[node name="Foot_R" type="MeshInstance3D" parent="Skeleton3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.28, -0.68, -0.05)
+mesh = SubResource("BoxMesh_foot")
+
+[node name="Arm_L" type="MeshInstance3D" parent="Skeleton3D"]
+transform = Transform3D(0, 1, 0, -1, 0, 0, 0, 0, 1, -0.95, 0.42, 0)
+mesh = SubResource("CylinderMesh_arm")
+
+[node name="Arm_R" type="MeshInstance3D" parent="Skeleton3D"]
+transform = Transform3D(0, -1, 0, 1, 0, 0, 0, 0, 1, 0.95, 0.42, 0)
+mesh = SubResource("CylinderMesh_arm")
+
+[node name="RoundHead" type="MeshInstance3D" parent="Skeleton3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.88, 0)
+mesh = SubResource("SphereMesh_head")
+
+[node name="Eye_L" type="MeshInstance3D" parent="Skeleton3D/RoundHead"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.075, 0.04, -0.265)
+mesh = SubResource("SphereMesh_eye")
+
+[node name="Eye_R" type="MeshInstance3D" parent="Skeleton3D/RoundHead"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.075, 0.04, -0.265)
+mesh = SubResource("SphereMesh_eye")
+
+[node name="Smile" type="MeshInstance3D" parent="Skeleton3D/RoundHead"]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, -0.06, -0.268)
+mesh = SubResource("TorusMesh_smile")

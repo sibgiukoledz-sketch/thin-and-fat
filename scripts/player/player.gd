@@ -791,35 +791,22 @@ func can_uncrouch() -> bool:
 	var result: Dictionary = space_state.intersect_ray(query)
 	return result.is_empty()
 
-var _is_ragdoll_active: bool = false
+var character_model: Node3D = null
 
 func _start_ragdoll() -> void:
 	_is_ragdoll_active = true
-	if not mesh_instance:
-		return
-
-	mesh_instance.show()
-	mesh_instance.visible = true
-
-	var skel: Skeleton3D = mesh_instance.find_child("Skeleton3D", true, false) as Skeleton3D
-	if skel:
-		skel.physical_bones_start_simulation()
-
-	# Dramatic ragdoll body tumble & drop animation
-	var drop_tw := create_tween().set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
-	drop_tw.tween_property(mesh_instance, "rotation:z", deg_to_rad(randf_range(-90.0, 90.0)), 0.35)
-	drop_tw.parallel().tween_property(mesh_instance, "rotation:x", deg_to_rad(randf_range(-45.0, 45.0)), 0.35)
+	if character_model and character_model.has_method("start_ragdoll"):
+		character_model.call("start_ragdoll", velocity)
+	elif mesh_instance:
+		mesh_instance.show()
+		mesh_instance.visible = true
 
 func _stop_ragdoll() -> void:
 	_is_ragdoll_active = false
-	if not mesh_instance:
-		return
-
-	var skel: Skeleton3D = mesh_instance.find_child("Skeleton3D", true, false) as Skeleton3D
-	if skel:
-		skel.physical_bones_stop_simulation()
-
-	mesh_instance.rotation = Vector3.ZERO
+	if character_model and character_model.has_method("stop_ragdoll"):
+		character_model.call("stop_ragdoll")
+	if mesh_instance:
+		mesh_instance.rotation = Vector3.ZERO
 
 func _build_character_visuals(is_fat: bool) -> void:
 	if not mesh_instance:
@@ -829,16 +816,14 @@ func _build_character_visuals(is_fat: bool) -> void:
 	for child in mesh_instance.get_children():
 		child.queue_free()
 
-	# Check for external GLTF/GLB custom character model in res://assets/models/
-	var glb_path := "res://assets/models/%s.glb" % ("fat" if is_fat else "thin")
-	if ResourceLoader.exists(glb_path):
-		var glb_scene := load(glb_path) as PackedScene
-		if glb_scene:
-			var custom_model := glb_scene.instantiate()
-			mesh_instance.mesh = null
-			mesh_instance.add_child(custom_model)
-			print("🎨 CUSTOM 3D MODEL LOADED: %s" % glb_path)
-			return
+	mesh_instance.mesh = null
+	var scene_path := "res://scenes/characters/%s_character.tscn" % ("fat" if is_fat else "thin")
+	if ResourceLoader.exists(scene_path):
+		var char_scene := load(scene_path) as PackedScene
+		if char_scene:
+			character_model = char_scene.instantiate() as Node3D
+			mesh_instance.add_child(character_model)
+			print("🎨 LOADED CHARACTER SCENE: %s" % scene_path)
 
 	# Shared Materials from Concept Art:
 	# Skin: Smooth warm greyish-tan (#84807C)
