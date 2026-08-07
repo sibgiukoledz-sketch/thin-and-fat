@@ -10,11 +10,13 @@ signal character_switched(new_char_id: String)
 signal player_died
 signal player_landed(downward_velocity: float)
 
-# Movement constants used by FSM states
+# Movement & FOV constants used by FSM states
 const WALK_SPEED := 5.0
 const SPRINT_SPEED := 9.0
 const CROUCH_SPEED := 2.5
 const AIR_ACCEL_FACTOR := 0.35
+const NORMAL_FOV := 75.0
+const SPRINT_FOV := 85.0
 
 @export var peer_id: int = 1
 @export var selected_character_id: String = "fat":
