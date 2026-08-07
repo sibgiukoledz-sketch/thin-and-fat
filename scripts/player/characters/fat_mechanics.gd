@@ -349,15 +349,20 @@ func _trigger_pancake_squish_animation() -> void:
 		return
 
 	var orig_scale: Vector3 = Vector3.ONE
-	var pancake_scale: Vector3 = Vector3(2.2, 0.15, 2.2) # Wide flat pancake shape
+	var pancake_scale_max: Vector3 = Vector3(2.45, 0.11, 2.45) # Super flat wide pancake!
+	var pancake_scale_mid: Vector3 = Vector3(2.20, 0.15, 2.20)
 
 	var tween: Tween = player.create_tween().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-	# Flatten into pancake in 0.07s
-	tween.tween_property(player.mesh_instance, "scale", pancake_scale, 0.07)
-	# Hold pancake shape for 0.22s while shockwave propagates
-	tween.tween_interval(0.22)
-	# Spring back to normal shape with bouncy elasticity over 0.38s
-	tween.tween_property(player.mesh_instance, "scale", orig_scale, 0.38).set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
+	# 1. Instant comic slam flatten into pancake (0.08s)
+	tween.tween_property(player.mesh_instance, "scale", pancake_scale_max, 0.08)
+	
+	# 2. Prolonged Pancake Hold (1.35s total) with comic jelly wobbles on the floor!
+	tween.tween_property(player.mesh_instance, "scale", pancake_scale_mid, 0.40).set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_IN_OUT)
+	tween.tween_property(player.mesh_instance, "scale", pancake_scale_max, 0.45).set_trans(Tween.TRANS_SINE)
+	tween.tween_property(player.mesh_instance, "scale", pancake_scale_mid, 0.50).set_trans(Tween.TRANS_SINE)
+	
+	# 3. Dramatic comic spring pop back to standing physique (0.55s)
+	tween.tween_property(player.mesh_instance, "scale", orig_scale, 0.55).set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
 
 func _pop_seismic_nodes_recursive(node: Node, center: Vector3, radius: float, impact_speed: float, is_pancake: bool = false) -> void:
 	if not node:
