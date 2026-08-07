@@ -47,6 +47,7 @@ var is_dead: bool = false
 var is_carrying_heavy_object: bool = false
 var is_paper_flattened: bool = false
 var paper_flatten_timer: float = 0.0
+var _flatten_tween: Tween = null
 var is_stamina_exhausted: bool = false
 var shift_must_be_released: bool = false
 var target_speed: float = 0.0
@@ -307,6 +308,9 @@ func rpc_flatten_into_paper(duration: float = 20.0) -> void:
 	is_paper_flattened = true
 	paper_flatten_timer = duration
 
+	if _flatten_tween and _flatten_tween.is_valid():
+		_flatten_tween.kill()
+
 	# 1. Update Collision Shape to low, ultra-flat disc capsule (height = 0.15m, radius = 0.35m)
 	# This allows Thin to slide under low horizontal door slits, low wall vents, and tight gaps!
 	if collision_shape:
@@ -321,9 +325,9 @@ func rpc_flatten_into_paper(duration: float = 20.0) -> void:
 		var pancake_scale := Vector3(1.8, 0.04, 1.8) # Wide, ultra-flat floor pancake!
 		var pancake_pos_y := 0.04 # Pressed flat directly onto the ground floor
 
-		var tw := create_tween().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-		tw.tween_property(mesh_instance, "scale", pancake_scale, 0.10)
-		tw.parallel().tween_property(mesh_instance, "position:y", pancake_pos_y, 0.10)
+		_flatten_tween = create_tween().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+		_flatten_tween.tween_property(mesh_instance, "scale", pancake_scale, 0.10)
+		_flatten_tween.parallel().tween_property(mesh_instance, "position:y", pancake_pos_y, 0.10)
 
 	# 3. Lower camera head to near-floor level for flat pancake perspective
 	if head:
@@ -340,6 +344,9 @@ func rpc_inflate_back_to_normal() -> void:
 	is_paper_flattened = false
 	paper_flatten_timer = 0.0
 
+	if _flatten_tween and _flatten_tween.is_valid():
+		_flatten_tween.kill()
+
 	# 1. Restore original collision shape
 	if collision_shape:
 		var normal_cap := CapsuleShape3D.new()
@@ -349,17 +356,15 @@ func rpc_inflate_back_to_normal() -> void:
 		collision_shape.shape = normal_cap
 		collision_shape.position.y = stand_height * 0.5
 
-	# 2. Balloon inflation pop animation back to standing shape
+	# 2. Balloon inflation pop animation back to standing shape (Guaranteed Vector3.ONE!)
 	if mesh_instance:
 		var orig_pos_y: float = stand_height * 0.5
-		var overinflated_scale := Vector3(1.35, 2.7, 1.35)
-		var normal_scale := Vector3.ONE
 
-		var tw := create_tween().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-		tw.tween_property(mesh_instance, "scale", overinflated_scale, 0.18)
-		tw.parallel().tween_property(mesh_instance, "position:y", orig_pos_y * 1.1, 0.18)
-		tw.tween_property(mesh_instance, "scale", normal_scale, 0.30).set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
-		tw.parallel().tween_property(mesh_instance, "position:y", orig_pos_y, 0.30)
+		_flatten_tween = create_tween().set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
+		_flatten_tween.tween_property(mesh_instance, "scale", Vector3(1.25, 1.25, 1.25), 0.15)
+		_flatten_tween.parallel().tween_property(mesh_instance, "position:y", orig_pos_y * 1.1, 0.15)
+		_flatten_tween.tween_property(mesh_instance, "scale", Vector3.ONE, 0.25)
+		_flatten_tween.parallel().tween_property(mesh_instance, "position:y", orig_pos_y, 0.25)
 
 	# 3. Restore camera head position
 	if head:
