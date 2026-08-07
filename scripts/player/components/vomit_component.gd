@@ -166,8 +166,8 @@ func trigger_vomit() -> void:
 		if player.camera_3d:
 			player.camera_3d.fov = 68.0
 
-		if player.nausea_overlay and player.nausea_overlay.material:
-			player.nausea_overlay.material.set_shader_parameter("intensity", 1.0)
+		if player.hud and player.hud.has_method("set_nausea_intensity"):
+			player.hud.set_nausea_intensity(1.0)
 
 		# Raycast forward & down from mouth to project vomit onto surfaces
 		if player.is_multiplayer_authority():
@@ -217,8 +217,8 @@ func update_nausea_effects(delta: float) -> void:
 	player.nausea_intensity = nausea_intensity
 
 	# Update Shader Parameter for Nausea post-processing
-	if player.nausea_overlay and player.nausea_overlay.material:
-		player.nausea_overlay.material.set_shader_parameter("intensity", nausea_intensity)
+	if player.hud and player.hud.has_method("set_nausea_intensity"):
+		player.hud.set_nausea_intensity(nausea_intensity)
 
 	# 1st Person Camera Vertigo Sway & Periodic Gag / Retch Heaves
 	if player.camera_3d and player.head:

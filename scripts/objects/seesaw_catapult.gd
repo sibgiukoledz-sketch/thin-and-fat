@@ -19,7 +19,6 @@ signal catapult_launched(launched_body: Node, launch_velocity: float)
 @onready var particles_left: GPUParticles3D = $PlankPivot/ParticlesLeft
 @onready var particles_right: GPUParticles3D = $PlankPivot/ParticlesRight
 
-var _is_animating: bool = false
 var _current_side: int = 0 # -1 = Left down, +1 = Right down, 0 = Level
 var _last_slam_time: float = 0.0
 

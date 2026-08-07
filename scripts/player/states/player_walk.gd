@@ -3,7 +3,7 @@ extends PlayerState
 
 func enter(_msg: Dictionary = {}) -> void:
 	if player:
-		player.target_speed = player.WALK_SPEED
+		player.target_speed = player.walk_speed
 
 func physics_update(delta: float) -> void:
 	if not player:
@@ -31,4 +31,4 @@ func physics_update(delta: float) -> void:
 		state_machine.transition_to("Sprint")
 		return
 
-	player.apply_movement(input_dir, player.WALK_SPEED, delta)
+	player.apply_movement(input_dir, player.walk_speed, delta)

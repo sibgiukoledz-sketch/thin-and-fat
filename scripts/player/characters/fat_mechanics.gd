@@ -33,6 +33,16 @@ var _slingshot_blast_particles: GPUParticles3D
 var _slingshot_cooldown: float = 0.0
 
 
+func setup(p: Player) -> void:
+	player = p
+	if player:
+		if not player.player_landed.is_connected(_on_player_landed):
+			player.player_landed.connect(_on_player_landed)
+
+	_setup_visual_nodes()
+	_setup_seismic_vfx()
+	_setup_slingshot_vfx()
+
 func _ready() -> void:
 	super._ready()
 	if not player and get_parent() is Player:
@@ -304,8 +314,8 @@ func _on_player_landed(downward_vel: float) -> void:
 	if not _ensure_player_ref() or not player.is_multiplayer_authority() or player.is_dead:
 		return
 
-	if downward_vel < -1.8:
-		var impact_speed: float = absf(downward_vel)
+	var impact_speed: float = absf(downward_vel)
+	if impact_speed > 1.0:
 		rpc_seismic_earthquake.rpc(player.global_position, impact_speed)
 
 @rpc("any_peer", "call_local", "reliable")
@@ -571,3 +581,15 @@ func _ensure_player_ref() -> bool:
 	if not player and get_parent() is Player:
 		player = get_parent() as Player
 	return player != null
+
+func _exit_tree() -> void:
+	if _gas_particles and is_instance_valid(_gas_particles):
+		_gas_particles.queue_free()
+	if _flies_particles and is_instance_valid(_flies_particles):
+		_flies_particles.queue_free()
+	if _spore_particles and is_instance_valid(_spore_particles):
+		_spore_particles.queue_free()
+	if _seismic_shockwave_particles and is_instance_valid(_seismic_shockwave_particles):
+		_seismic_shockwave_particles.queue_free()
+	if _slingshot_blast_particles and is_instance_valid(_slingshot_blast_particles):
+		_slingshot_blast_particles.queue_free()

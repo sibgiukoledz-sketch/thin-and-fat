@@ -62,7 +62,7 @@ func _process(delta: float) -> void:
 	if _fps_timer >= 0.25:
 		_fps_timer = 0.0
 		if fps_label:
-			var fps: int = Engine.get_frames_per_second()
+			var fps: int = int(Engine.get_frames_per_second())
 			var ms: float = (1.0 / maxf(float(fps), 1.0)) * 1000.0
 			fps_label.text = "⚡ %d FPS (%.1f ms)" % [fps, ms]
 
@@ -120,8 +120,8 @@ func update_display() -> void:
 		if player.selected_character_id.to_lower() == "fat":
 			stench_bar.visible = true
 			stench_label.visible = true
-			if player.active_mechanics and "stench_buildup" in player.active_mechanics:
-				var stench_val: float = player.active_mechanics.stench_buildup
+			if player.active_mechanics and "stench_level" in player.active_mechanics:
+				var stench_val: float = player.active_mechanics.stench_level
 				stench_bar.value = stench_val
 				stench_label.text = "ВОНЬ: %d%%" % int(stench_val)
 		else:
@@ -140,22 +140,30 @@ func set_nausea_intensity(intensity: float) -> void:
 	if nausea_overlay and nausea_overlay.material:
 		nausea_overlay.material.set_shader_parameter("intensity", clampf(intensity, 0.0, 1.0))
 
+func update_slingshot_cooldown(current: float, _max_cd: float) -> void:
+	if slingshot_widget and player and player.selected_character_id.to_lower() == "fat":
+		_update_slingshot_widget_val(current)
+
 func _update_slingshot_widget() -> void:
 	if not slingshot_widget:
 		return
 
-	if not player or player.selected_character_id.to_lower() != "thin":
+	if not player or player.selected_character_id.to_lower() != "fat":
 		slingshot_widget.visible = false
 		return
 
 	slingshot_widget.visible = true
 
 	var cooldown_remaining: float = 0.0
-	var is_ready: bool = true
-
-	if player.active_mechanics and "slingshot_cooldown_timer" in player.active_mechanics:
+	if player.active_mechanics and "_slingshot_cooldown" in player.active_mechanics:
+		cooldown_remaining = player.active_mechanics._slingshot_cooldown
+	elif player.active_mechanics and "slingshot_cooldown_timer" in player.active_mechanics:
 		cooldown_remaining = player.active_mechanics.slingshot_cooldown_timer
-		is_ready = cooldown_remaining <= 0.001
+
+	_update_slingshot_widget_val(cooldown_remaining)
+
+func _update_slingshot_widget_val(cooldown_remaining: float) -> void:
+	var is_ready: bool = cooldown_remaining <= 0.001
 
 	if is_ready:
 		if slingshot_circle_bg:

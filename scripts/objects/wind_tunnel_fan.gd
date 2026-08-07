@@ -21,9 +21,16 @@ extends Node3D
 @onready var blades_mesh: MeshInstance3D = $TurbineHousing/BladesMesh
 @onready var wind_area: Area3D = $WindArea
 @onready var wind_particles: GPUParticles3D = $WindParticles
+@onready var raycast_sensor: RayCast3D = $RayCastSensor
 
 func _ready() -> void:
 	_apply_visual_rotations()
+	if raycast_sensor:
+		var fan_static: StaticBody3D = get_node_or_null("FanStatic")
+		if fan_static:
+			raycast_sensor.add_exception(fan_static)
+		raycast_sensor.position = Vector3(0, 2.2, 1.8)
+
 	if wind_particles:
 		wind_particles.emitting = is_active and not Engine.is_editor_hint()
 
@@ -49,17 +56,71 @@ func _physics_process(delta: float) -> void:
 	if Engine.is_editor_hint():
 		return
 
-	if not is_active:
-		if wind_particles and wind_particles.emitting:
+	var wind_dir: Vector3 = global_transform.basis.z.normalized()
+	var fan_origin: Vector3 = global_position + Vector3(0, 1.8, 0)
+
+	var block_info: Dictionary = _get_closest_obstacle_distance(fan_origin, wind_dir)
+	var is_blocked: bool = block_info.get("is_nozzle_blocked", false)
+	var hit_dist: float = block_info.get("distance", fan_reach_length)
+
+	if wind_particles:
+		if is_blocked:
 			wind_particles.emitting = false
-		return
+		else:
+			wind_particles.emitting = is_active
+			# Dynamically adjust particle lifetime so particles DIE right upon touching the boulder!
+			var target_lifetime: float = clampf(hit_dist / 18.0, 0.08, 0.90)
+			wind_particles.lifetime = target_lifetime
 
-	if not wind_particles.emitting:
-		wind_particles.emitting = true
+	if is_active and not is_blocked:
+		_apply_wind_physics(delta, hit_dist)
 
-	_apply_wind_physics(delta)
+func _get_closest_obstacle_distance(fan_origin: Vector3, wind_dir: Vector3) -> Dictionary:
+	var closest_dist: float = fan_reach_length
+	var is_nozzle_blocked: bool = false
+	var root: Node = get_tree().root
 
-func _apply_wind_physics(delta: float) -> void:
+	# 1. Native RayCastSensor check
+	if raycast_sensor:
+		raycast_sensor.force_raycast_update()
+		if raycast_sensor.is_colliding():
+			var collider: Object = raycast_sensor.get_collider()
+			if collider is RigidBody3D:
+				var rb: RigidBody3D = collider as RigidBody3D
+				if rb is HeavyBoulder or rb.mass >= 150.0:
+					var hit_pt: Vector3 = raycast_sensor.get_collision_point()
+					var dist: float = fan_origin.distance_to(hit_pt)
+					closest_dist = minf(closest_dist, dist)
+					if dist <= 3.8:
+						is_nozzle_blocked = true
+
+	# 2. Spatial search for Heavy Boulder anywhere in the corridor
+	var rigid_bodies: Array[Node] = root.find_children("*", "RigidBody3D", true, false)
+	for rb_node in rigid_bodies:
+		if rb_node is RigidBody3D:
+			var rb: RigidBody3D = rb_node as RigidBody3D
+			if rb is HeavyBoulder or rb.mass >= 150.0:
+				var boulder_pos_2d: Vector3 = rb.global_position
+				boulder_pos_2d.y = 0.0
+				var fan_pos_2d: Vector3 = global_position
+				fan_pos_2d.y = 0.0
+
+				var rel_pos: Vector3 = boulder_pos_2d - fan_pos_2d
+				var forward_dist: float = rel_pos.dot(wind_dir)
+				var lateral_dist: float = (rel_pos - wind_dir * forward_dist).length()
+
+				# If boulder is within the wind corridor (lateral_dist <= 3.5m, forward_dist > 0)
+				if forward_dist > 0.0 and forward_dist < fan_reach_length and lateral_dist <= 3.5:
+					closest_dist = minf(closest_dist, forward_dist)
+					if forward_dist <= 3.8 and lateral_dist <= 3.0:
+						is_nozzle_blocked = true
+
+	return {
+		"distance": closest_dist,
+		"is_nozzle_blocked": is_nozzle_blocked
+	}
+
+func _apply_wind_physics(delta: float, max_wind_distance: float) -> void:
 	var wind_dir: Vector3 = global_transform.basis.z.normalized()
 	var fan_origin: Vector3 = global_position + Vector3(0, 1.8, 0)
 	var root: Node = get_tree().root
@@ -71,42 +132,60 @@ func _apply_wind_physics(delta: float) -> void:
 			if body == self or body is StaticBody3D:
 				continue
 
-			var is_fat: bool = false
 			if body is Player:
 				var p: Player = body as Player
+				var p_dist: float = fan_origin.distance_to(p.global_position)
+
+				# IF PLAYER IS BEYOND THE BOULDER (p_dist > max_wind_distance), PLAYER IS 100% IN WIND SHADOW!
+				if p_dist > max_wind_distance + 0.5:
+					continue
+
+				if _check_is_shielded(fan_origin, p.global_position):
+					continue
+
 				if p.selected_character_id.to_lower() == "fat":
-					is_fat = true
+					var dot_fat: float = p.velocity.dot(wind_dir)
+					# 1. Subtle minor heavy drift backward when Fat stands still or moves slowly
+					if dot_fat < 0.5:
+						p.velocity += wind_dir * (wind_force * 0.12) * delta
+					# 2. Heavy resistance when Fat pushes forward against the wind
+					if dot_fat < 0.0:
+						p.velocity -= wind_dir * (dot_fat * 0.25)
+					continue
 
-			if is_fat:
-				var p_fat: Player = body as Player
-				var dot_fat: float = p_fat.velocity.dot(wind_dir)
-				# 1. Subtle minor drift backward when Fat stands still or moves slowly
-				if dot_fat < 0.5:
-					p_fat.velocity += wind_dir * (wind_force * 0.18) * delta
-				# 2. Heavy resistance when Fat pushes forward against the wind
-				if dot_fat < 0.0:
-					p_fat.velocity -= wind_dir * (dot_fat * 0.35)
-				continue
+				# Thin Player: check if shielded by Fat or Heavy Boulder!
+				if _check_is_shielded(fan_origin, p.global_position):
+					continue
 
-			var is_shielded: bool = _check_is_shielded_by_fat(fan_origin, body.global_position)
-			if is_shielded:
-				continue
-
-			if body is Player:
-				var p: Player = body as Player
-				p.velocity += wind_dir * (wind_force * 1.8) * delta
-				var dot: float = p.velocity.dot(wind_dir)
-				if dot < 0.0:
-					p.velocity -= wind_dir * (dot * 0.9)
+				# Blown backward violently by wind!
+				var push_vel: Vector3 = wind_dir * (wind_force * 1.6)
+				p.velocity.x = lerpf(p.velocity.x, push_vel.x, 14.0 * delta)
+				p.velocity.z = lerpf(p.velocity.z, push_vel.z, 14.0 * delta)
+				p.move_and_slide()
 
 			elif body is RigidBody3D:
 				var rb: RigidBody3D = body as RigidBody3D
+				# Only blow light/medium objects; Heavy Boulder (mass >= 150) stays grounded as a shield!
 				if rb.mass < 150.0:
 					rb.apply_central_force(wind_dir * wind_force * rb.mass * 15.0)
 
-	# 2. GUARANTEED NPC Wind Push: Spatial search for DummyNPC mannequins inside wind corridor
-	for child in root.find_children("*", "DummyNPC", true, false):
-		if child is DummyNPC:
+	# 2. Spatial corridor search for Thin players & DummyNPCs inside wind reach zone
+	for child in root.find_children("*", "CharacterBody3D", true, false):
+		if child is Player:
+			var player_node: Player = child as Player
+			if player_node.selected_character_id.to_lower() == "thin" and not player_node.is_dead:
+				var rel_pos: Vector3 = player_node.global_position - fan_origin
+				var forward_dist: float = rel_pos.dot(wind_dir)
+				var side_dist: float = (rel_pos - wind_dir * forward_dist).length()
+
+				if forward_dist > 0.0 and forward_dist <= max_wind_distance + 0.5 and side_dist < 2.5:
+					if not _check_is_shielded(fan_origin, player_node.global_position):
+						var push_vel: Vector3 = wind_dir * (wind_force * 1.6)
+						player_node.velocity.x = lerpf(player_node.velocity.x, push_vel.x, 14.0 * delta)
+						player_node.velocity.z = lerpf(player_node.velocity.z, push_vel.z, 14.0 * delta)
+						player_node.move_and_slide()
+
+		elif child is DummyNPC:
 			var npc: DummyNPC = child as DummyNPC
 			var npc_pos: Vector3 = npc.global_position
 			var rel_pos: Vector3 = npc_pos - fan_origin
@@ -114,29 +193,72 @@ func _apply_wind_physics(delta: float) -> void:
 			var side_dist: float = (rel_pos - wind_dir * forward_dist).length()
 
 			if forward_dist > 0.0 and forward_dist < fan_reach_length and side_dist < 2.5:
-				if not _check_is_shielded_by_fat(fan_origin, npc_pos):
-					npc.velocity += wind_dir * (wind_force * 3.5) * delta
+				if not _check_is_shielded(fan_origin, npc_pos):
+					var push_vel: Vector3 = wind_dir * (wind_force * 1.6)
+					npc.velocity.x = lerpf(npc.velocity.x, push_vel.x, 14.0 * delta)
+					npc.velocity.z = lerpf(npc.velocity.z, push_vel.z, 14.0 * delta)
 					npc.move_and_slide()
 
-func _check_is_shielded_by_fat(fan_origin: Vector3, victim_pos: Vector3) -> bool:
-	var root: Node = get_tree().root
-	var players: Array[Node] = root.find_children("*", "CharacterBody3D", true, false)
-	var victim_dist: float = fan_origin.distance_to(victim_pos)
+func _check_is_shielded(fan_origin: Vector3, victim_pos: Vector3) -> bool:
+	var wind_dir: Vector3 = global_transform.basis.z.normalized()
+	var fan_pos_2d: Vector3 = global_position
+	fan_pos_2d.y = 0.0
 
+	var victim_pos_2d: Vector3 = victim_pos
+	victim_pos_2d.y = 0.0
+
+	var rel_victim: Vector3 = victim_pos_2d - fan_pos_2d
+	var v_fwd: float = rel_victim.dot(wind_dir)
+
+	# 1. Native RayCastSensor check down wind beam line!
+	if raycast_sensor:
+		raycast_sensor.force_raycast_update()
+		if raycast_sensor.is_colliding():
+			var collider: Object = raycast_sensor.get_collider()
+			if collider is RigidBody3D:
+				var rb: RigidBody3D = collider as RigidBody3D
+				if rb is HeavyBoulder or rb.mass >= 150.0:
+					var hit_pt: Vector3 = raycast_sensor.get_collision_point()
+					var rel_hit: Vector3 = hit_pt - global_position
+					rel_hit.y = 0.0
+					var hit_fwd: float = rel_hit.dot(wind_dir)
+					# If the boulder raycast hit is BEFORE the victim along wind line, victim is shielded!
+					if hit_fwd > 0.0 and hit_fwd < v_fwd:
+						return true
+
+	var root: Node = get_tree().root
+
+	# 2. Check Fat player shielding
+	var players: Array[Node] = root.find_children("*", "CharacterBody3D", true, false)
 	for p in players:
 		if p is Player:
-			var player: Player = p as Player
-			if player.selected_character_id.to_lower() == "fat":
-				var fat_pos: Vector3 = player.global_position + Vector3(0, 1.0, 0)
-				var fat_dist: float = fan_origin.distance_to(fat_pos)
+			var player_node: Player = p as Player
+			if player_node.selected_character_id.to_lower() == "fat" and not player_node.is_dead:
+				var fat_pos_2d: Vector3 = player_node.global_position
+				fat_pos_2d.y = 0.0
+				var rel_fat: Vector3 = fat_pos_2d - fan_pos_2d
+				var fat_fwd: float = rel_fat.dot(wind_dir)
+				var fat_side: float = (rel_fat - wind_dir * fat_fwd).length()
 
-				if fat_dist < victim_dist:
-					var line_vec: Vector3 = (victim_pos - fan_origin).normalized()
-					var fat_vec: Vector3 = fat_pos - fan_origin
-					var proj_len: float = fat_vec.dot(line_vec)
-					var perp_dist: float = (fat_vec - line_vec * proj_len).length()
+				if fat_fwd > 0.0 and fat_fwd < v_fwd and fat_side <= 2.5:
+					return true
 
-					if perp_dist <= 2.2:
-						return true
+	# 3. Check Heavy Boulder shielding (closing/blocking the wind corridor!)
+	var rigid_bodies: Array[Node] = root.find_children("*", "RigidBody3D", true, false)
+	for rb_node in rigid_bodies:
+		if rb_node is RigidBody3D:
+			var rb: RigidBody3D = rb_node as RigidBody3D
+			if rb is HeavyBoulder or rb.mass >= 150.0:
+				var boulder_pos_2d: Vector3 = rb.global_position
+				boulder_pos_2d.y = 0.0
+
+				var rel_boulder: Vector3 = boulder_pos_2d - fan_pos_2d
+				var b_fwd: float = rel_boulder.dot(wind_dir)
+				var b_side: float = (rel_boulder - wind_dir * b_fwd).length()
+
+				# If boulder is in wind stream (b_fwd > 0), placed between fan and victim (b_fwd < v_fwd),
+				# and within 3.8m corridor width (b_side <= 3.8): VICTIM IS 100% SHIELDED!
+				if b_fwd > 0.0 and b_fwd < v_fwd and b_side <= 3.8:
+					return true
 
 	return false

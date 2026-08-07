@@ -104,6 +104,11 @@ func _ready() -> void:
 		if hud:
 			hud.queue_free()
 
+	if not vomit_component:
+		vomit_component = VomitComponent.new()
+		vomit_component.name = "VomitComponent"
+		add_child(vomit_component)
+
 	set_character(selected_character_id)
 
 func set_character(char_id: String) -> void:
@@ -113,23 +118,33 @@ func set_character(char_id: String) -> void:
 	if is_fat:
 		max_health = 160.0
 		max_stamina = 100.0
-		walk_speed = 4.2
-		run_speed = 7.0
-		jump_velocity = 6.2
+		walk_speed = 3.6
+		run_speed = 5.8
+		jump_velocity = 3.2 # Extremely heavy low hop (~20 cm height!)
 		stamina_drain_rate = 35.0
 		stamina_regen_rate = 22.0
 		stand_height = 1.5
+		crouch_height = 0.95
 		stand_head_y = 1.25
+		crouch_head_y = 0.75
 
-		if collision_shape and collision_shape.shape is CapsuleShape3D:
-			var cap := collision_shape.shape as CapsuleShape3D
-			cap.radius = 0.75
-			cap.height = 1.5
+		var cap_shape := CapsuleShape3D.new()
+		cap_shape.radius = 0.65
+		cap_shape.height = 1.5
+		if collision_shape:
+			collision_shape.shape = cap_shape
 
-		if mesh_instance and mesh_instance.mesh is CapsuleMesh:
-			var cm := mesh_instance.mesh as CapsuleMesh
-			cm.radius = 0.75
-			cm.height = 1.5
+		var cap_mesh := CapsuleMesh.new()
+		cap_mesh.radius = 0.65
+		cap_mesh.height = 1.5
+
+		var fat_mat := StandardMaterial3D.new()
+		fat_mat.albedo_color = Color(0.88, 0.48, 0.18, 1.0) # Warm Amber Heavy Physique
+		fat_mat.roughness = 0.45
+		cap_mesh.material = fat_mat
+
+		if mesh_instance:
+			mesh_instance.mesh = cap_mesh
 
 		# Attach Fat Mechanics Component
 		_attach_mechanics_component("res://scripts/player/characters/fat_mechanics.gd")
@@ -143,17 +158,27 @@ func set_character(char_id: String) -> void:
 		stamina_drain_rate = 18.0
 		stamina_regen_rate = 30.0
 		stand_height = 2.4
+		crouch_height = 1.2
 		stand_head_y = 2.05
+		crouch_head_y = 1.0
 
-		if collision_shape and collision_shape.shape is CapsuleShape3D:
-			var cap := collision_shape.shape as CapsuleShape3D
-			cap.radius = 0.28
-			cap.height = 2.4
+		var cap_shape := CapsuleShape3D.new()
+		cap_shape.radius = 0.28
+		cap_shape.height = 2.4
+		if collision_shape:
+			collision_shape.shape = cap_shape
 
-		if mesh_instance and mesh_instance.mesh is CapsuleMesh:
-			var cm := mesh_instance.mesh as CapsuleMesh
-			cm.radius = 0.28
-			cm.height = 2.4
+		var cap_mesh := CapsuleMesh.new()
+		cap_mesh.radius = 0.28
+		cap_mesh.height = 2.4
+
+		var thin_mat := StandardMaterial3D.new()
+		thin_mat.albedo_color = Color(0.18, 0.65, 0.95, 1.0) # Neon Cyan Athletic Physique
+		thin_mat.roughness = 0.3
+		cap_mesh.material = thin_mat
+
+		if mesh_instance:
+			mesh_instance.mesh = cap_mesh
 
 		# Attach Thin Mechanics Component
 		_attach_mechanics_component("res://scripts/player/characters/thin_mechanics.gd")
@@ -186,7 +211,7 @@ func _attach_mechanics_component(script_path: String) -> void:
 		if active_mechanics and active_mechanics.has_method("setup"):
 			active_mechanics.setup(self)
 
-func take_damage(amount: float) -> void:
+func take_damage(amount: float, _hit_pos: Vector3 = Vector3.ZERO) -> void:
 	if is_dead:
 		return
 
@@ -198,6 +223,16 @@ func take_damage(amount: float) -> void:
 
 	if current_health <= 0.0:
 		die()
+
+func heal(amount: float) -> void:
+	if is_dead:
+		return
+
+	current_health = clampf(current_health + amount, 0.0, max_health)
+	health_changed.emit(current_health, max_health)
+
+	if is_multiplayer_authority() and hud:
+		hud.update_display()
 
 func die() -> void:
 	if is_dead:
@@ -337,10 +372,19 @@ func _perform_melee_attack() -> void:
 		var hit_pos: Vector3 = result.position
 		if hit_collider and hit_collider.has_method("take_damage"):
 			var dmg: float = 35.0 if selected_character_id.to_lower() == "fat" else 20.0
-			hit_collider.take_damage(dmg)
+			hit_collider.take_damage(dmg, hit_pos)
 			print("🥊 MELEE HIT: %s dealt %.1f damage to %s" % [name, dmg, hit_collider.name])
 
+var _last_carry_state: bool = false
+
 func _physics_process(delta: float) -> void:
+	if not is_multiplayer_authority():
+		return
+
+	if _last_carry_state != is_carrying_heavy_object:
+		_last_carry_state = is_carrying_heavy_object
+		_update_carried_boulder_collision_shape()
+
 	if is_dead:
 		if is_multiplayer_authority():
 			_respawn_timer -= delta
@@ -365,24 +409,52 @@ func _physics_process(delta: float) -> void:
 	_handle_stamina_regen(delta)
 	_update_camera_zoom(delta)
 
+	if active_mechanics:
+		active_mechanics.update_mechanics(delta)
+		active_mechanics.physics_update_mechanics(delta)
+
+	if vomit_component:
+		vomit_component.update_nausea_effects(delta)
+
 	if is_multiplayer_authority() and hud:
 		hud.update_display()
 		if nausea_intensity > 0.0:
 			hud.set_nausea_intensity(nausea_intensity)
+
+func _update_carried_boulder_collision_shape() -> void:
+	if not collision_shape:
+		return
+	var is_fat := (selected_character_id.to_lower() == "fat")
+	var cap_shape := CapsuleShape3D.new()
+
+	if is_fat:
+		if is_carrying_heavy_object:
+			# Expand Fat's capsule radius to 1.65m (3.3m total width) matching 3.5m boulder size!
+			cap_shape.radius = 1.65
+			cap_shape.height = 2.8
+		else:
+			cap_shape.radius = 0.65
+			cap_shape.height = 1.5
+	else:
+		cap_shape.radius = 0.28
+		cap_shape.height = 2.4
+
+	collision_shape.shape = cap_shape
 
 func _handle_stamina_regen(delta: float) -> void:
 	if state_machine:
 		synced_state_name = state_machine.current_state_name
 		var cur_state: String = synced_state_name.to_lower()
 		if cur_state == "sprint":
-
 			current_stamina = clampf(current_stamina - stamina_drain_rate * delta, 0.0, max_stamina)
+			stamina_changed.emit(current_stamina, max_stamina)
 			if current_stamina <= 0.001:
 				is_stamina_exhausted = true
 				shift_must_be_released = true
 		else:
 			if current_stamina < max_stamina:
 				current_stamina = clampf(current_stamina + stamina_regen_rate * delta, 0.0, max_stamina)
+				stamina_changed.emit(current_stamina, max_stamina)
 			elif current_stamina >= max_stamina:
 				is_stamina_exhausted = false
 				shift_must_be_released = false
@@ -411,9 +483,16 @@ func get_movement_input() -> Vector3:
 	var dir := (global_transform.basis * Vector3(raw_input.x, 0.0, raw_input.y)).normalized()
 	return dir
 
-func apply_movement(dir: Vector3, target_speed: float, delta: float, accel_factor: float = 1.0) -> void:
-	var target_vel_x := dir.x * target_speed
-	var target_vel_z := dir.z * target_speed
+func get_effective_speed(base_spd: float) -> float:
+	var spd := base_spd
+	if is_carrying_heavy_object:
+		spd *= 0.50 # 50% speed penalty when carrying heavy boulder!
+	return spd
+
+func apply_movement(dir: Vector3, move_spd: float, delta: float, accel_factor: float = 1.0) -> void:
+	var final_spd := get_effective_speed(move_spd)
+	var target_vel_x := dir.x * final_spd
+	var target_vel_z := dir.z * final_spd
 	var accel := 14.0 * accel_factor
 	velocity.x = lerpf(velocity.x, target_vel_x, accel * delta)
 	velocity.z = lerpf(velocity.z, target_vel_z, accel * delta)
@@ -430,10 +509,14 @@ func is_sprint_requested() -> bool:
 
 func apply_gravity(delta: float) -> void:
 	if not is_on_floor():
-		velocity.y -= gravity * delta
+		var grav_mult: float = 1.45 if selected_character_id.to_lower() == "fat" else 1.0
+		velocity.y -= gravity * grav_mult * delta
 
 func apply_jump_impulse() -> void:
-	velocity.y = jump_velocity
+	if is_carrying_heavy_object:
+		velocity.y = jump_velocity * 0.55
+	else:
+		velocity.y = jump_velocity
 
 func set_target_fov(fov_val: float) -> void:
 	if camera_3d:
@@ -462,4 +545,3 @@ func can_uncrouch() -> bool:
 	query.exclude = [self]
 	var result: Dictionary = space_state.intersect_ray(query)
 	return result.is_empty()
-

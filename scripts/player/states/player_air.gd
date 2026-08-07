@@ -15,7 +15,8 @@ func physics_update(delta: float) -> void:
 	# Air control (slightly lower acceleration)
 	var input_dir: Vector3 = player.get_movement_input()
 
-	player.apply_movement(input_dir, player.WALK_SPEED, delta, player.AIR_ACCEL_FACTOR)
+	var speed: float = player.target_speed if player.target_speed > 0.0 else player.walk_speed
+	player.apply_movement(input_dir, speed, delta, player.AIR_ACCEL_FACTOR)
 
 	# Check landing
 	if player.is_on_floor():

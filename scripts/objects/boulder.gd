@@ -11,7 +11,7 @@ signal boulder_impact(position: Vector3)
 
 @export var damage_on_impact: float = 75.0
 @export var impact_radius: float = 5.5
-@export var throw_force: float = 11.5
+@export var throw_force: float = 18.5
 
 @onready var prompt_label: Label3D = $PromptLabel3D
 @onready var mesh_instance: MeshInstance3D = $MeshInstance3D
@@ -37,6 +37,10 @@ var _warning_text: String = ""
 var _last_impact_time: float = 0.0
 
 func _ready() -> void:
+	mass = 450.0
+	linear_damp = 0.4
+	angular_damp = 0.5
+
 	if interaction_area:
 		interaction_area.body_entered.connect(_on_interaction_body_entered)
 	body_entered.connect(_on_physics_body_entered)
@@ -321,7 +325,28 @@ func _process(delta: float) -> void:
 
 	# Handling smooth physical carrying position above Fat player's head
 	if _is_carried and is_instance_valid(_carrier_player):
-		var target_pos: Vector3 = _carrier_player.global_position + Vector3(0, 3.2, 0)
+		var carrier_head: Vector3 = _carrier_player.global_position + Vector3(0, 1.8, 0)
+		var desired_pos: Vector3 = _carrier_player.global_position + Vector3(0, 2.8, 0)
+
+		# 1. Environment Collision Check using SphereShape3D sweep cast for 3.4m boulder
+		var space_state := get_world_3d().direct_space_state
+		if space_state:
+			var sphere_shape := SphereShape3D.new()
+			sphere_shape.radius = 1.70 # 3.4m boulder physical collision sphere
+
+			var shape_query := PhysicsShapeQueryParameters3D.new()
+			shape_query.shape = sphere_shape
+			shape_query.transform = Transform3D(Basis.IDENTITY, desired_pos)
+			shape_query.exclude = [self.get_rid(), _carrier_player.get_rid()]
+			shape_query.collision_mask = 1 # Static Environment / Doorframes / Walls
+
+			var collisions: Array[Dictionary] = space_state.intersect_shape(shape_query, 4)
+			if collisions.size() > 0:
+				# Boulder hit a doorway frame or ceiling! Detach and slip backwards!
+				rpc_detach_and_fall_back.rpc()
+				return
+
+		var target_pos: Vector3 = desired_pos
 
 		if _lift_progress < 1.0:
 			_lift_progress = minf(_lift_progress + delta * 1.8, 1.0)
@@ -414,6 +439,9 @@ func rpc_pick_up_boulder(player_path: NodePath) -> void:
 	_lift_start_pos = global_position
 	_update_prompt()
 
+	if p.spring_arm:
+		p.spring_arm.add_excluded_object(self.get_rid())
+
 	if p.is_multiplayer_authority() and p.camera_3d:
 		p.camera_3d.rotation.z = deg_to_rad(8.0)
 
@@ -426,9 +454,42 @@ func rpc_pick_up_boulder(player_path: NodePath) -> void:
 	print("🪨 REALISTIC HEAVY LIFT: Boulder lifted by %s!" % p.name)
 
 @rpc("any_peer", "call_local", "reliable")
+func rpc_detach_and_fall_back() -> void:
+	if not _is_carried:
+		return
+
+	var drop_pos: Vector3 = global_position
+	var back_dir: Vector3 = Vector3.BACK
+	if _carrier_player:
+		back_dir = _carrier_player.global_transform.basis.z.normalized()
+		if _carrier_player.spring_arm:
+			_carrier_player.spring_arm.remove_excluded_object(self.get_rid())
+		_carrier_player.is_carrying_heavy_object = false
+		_carrier_player = null
+
+	_is_carried = false
+	freeze = false
+
+	# Tumble and roll backward with heavy physical velocity!
+	linear_velocity = back_dir * 5.5 + Vector3(0, 1.5, 0)
+	angular_velocity = Vector3(randf_range(6.0, 10.0), randf_range(-2.0, 2.0), randf_range(-2.0, 2.0))
+
+	_trigger_all_impact_vfx(drop_pos)
+	_show_warning("💥 ВАЛУН НЕ ПРОЛЕЗ В ПРОЁМ!\nВалун выскользнул из рук и упал назад!")
+	print("💥 BOULDER DETACHED: Hit doorframe, dropped backward!")
+
+@rpc("any_peer", "call_local", "reliable")
 func rpc_throw_boulder(start_pos: Vector3, initial_velocity: Vector3) -> void:
 	global_position = start_pos
 	if _carrier_player:
+		if _carrier_player.spring_arm:
+			_carrier_player.spring_arm.remove_excluded_object(self.get_rid())
+		if _carrier_player.is_multiplayer_authority():
+			if _carrier_player.camera_3d:
+				_carrier_player.camera_3d.rotation.x = clampf(_carrier_player.camera_3d.rotation.x - deg_to_rad(12.0), deg_to_rad(-89.0), deg_to_rad(89.0))
+			if _carrier_player.has_method("set_target_fov"):
+				_carrier_player.set_target_fov(92.0)
+
 		_carrier_player.is_carrying_heavy_object = false
 		boulder_thrown.emit(_carrier_player)
 		_carrier_player = null
@@ -437,7 +498,12 @@ func rpc_throw_boulder(start_pos: Vector3, initial_velocity: Vector3) -> void:
 	freeze = false
 
 	linear_velocity = initial_velocity
-	angular_velocity = Vector3(randf_range(-4.0, -7.0), randf_range(-1.5, 1.5), randf_range(-1.5, 1.5))
+	angular_velocity = Vector3(randf_range(-10.0, -14.0), randf_range(-4.0, 4.0), randf_range(-4.0, 4.0))
+
+	if _dust_particles:
+		_dust_particles.global_position = start_pos
+		_dust_particles.restart()
+		_dust_particles.emitting = true
 
 	_update_prompt()
 	print("🪨 REALISTIC HEAVY THROW! Velocity: %s" % str(initial_velocity))
@@ -447,11 +513,11 @@ func _on_physics_body_entered(body: Node) -> void:
 		return
 
 	var cur_time: float = Time.get_ticks_msec() * 0.001
-	if cur_time - _last_impact_time < 0.35:
+	if cur_time - _last_impact_time < 0.25:
 		return
 
 	var speed: float = linear_velocity.length()
-	if speed > 4.2:
+	if speed > 1.2:
 		_last_impact_time = cur_time
 		var impact_pos: Vector3 = global_position
 
@@ -459,12 +525,19 @@ func _on_physics_body_entered(body: Node) -> void:
 		_trigger_all_impact_vfx(impact_pos)
 
 		if body is Node3D and body != self and body != _carrier_player:
+			if body is Player:
+				var p: Player = body as Player
+				if p.selected_character_id.to_lower() == "fat":
+					# Fat is heavy and immune to normal boulder bumps/rolls while handling it!
+					if speed < 12.0:
+						return
+
 			if body.has_method("take_damage"):
-				var dmg: float = clampf(speed * 3.5, 25.0, damage_on_impact)
+				var dmg: float = clampf(speed * 4.5 + 25.0, 35.0, damage_on_impact)
 				body.take_damage(dmg, (body as Node3D).global_position)
 				print("💥 PHYSICAL BOULDER CRUSH: Dealt %.1f damage to %s" % [dmg, body.name])
 
-		_apply_impact_aoe_damage(impact_pos, speed)
+		_apply_impact_aoe_damage(impact_pos, maxf(speed, 5.0))
 		boulder_impact.emit(impact_pos)
 
 func _apply_impact_aoe_damage(center: Vector3, speed: float) -> void:
@@ -476,6 +549,12 @@ func _damage_nodes_recursive(node: Node, center: Vector3, speed: float) -> void:
 		return
 
 	if node is Node3D and node != self and node != _carrier_player:
+		if node is Player:
+			var p: Player = node as Player
+			if p.selected_character_id.to_lower() == "fat":
+				# Fat player is master of the heavy boulder -> 100% immune to boulder AOE impact damage!
+				return
+
 		var n3d: Node3D = node as Node3D
 		var dist: float = center.distance_to(n3d.global_position)
 		if dist <= impact_radius:

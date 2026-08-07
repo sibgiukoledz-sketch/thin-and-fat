@@ -13,6 +13,9 @@ func _ready() -> void:
 	elif get_parent() is Player:
 		player = get_parent() as Player
 
+func setup(p: Player) -> void:
+	player = p
+
 func handle_ability_input(_event: InputEvent) -> void:
 	pass
 

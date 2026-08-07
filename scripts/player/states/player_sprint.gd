@@ -3,7 +3,7 @@ extends PlayerState
 
 func enter(_msg: Dictionary = {}) -> void:
 	if player:
-		player.target_speed = player.SPRINT_SPEED
+		player.target_speed = player.run_speed
 		player.set_target_fov(player.SPRINT_FOV)
 
 func exit() -> void:
@@ -36,4 +36,4 @@ func physics_update(delta: float) -> void:
 		state_machine.transition_to("Walk")
 		return
 
-	player.apply_movement(input_dir, player.SPRINT_SPEED, delta)
+	player.apply_movement(input_dir, player.run_speed, delta)
