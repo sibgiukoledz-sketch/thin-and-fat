@@ -74,6 +74,9 @@ var target_speed: float = 0.0
 			if is_inside_tree():
 				set_crouch_state(is_crouching)
 
+		if character_model and character_model.has_method("play_anim"):
+			character_model.call("play_anim", synced_state_name)
+
 
 # Component & Node References
 @onready var head: Node3D = $Head
@@ -190,14 +193,14 @@ func set_character(char_id: String) -> void:
 		jump_velocity = 3.2 # Extremely heavy low hop (~20 cm height!)
 		stamina_drain_rate = 35.0
 		stamina_regen_rate = 22.0
-		stand_height = 1.5
-		crouch_height = 0.95
-		stand_head_y = 1.25
-		crouch_head_y = 0.75
+		stand_height = 1.8
+		crouch_height = 1.0
+		stand_head_y = 1.50
+		crouch_head_y = 0.85
 
 		var cap_shape := CapsuleShape3D.new()
 		cap_shape.radius = 0.65
-		cap_shape.height = 1.5
+		cap_shape.height = 1.8
 		if collision_shape:
 			collision_shape.shape = cap_shape
 
@@ -219,7 +222,7 @@ func set_character(char_id: String) -> void:
 		crouch_head_y = 1.0
 
 		var cap_shape := CapsuleShape3D.new()
-		cap_shape.radius = 0.28
+		cap_shape.radius = 0.35
 		cap_shape.height = 2.4
 		if collision_shape:
 			collision_shape.shape = cap_shape
@@ -234,7 +237,7 @@ func set_character(char_id: String) -> void:
 	if collision_shape:
 		collision_shape.position.y = stand_height * 0.5
 	if mesh_instance:
-		mesh_instance.position.y = stand_height * 0.5
+		mesh_instance.position.y = 0.0 # Ground level!
 	if head:
 		head.position.y = stand_head_y
 
@@ -420,11 +423,10 @@ func rpc_inflate_back_to_normal() -> void:
 
 	# 2. Balloon inflation pop animation back to standing shape (Guaranteed Vector3.ONE!)
 	if mesh_instance:
-		var orig_pos_y: float = stand_height * 0.5
-
+		var orig_pos_y: float = 0.0
 		_flatten_tween = create_tween().set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
 		_flatten_tween.tween_property(mesh_instance, "scale", Vector3(1.25, 1.25, 1.25), 0.15)
-		_flatten_tween.parallel().tween_property(mesh_instance, "position:y", orig_pos_y * 1.1, 0.15)
+		_flatten_tween.parallel().tween_property(mesh_instance, "position:y", 0.1, 0.15)
 		_flatten_tween.tween_property(mesh_instance, "scale", Vector3.ONE, 0.25)
 		_flatten_tween.parallel().tween_property(mesh_instance, "position:y", orig_pos_y, 0.25)
 
@@ -592,6 +594,21 @@ func _physics_process(delta: float) -> void:
 
 	_handle_stamina_regen(delta)
 	_update_camera_zoom(delta)
+
+	# Dynamic animation state updates for custom 3D model
+	var target_anim := "idle"
+	if not is_on_floor():
+		target_anim = "jump"
+	elif is_crouching:
+		target_anim = "crouch"
+	elif velocity.length() > 0.3:
+		if synced_state_name.to_lower() == "sprint" or is_sprint_requested():
+			target_anim = "sprint"
+		else:
+			target_anim = "walk"
+
+	if character_model and character_model.has_method("play_anim"):
+		character_model.call("play_anim", target_anim)
 
 	if is_paper_flattened:
 		var overhead_open := is_overhead_clear()
@@ -823,8 +840,10 @@ func _build_character_visuals(is_fat: bool) -> void:
 		var char_scene := load(scene_path) as PackedScene
 		if char_scene:
 			character_model = char_scene.instantiate() as Node3D
+			character_model.rotation_degrees.y = 0.0
 			mesh_instance.add_child(character_model)
 			print("🎨 LOADED CHARACTER SCENE: %s" % scene_path)
+			return
 
 	# Shared Materials from Concept Art:
 	# Skin: Smooth warm greyish-tan (#84807C)
@@ -920,7 +939,7 @@ func _build_character_visuals(is_fat: bool) -> void:
 			e_mesh.height = 0.05
 			eye.mesh = e_mesh
 			eye.material_override = face_mat
-			eye.position = Vector3(side * 0.075, 0.92, 0.265)
+			eye.position = Vector3(side * 0.075, 0.92, -0.265)
 			skel.add_child(eye)
 
 		# Curved Smile (‿)
@@ -931,7 +950,7 @@ func _build_character_visuals(is_fat: bool) -> void:
 		s_mesh.outer_radius = 0.065
 		smile.mesh = s_mesh
 		smile.material_override = face_mat
-		smile.position = Vector3(0, 0.82, 0.268)
+		smile.position = Vector3(0, 0.82, -0.268)
 		smile.rotation_degrees.x = 90.0
 		skel.add_child(smile)
 
@@ -1018,7 +1037,7 @@ func _build_character_visuals(is_fat: bool) -> void:
 			e_mesh.height = 0.045
 			eye.mesh = e_mesh
 			eye.material_override = face_mat
-			eye.position = Vector3(side * 0.07, 1.28, 0.245)
+			eye.position = Vector3(side * 0.07, 1.28, -0.245)
 			skel.add_child(eye)
 
 		# Curved Smile (‿)
@@ -1029,6 +1048,6 @@ func _build_character_visuals(is_fat: bool) -> void:
 		s_mesh.outer_radius = 0.060
 		smile.mesh = s_mesh
 		smile.material_override = face_mat
-		smile.position = Vector3(0, 1.19, 0.248)
+		smile.position = Vector3(0, 1.19, -0.248)
 		smile.rotation_degrees.x = 90.0
 		skel.add_child(smile)

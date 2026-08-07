@@ -1,6 +1,6 @@
-[gd_scene load_steps=12 format=3 uid="uid://c8thinchar001"]
+[gd_scene format=3 uid="uid://c8thinchar001"]
 
-[ext_resource type="Script" path="res://scripts/characters/thin_character.gd" id="1_thinchar"]
+[ext_resource type="Script" uid="uid://dnlgjj5csrnx8" path="res://scripts/characters/thin_character.gd" id="1_thinchar"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_skin"]
 albedo_color = Color(0.52, 0.5, 0.48, 1)
@@ -57,55 +57,351 @@ material = SubResource("StandardMaterial3D_face")
 inner_radius = 0.042
 outer_radius = 0.06
 
-[node name="ThinCharacter" type="Node3D"]
+[sub_resource type="Animation" id="Animation_idle"]
+resource_name = "idle"
+length = 2.0
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Skeleton3D/SlenderTorso:position")
+tracks/0/interp = 2
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 1, 2),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector3(0, 1.50, 0), Vector3(0, 1.53, 0), Vector3(0, 1.50, 0)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Skeleton3D/SlenderTorso:rotation_degrees")
+tracks/1/interp = 2
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 1, 2),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector3(0, 0, 0), Vector3(0, 0, 2), Vector3(0, 0, 0)]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Skeleton3D/RoundHead:position")
+tracks/2/interp = 2
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0, 1, 2),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector3(0, 2.50, 0), Vector3(0, 2.53, 0), Vector3(0, 2.50, 0)]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("Skeleton3D/RoundHead:rotation_degrees")
+tracks/3/interp = 2
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0, 1, 2),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector3(0, 0, 0), Vector3(0, 0, -3), Vector3(0, 0, 0)]
+}
+tracks/4/type = "value"
+tracks/4/imported = false
+tracks/4/enabled = true
+tracks/4/path = NodePath("Skeleton3D/Arm_L:rotation_degrees")
+tracks/4/interp = 2
+tracks/4/loop_wrap = true
+tracks/4/keys = {
+"times": PackedFloat32Array(0, 1, 2),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector3(0, 0, -90), Vector3(0, 0, -86), Vector3(0, 0, -90)]
+}
+tracks/5/type = "value"
+tracks/5/imported = false
+tracks/5/enabled = true
+tracks/5/path = NodePath("Skeleton3D/Arm_R:rotation_degrees")
+tracks/5/interp = 2
+tracks/5/loop_wrap = true
+tracks/5/keys = {
+"times": PackedFloat32Array(0, 1, 2),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector3(0, 0, 90), Vector3(0, 0, 86), Vector3(0, 0, 90)]
+}
+
+[sub_resource type="Animation" id="Animation_walk"]
+resource_name = "walk"
+length = 0.7
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Skeleton3D/SlenderTorso:rotation_degrees")
+tracks/0/interp = 2
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.35, 0.7),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector3(8, 5, 0), Vector3(8, -5, 0), Vector3(8, 5, 0)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Skeleton3D/Hip_L:rotation_degrees")
+tracks/1/interp = 2
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 0.35, 0.7),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector3(-28, 0, 0), Vector3(28, 0, 0), Vector3(-28, 0, 0)]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Skeleton3D/Hip_R:rotation_degrees")
+tracks/2/interp = 2
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0, 0.35, 0.7),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector3(28, 0, 0), Vector3(-28, 0, 0), Vector3(28, 0, 0)]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("Skeleton3D/Arm_L:rotation_degrees")
+tracks/3/interp = 2
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0, 0.35, 0.7),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector3(40, 0, -88), Vector3(-40, 0, -88), Vector3(40, 0, -88)]
+}
+tracks/4/type = "value"
+tracks/4/imported = false
+tracks/4/enabled = true
+tracks/4/path = NodePath("Skeleton3D/Arm_R:rotation_degrees")
+tracks/4/interp = 2
+tracks/4/loop_wrap = true
+tracks/4/keys = {
+"times": PackedFloat32Array(0, 0.35, 0.7),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector3(-40, 0, 88), Vector3(40, 0, 88), Vector3(-40, 0, 88)]
+}
+
+[sub_resource type="Animation" id="Animation_sprint"]
+resource_name = "sprint"
+length = 0.45
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Skeleton3D/SlenderTorso:rotation_degrees")
+tracks/0/interp = 2
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.225, 0.45),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector3(18, 8, 0), Vector3(18, -8, 0), Vector3(18, 8, 0)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Skeleton3D/Hip_L:rotation_degrees")
+tracks/1/interp = 2
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 0.225, 0.45),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector3(-42, 0, 0), Vector3(42, 0, 0), Vector3(-42, 0, 0)]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Skeleton3D/Hip_R:rotation_degrees")
+tracks/2/interp = 2
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0, 0.225, 0.45),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector3(42, 0, 0), Vector3(-42, 0, 0), Vector3(42, 0, 0)]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("Skeleton3D/Arm_L:rotation_degrees")
+tracks/3/interp = 2
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0, 0.225, 0.45),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector3(60, 0, -80), Vector3(-60, 0, -80), Vector3(60, 0, -80)]
+}
+tracks/4/type = "value"
+tracks/4/imported = false
+tracks/4/enabled = true
+tracks/4/path = NodePath("Skeleton3D/Arm_R:rotation_degrees")
+tracks/4/interp = 2
+tracks/4/loop_wrap = true
+tracks/4/keys = {
+"times": PackedFloat32Array(0, 0.225, 0.45),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector3(-60, 0, 80), Vector3(60, 0, 80), Vector3(-60, 0, 80)]
+}
+
+[sub_resource type="Animation" id="Animation_crouch"]
+resource_name = "crouch"
+length = 1.0
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Skeleton3D/SlenderTorso:position")
+tracks/0/interp = 2
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Vector3(0, 1.15, 0), Vector3(0, 1.15, 0)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Skeleton3D/SlenderTorso:rotation_degrees")
+tracks/1/interp = 2
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Vector3(28, 0, 0), Vector3(28, 0, 0)]
+}
+
+[sub_resource type="Animation" id="Animation_jump"]
+resource_name = "jump"
+length = 0.6
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Skeleton3D/SlenderTorso:position")
+tracks/0/interp = 2
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.3, 0.6),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector3(0, 1.50, 0), Vector3(0, 1.68, 0), Vector3(0, 1.50, 0)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Skeleton3D/Arm_L:rotation_degrees")
+tracks/1/interp = 2
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 0.3, 0.6),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector3(0, 0, -90), Vector3(0, 0, -150), Vector3(0, 0, -90)]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Skeleton3D/Arm_R:rotation_degrees")
+tracks/2/interp = 2
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0, 0.3, 0.6),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector3(0, 0, 90), Vector3(0, 0, 150), Vector3(0, 0, 90)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_char"]
+_data = {
+"crouch": SubResource("Animation_crouch"),
+"idle": SubResource("Animation_idle"),
+"jump": SubResource("Animation_jump"),
+"sprint": SubResource("Animation_sprint"),
+"walk": SubResource("Animation_walk")
+}
+
+[node name="ThinCharacter" type="Node3D" unique_id=1491423802]
 script = ExtResource("1_thinchar")
 
-[node name="Skeleton3D" type="Skeleton3D" parent="."]
+[node name="Skeleton3D" type="Skeleton3D" parent="." unique_id=1425333924]
 
-[node name="SlenderTorso" type="MeshInstance3D" parent="Skeleton3D"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.25, 0)
+[node name="SlenderTorso" type="MeshInstance3D" parent="Skeleton3D" unique_id=13936475]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.50, 0)
 mesh = SubResource("CylinderMesh_torso")
 
-[node name="Leg_L" type="MeshInstance3D" parent="Skeleton3D"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.14, -0.65, 0)
+[node name="Hip_L" type="Node3D" parent="Skeleton3D" unique_id=1201825139]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.14, 1.25, 0)
+
+[node name="Leg_L" type="MeshInstance3D" parent="Skeleton3D/Hip_L"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.625, 0)
 mesh = SubResource("CylinderMesh_leg")
 
-[node name="Foot_L" type="MeshInstance3D" parent="Skeleton3D/Leg_L"]
+[node name="Foot_L" type="MeshInstance3D" parent="Skeleton3D/Hip_L/Leg_L" unique_id=2026120116]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.6, -0.04)
 mesh = SubResource("BoxMesh_foot")
 
-[node name="Leg_R" type="MeshInstance3D" parent="Skeleton3D"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.14, -0.65, 0)
+[node name="Hip_R" type="Node3D" parent="Skeleton3D" unique_id=969896516]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.14, 1.25, 0)
+
+[node name="Leg_R" type="MeshInstance3D" parent="Skeleton3D/Hip_R"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.625, 0)
 mesh = SubResource("CylinderMesh_leg")
 
-[node name="Foot_R" type="MeshInstance3D" parent="Skeleton3D/Leg_R"]
+[node name="Foot_R" type="MeshInstance3D" parent="Skeleton3D/Hip_R/Leg_R" unique_id=389537054]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.6, -0.04)
 mesh = SubResource("BoxMesh_foot")
 
-[node name="Arm_L" type="MeshInstance3D" parent="Skeleton3D"]
-transform = Transform3D(0, 1, 0, -1, 0, 0, 0, 0, 1, -0.72, 0.75, 0)
+[node name="Arm_L" type="MeshInstance3D" parent="Skeleton3D" unique_id=1176811039]
+transform = Transform3D(0, 1, 0, -1, 0, 0, 0, 0, 1, -0.72, 2.00, 0)
 mesh = SubResource("CylinderMesh_arm")
 
-[node name="Arm_R" type="MeshInstance3D" parent="Skeleton3D"]
-transform = Transform3D(0, -1, 0, 1, 0, 0, 0, 0, 1, 0.72, 0.75, 0)
+[node name="Arm_R" type="MeshInstance3D" parent="Skeleton3D" unique_id=721758747]
+transform = Transform3D(0, -1, 0, 1, 0, 0, 0, 0, 1, 0.72, 2.00, 0)
 mesh = SubResource("CylinderMesh_arm")
 
-[node name="ThinNeck" type="MeshInstance3D" parent="Skeleton3D"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.98, 0)
+[node name="ThinNeck" type="MeshInstance3D" parent="Skeleton3D" unique_id=2100170256]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.23, 0)
 mesh = SubResource("CylinderMesh_neck")
 
-[node name="RoundHead" type="MeshInstance3D" parent="Skeleton3D"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.25, 0)
+[node name="RoundHead" type="MeshInstance3D" parent="Skeleton3D" unique_id=152352993]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.50, 0)
 mesh = SubResource("SphereMesh_head")
 
-[node name="Eye_L" type="MeshInstance3D" parent="Skeleton3D/RoundHead"]
+[node name="Eye_L" type="MeshInstance3D" parent="Skeleton3D/RoundHead" unique_id=1944424430]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.07, 0.03, -0.245)
 mesh = SubResource("SphereMesh_eye")
 
-[node name="Eye_R" type="MeshInstance3D" parent="Skeleton3D/RoundHead"]
+[node name="Eye_R" type="MeshInstance3D" parent="Skeleton3D/RoundHead" unique_id=1199026834]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.07, 0.03, -0.245)
 mesh = SubResource("SphereMesh_eye")
 
-[node name="Smile" type="MeshInstance3D" parent="Skeleton3D/RoundHead"]
+[node name="Smile" type="MeshInstance3D" parent="Skeleton3D/RoundHead" unique_id=301851796]
 transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, -0.06, -0.248)
 mesh = SubResource("TorusMesh_smile")
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+libraries = {
+"": SubResource("AnimationLibrary_char")
+}
