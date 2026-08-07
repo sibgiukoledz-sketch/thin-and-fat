@@ -70,8 +70,10 @@ func _setup_voice_buses() -> void:
 		AudioServer.set_bus_send(vox_idx, "SFX" if AudioServer.get_bus_index("SFX") != -1 else "Master")
 
 func _setup_capture() -> void:
-	# Enable Microphone Audio Input in Godot Engine
-	AudioServer.capture_set_device(AudioServer.get_capture_device_list()[0] if AudioServer.get_capture_device_list().size() > 0 else "Default")
+	# Enable Microphone Audio Input in Godot Engine 4
+	var devices := AudioServer.get_input_device_list()
+	if devices.size() > 0:
+		AudioServer.input_device = devices[0]
 
 func _process(delta: float) -> void:
 	_update_speaking_timers(delta)
@@ -107,16 +109,16 @@ func _handle_input_and_capture() -> void:
 		return
 
 	# Capture frames available
-	var frames_avail := _capture_effect.get_frames_available()
+	var frames_avail: int = _capture_effect.get_frames_available()
 	if frames_avail >= 256:
-		var pcm_vector := _capture_effect.get_buffer(frames_avail)
-		var compressed_bytes := _compress_pcm_frames(pcm_vector)
+		var pcm_vector: PackedVector2Array = _capture_effect.get_buffer(frames_avail)
+		var compressed_bytes: PackedByteArray = _compress_pcm_frames(pcm_vector)
 		if compressed_bytes.size() > 0 and multiplayer and multiplayer.has_multiplayer_peer():
 			rpc_receive_voice_chunk.rpc(multiplayer.get_unique_id(), compressed_bytes)
 
 func _compress_pcm_frames(frames: PackedVector2Array) -> PackedByteArray:
 	# Downsample & Quantize 32-bit Vector2 PCM frames into low-bandwidth 8-bit PCM byte array
-	var step := max(1, int(44100.0 / float(sample_rate)))
+	var step: int = maxi(1, int(44100.0 / float(sample_rate)))
 	var bytes := PackedByteArray()
 	bytes.resize(int(frames.size() / step))
 
