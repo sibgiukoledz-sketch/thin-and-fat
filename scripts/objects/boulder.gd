@@ -36,6 +36,9 @@ var _warning_timer: float = 0.0
 var _warning_text: String = ""
 var _last_impact_time: float = 0.0
 
+func _enter_tree() -> void:
+	set_multiplayer_authority(1)
+
 func _ready() -> void:
 	collision_layer = 4
 	collision_mask = 7
@@ -321,6 +324,8 @@ func _update_prompt() -> void:
 		prompt_label.modulate = Color(1.0, 1.0, 1.0)
 
 func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
+	if not is_multiplayer_authority():
+		return
 	if _is_carried or freeze:
 		return
 
@@ -360,7 +365,7 @@ func _process(delta: float) -> void:
 
 	# Handling smooth physical carrying position above Fat player's head
 	if _is_carried and is_instance_valid(_carrier_player):
-		var carrier_head: Vector3 = _carrier_player.global_position + Vector3(0, 1.8, 0)
+		var _carrier_head: Vector3 = _carrier_player.global_position + Vector3(0, 1.8, 0)
 		var desired_pos: Vector3 = _carrier_player.global_position + Vector3(0, 2.8, 0)
 
 		# 1. Environment Collision Check using SphereShape3D sweep cast for 3.4m boulder
@@ -455,7 +460,9 @@ func rpc_crush_player(player_path: NodePath) -> void:
 	if p.has_method("rpc_flatten_into_paper"):
 		p.rpc_flatten_into_paper.rpc(20.0)
 
-	get_tree().create_timer(1.2).timeout.connect(func():
+	var unfreeze_tw: Tween = create_tween()
+	unfreeze_tw.tween_interval(1.2)
+	unfreeze_tw.tween_callback(func() -> void:
 		freeze = false
 		_is_crushing = false
 	)

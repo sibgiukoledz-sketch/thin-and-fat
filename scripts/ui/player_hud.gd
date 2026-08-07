@@ -32,12 +32,6 @@ extends CanvasLayer
 @onready var slingshot_timer_label: Label = $SlingshotAbilityWidget/CircleBg/TimerLabel
 @onready var slingshot_key_label: Label = $SlingshotAbilityWidget/KeyBadge/KeyLabel
 
-var _pump_qte_panel: Panel
-var _qte_cursor: Panel
-var _qte_target_zone: Panel
-var _qte_title: Label
-var _qte_progress_bar: ProgressBar
-
 var player: Player
 var _fps_timer: float = 0.0
 

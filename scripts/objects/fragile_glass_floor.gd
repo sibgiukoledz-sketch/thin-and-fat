@@ -260,29 +260,35 @@ func _on_body_entered(body: Node) -> void:
 		if p.selected_character_id.to_lower() == "fat" or p.is_carrying_heavy_object or p.velocity.length_squared() > 100.0:
 			_handle_heavy_step()
 	elif body is HeavyBoulder or body is RigidBody3D:
-		_start_shatter_sequence()
+		rpc_start_shatter_sequence.rpc()
+
+@rpc("any_peer", "call_local", "reliable")
+func rpc_crack_glass(step_c: int) -> void:
+	_step_count = step_c
+	if _glass_material and _cracked_texture:
+		_glass_material.albedo_texture = _cracked_texture
 
 func _handle_heavy_step() -> void:
 	_step_count += 1
 	if glass_type == GlassType.FROSTED_ARMOURED and _step_count < 2:
-		if _glass_material:
-			_glass_material.albedo_texture = _cracked_texture
+		rpc_crack_glass.rpc(_step_count)
 		print("⚡ ARMOURED GLASS CRACKED! (Step 1/2)")
 		return
 
-	_start_shatter_sequence()
+	rpc_start_shatter_sequence.rpc()
 
 func trigger_seismic_break() -> void:
 	if is_broken or _is_breaking:
 		return
-	_start_shatter_sequence()
+	rpc_start_shatter_sequence.rpc()
 
-func _start_shatter_sequence() -> void:
+@rpc("any_peer", "call_local", "reliable")
+func rpc_start_shatter_sequence() -> void:
 	if _is_breaking or is_broken:
 		return
 	_is_breaking = true
 
-	if _glass_material:
+	if _glass_material and _cracked_texture:
 		_glass_material.albedo_texture = _cracked_texture
 		_glass_material.albedo_color.a = 0.75
 
@@ -403,7 +409,9 @@ func _spawn_3d_physical_shards() -> void:
 			_fade_and_free_shard(shard_rb, draw_mat)
 
 func _fade_and_free_shard(shard_rb: RigidBody3D, mat_template: StandardMaterial3D) -> void:
-	var tween: Tween = create_tween()
+	if not is_instance_valid(shard_rb):
+		return
+	var tween: Tween = shard_rb.create_tween()
 	tween.tween_interval(3.8)
 	tween.tween_callback(func() -> void:
 		if is_instance_valid(shard_rb):
@@ -412,7 +420,7 @@ func _fade_and_free_shard(shard_rb: RigidBody3D, mat_template: StandardMaterial3
 				var unique_mat: StandardMaterial3D = mat_template.duplicate() as StandardMaterial3D
 				mesh_inst.material_override = unique_mat
 
-				var fade_tween: Tween = create_tween()
+				var fade_tween: Tween = shard_rb.create_tween()
 				fade_tween.tween_property(unique_mat, "albedo_color:a", 0.0, 1.2)
 				fade_tween.tween_callback(func() -> void:
 					if is_instance_valid(shard_rb):

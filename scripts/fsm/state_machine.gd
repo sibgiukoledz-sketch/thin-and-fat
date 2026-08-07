@@ -1,7 +1,7 @@
 class_name StateMachine
 extends Node
 
-## Generic Finite State Machine controller for Godot 4.
+## Generic Finite State Machine controller for Godot 4 with Multiplayer Authority Scoping.
 
 signal state_changed(from_state: String, to_state: String)
 
@@ -25,15 +25,26 @@ func _ready() -> void:
 	if initial_state:
 		transition_to(initial_state.name)
 
+func _is_authority() -> bool:
+	if owner and "is_multiplayer_authority" in owner:
+		return owner.is_multiplayer_authority()
+	return true
+
 func _unhandled_input(event: InputEvent) -> void:
+	if not _is_authority():
+		return
 	if current_state:
 		current_state.handle_input(event)
 
 func _process(delta: float) -> void:
+	if not _is_authority():
+		return
 	if current_state:
 		current_state.update(delta)
 
 func _physics_process(delta: float) -> void:
+	if not _is_authority():
+		return
 	if current_state:
 		current_state.physics_update(delta)
 
@@ -52,5 +63,8 @@ func transition_to(target_state_name: String, msg: Dictionary = {}) -> void:
 	current_state_name = current_state.name
 	current_state.process_mode = Node.PROCESS_MODE_INHERIT
 	current_state.enter(msg)
+
+	if owner and "synced_state_name" in owner and _is_authority():
+		owner.synced_state_name = current_state_name
 
 	state_changed.emit(previous_name, current_state_name)

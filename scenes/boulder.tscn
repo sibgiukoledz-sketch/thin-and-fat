@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3 uid="uid://c8boulder001"]
+[gd_scene load_steps=9 format=3 uid="uid://c8boulder001"]
 
 [ext_resource type="Script" path="res://scripts/objects/boulder.gd" id="1_boulder"]
 
@@ -24,6 +24,26 @@ rings = 18
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_trigger"]
 radius = 3.5
+
+[sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_boulder"]
+properties/0/path = NodePath(".:position")
+properties/0/spawn = true
+properties/0/replication_mode = 1
+properties/1/path = NodePath(".:rotation")
+properties/1/spawn = true
+properties/1/replication_mode = 1
+properties/2/path = NodePath(".:linear_velocity")
+properties/2/spawn = true
+properties/2/replication_mode = 1
+properties/3/path = NodePath(".:angular_velocity")
+properties/3/spawn = true
+properties/3/replication_mode = 1
+properties/4/path = NodePath(".:freeze")
+properties/4/spawn = true
+properties/4/replication_mode = 1
+properties/5/path = NodePath(".:_is_carried")
+properties/5/spawn = true
+properties/5/replication_mode = 1
 
 [node name="HeavyBoulder" type="RigidBody3D"]
 collision_layer = 4
@@ -58,3 +78,6 @@ collision_mask = 2
 [node name="TriggerShape" type="CollisionShape3D" parent="InteractionArea"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.8, 0)
 shape = SubResource("SphereShape3D_trigger")
+
+[node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="."]
+replication_config = SubResource("SceneReplicationConfig_boulder")

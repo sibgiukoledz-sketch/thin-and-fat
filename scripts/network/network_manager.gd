@@ -25,28 +25,85 @@ func _ready() -> void:
 	multiplayer.server_disconnected.connect(_on_server_disconnected)
 
 func set_local_character(character_id: String) -> void:
+	var is_in_session := (multiplayer.multiplayer_peer != null and multiplayer.multiplayer_peer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTED)
+	if is_in_session and not multiplayer.is_server():
+		print("ℹ️ Client cannot change character choices. Only Host has authority!")
+		return
+
 	local_character_id = character_id.to_lower()
-	var my_id := 1
-	if multiplayer.multiplayer_peer and multiplayer.peer_connected:
-		my_id = multiplayer.get_unique_id()
-	player_character_choices[my_id] = local_character_id
+	var host_id := multiplayer.get_unique_id() if is_in_session else 1
+	player_character_choices[host_id] = local_character_id
 	player_character_choices[1] = local_character_id
+
+	# Assign opposite character to client automatically
+	if is_in_session and multiplayer.is_server():
+		var opposite := "thin" if local_character_id == "fat" else "fat"
+		for peer_id in connected_players:
+			if peer_id != host_id and peer_id != 1:
+				player_character_choices[peer_id] = opposite
+				rpc_sync_player_choice.rpc(peer_id, opposite)
+		rpc_sync_player_choice.rpc(host_id, local_character_id)
+
 	character_choices_updated.emit()
 
-	if multiplayer.multiplayer_peer and multiplayer.multiplayer_peer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTED:
-		rpc_send_character_choice.rpc(local_character_id)
+# RPC to sync chosen character to host & peers - Host Authority Enforced
+@rpc("any_peer", "call_local", "reliable")
+func rpc_send_character_choice(character_id: String) -> void:
+	var sender_id := multiplayer.get_remote_sender_id()
+	if sender_id == 0:
+		sender_id = multiplayer.get_unique_id()
+
+	# Only allow Server / Host to dictate character selection!
+	if multiplayer.multiplayer_peer != null and not multiplayer.is_server():
+		print("⚠️ Client choice ignored. Host dictates character roles!")
+		return
+
+	var chosen := character_id.to_lower()
+	local_character_id = chosen
+	player_character_choices[1] = chosen
+
+	var opposite := "thin" if chosen == "fat" else "fat"
+	for peer_id in connected_players:
+		if peer_id != 1:
+			player_character_choices[peer_id] = opposite
+			rpc_sync_player_choice.rpc(peer_id, opposite)
+
+	rpc_sync_player_choice.rpc(1, chosen)
+	character_choices_updated.emit()
+	player_list_changed.emit(connected_players)
 
 func get_character_for_peer(peer_id: int) -> String:
 	if player_character_choices.has(peer_id):
 		return player_character_choices[peer_id]
 	return local_character_id
 
+func get_radmin_ip() -> String:
+	var ip_list := IP.get_local_addresses()
+	for ip in ip_list:
+		if ip.begins_with("26.") and not ":" in ip:
+			return ip
+	return ""
+
+func get_local_ip_address() -> String:
+	var radmin := get_radmin_ip()
+	if radmin != "":
+		return radmin
+
+	var ip_list := IP.get_local_addresses()
+	for ip in ip_list:
+		if ip.begins_with("192.168.") or ip.begins_with("10.") or (ip.begins_with("172.") and not ip.begins_with("127.")):
+			return ip
+	for ip in ip_list:
+		if not ip.begins_with("127.") and not ":" in ip:
+			return ip
+	return "127.0.0.1"
+
 func host_game(port: int = DEFAULT_PORT) -> Error:
 	current_port = port
 	peer = ENetMultiplayerPeer.new()
 	var err := peer.create_server(current_port, MAX_CLIENTS)
 	if err != OK:
-		connection_status_changed.emit("Failed to host server! Error code: %d" % err)
+		connection_status_changed.emit("❌ Ошибка создания сервера! Код: %d" % err)
 		return err
 
 	multiplayer.multiplayer_peer = peer
@@ -56,8 +113,15 @@ func host_game(port: int = DEFAULT_PORT) -> Error:
 	var my_id := multiplayer.get_unique_id()
 	player_character_choices[my_id] = local_character_id
 	player_character_choices[1] = local_character_id
-	_register_player(my_id, "Host Player")
-	connection_status_changed.emit("Комната создана! Ожидание игроков...")
+	_register_player(my_id, "Хост")
+
+	var radmin := get_radmin_ip()
+	var best_ip := get_local_ip_address()
+	if radmin != "":
+		connection_status_changed.emit("🌐 Radmin VPN Хост запущен! Ваш IP: %s:%d" % [radmin, current_port])
+	else:
+		connection_status_changed.emit("✅ Сервер запущен! IP: %s:%d" % [best_ip, current_port])
+
 	return OK
 
 func join_game(ip: String = "127.0.0.1", port: int = DEFAULT_PORT) -> Error:
@@ -66,11 +130,11 @@ func join_game(ip: String = "127.0.0.1", port: int = DEFAULT_PORT) -> Error:
 	peer = ENetMultiplayerPeer.new()
 	var err := peer.create_client(current_ip, current_port)
 	if err != OK:
-		connection_status_changed.emit("Failed to connect to %s:%d" % [current_ip, current_port])
+		connection_status_changed.emit("❌ Ошибка подключения к %s:%d! Код: %d" % [current_ip, current_port, err])
 		return err
 
 	multiplayer.multiplayer_peer = peer
-	connection_status_changed.emit("Подключение к %s:%d..." % [current_ip, current_port])
+	connection_status_changed.emit("⏳ Подключение к %s:%d..." % [current_ip, current_port])
 	return OK
 
 func start_game_match() -> void:
@@ -89,13 +153,14 @@ func disconnect_game() -> void:
 	player_character_choices.clear()
 	connection_status_changed.emit("Disconnected")
 
-# RPC to sync chosen character to host & peers
-@rpc("any_peer", "call_local", "reliable")
-func rpc_send_character_choice(character_id: String) -> void:
-	var sender_id := multiplayer.get_remote_sender_id()
-	if sender_id == 0:
-		sender_id = multiplayer.get_unique_id()
-	player_character_choices[sender_id] = character_id
+
+
+@rpc("authority", "call_local", "reliable")
+func rpc_sync_player_choice(peer_id: int, character_id: String) -> void:
+	player_character_choices[peer_id] = character_id.to_lower()
+	var my_id := multiplayer.get_unique_id() if (multiplayer and multiplayer.multiplayer_peer) else 1
+	if peer_id == my_id or (peer_id == 1 and multiplayer.is_server()):
+		local_character_id = character_id.to_lower()
 	character_choices_updated.emit()
 	player_list_changed.emit(connected_players)
 
@@ -104,15 +169,28 @@ func _on_peer_connected(id: int) -> void:
 	print("Peer connected with ID: ", id)
 	if multiplayer.is_server():
 		_register_player(id, "Игрок_%d" % id)
-		# Send current choices to new peer
+		# Assign default opposite character to new peer if host is fat -> peer is thin, and vice versa!
+		var host_char: String = player_character_choices.get(1, local_character_id)
+		var peer_default_char := "thin" if host_char == "fat" else "fat"
+		player_character_choices[id] = peer_default_char
+
 		for p_id in player_character_choices:
-			rpc_send_character_choice.rpc_id(id, player_character_choices[p_id])
+			rpc_sync_player_choice.rpc(p_id, player_character_choices[p_id])
+
+@rpc("authority", "call_local", "reliable")
+func rpc_sync_connected_players(players_dict: Dictionary) -> void:
+	connected_players = players_dict
+	player_list_changed.emit(connected_players)
 
 func _on_peer_disconnected(id: int) -> void:
 	print("Peer disconnected with ID: ", id)
 	if connected_players.has(id):
 		connected_players.erase(id)
-		player_list_changed.emit(connected_players)
+		if multiplayer.is_server():
+			rpc_sync_connected_players.rpc(connected_players)
+		else:
+			player_list_changed.emit(connected_players)
+
 	if player_character_choices.has(id):
 		player_character_choices.erase(id)
 		character_choices_updated.emit()
@@ -142,4 +220,7 @@ func _register_player(id: int, player_name: String) -> void:
 		"name": player_name,
 		"score": 0
 	}
-	player_list_changed.emit(connected_players)
+	if multiplayer.is_server():
+		rpc_sync_connected_players.rpc(connected_players)
+	else:
+		player_list_changed.emit(connected_players)

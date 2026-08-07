@@ -25,7 +25,20 @@ const AIR_ACCEL_FACTOR := 0.35
 
 
 @export var peer_id: int = 1
-@export var selected_character_id: String = "fat"
+@export var selected_character_id: String = "fat":
+	set(val):
+		var new_val := val.to_lower()
+		var changed := (selected_character_id != new_val)
+		selected_character_id = new_val
+		if changed and is_inside_tree():
+			set_character(selected_character_id)
+
+@export var is_crouching: bool = false:
+	set(val):
+		if is_crouching != val:
+			is_crouching = val
+			if is_inside_tree():
+				set_crouch_state(is_crouching)
 
 # Attributes
 @export var max_health: float = 160.0
@@ -51,7 +64,15 @@ var _flatten_tween: Tween = null
 var is_stamina_exhausted: bool = false
 var shift_must_be_released: bool = false
 var target_speed: float = 0.0
-var synced_state_name: String = "idle"
+@export var synced_state_name: String = "idle":
+	set(val):
+		var new_state := val.to_lower()
+		synced_state_name = new_state
+		var crouching := (synced_state_name == "crouch")
+		if is_crouching != crouching:
+			is_crouching = crouching
+			if is_inside_tree():
+				set_crouch_state(is_crouching)
 
 
 # Component & Node References
@@ -84,13 +105,7 @@ var crouch_height: float = 1.0
 var stand_head_y: float = 1.5
 var crouch_head_y: float = 0.8
 
-func _ready() -> void:
-	add_to_group("players")
-	collision_layer = 2
-	collision_mask = 7 # Layer 1 (Environment) + Layer 2 (Players) + Layer 3 (RigidBody Objects / Boulder / NPCs)
-	if ProjectSettings.has_setting("physics/3d/default_gravity"):
-		gravity = ProjectSettings.get_setting("physics/3d/default_gravity")
-
+func _enter_tree() -> void:
 	var id_from_name := name.to_int()
 	if id_from_name > 0:
 		peer_id = id_from_name
@@ -98,6 +113,19 @@ func _ready() -> void:
 		peer_id = multiplayer.get_unique_id()
 
 	set_multiplayer_authority(peer_id)
+
+func _ready() -> void:
+	add_to_group("players")
+	collision_layer = 2
+	collision_mask = 7 # Layer 1 (Environment) + Layer 2 (Players) + Layer 3 (RigidBody Objects / Boulder / NPCs)
+	if ProjectSettings.has_setting("physics/3d/default_gravity"):
+		gravity = ProjectSettings.get_setting("physics/3d/default_gravity")
+
+	# Duplicate shape and mesh resources so height/radius changes do NOT affect other player instances!
+	if collision_shape and collision_shape.shape:
+		collision_shape.shape = collision_shape.shape.duplicate()
+	if mesh_instance and mesh_instance.mesh:
+		mesh_instance.mesh = mesh_instance.mesh.duplicate()
 
 	if NetworkManager:
 		var chosen := NetworkManager.get_character_for_peer(peer_id)
@@ -115,17 +143,13 @@ func _ready() -> void:
 			camera_3d.current = false
 		if hud:
 			hud.queue_free()
+		if mesh_instance:
+			mesh_instance.show()
 
 	if not vomit_component:
 		vomit_component = VomitComponent.new()
 		vomit_component.name = "VomitComponent"
 		add_child(vomit_component)
-
-	if not get_node_or_null("InflationSystem"):
-		var infl := InflationSystem.new()
-		infl.name = "InflationSystem"
-		add_child(infl)
-		infl.setup(self)
 
 	set_character(selected_character_id)
 
@@ -229,7 +253,19 @@ func _attach_mechanics_component(script_path: String) -> void:
 		if active_mechanics and active_mechanics.has_method("setup"):
 			active_mechanics.setup(self)
 
-func take_damage(amount: float, _hit_pos: Vector3 = Vector3.ZERO) -> void:
+@rpc("any_peer", "call_local", "reliable")
+func rpc_take_damage(amount: float, hit_pos: Vector3 = Vector3.ZERO) -> void:
+	if not is_multiplayer_authority():
+		return
+	_apply_damage_internal(amount, hit_pos)
+
+func take_damage(amount: float, hit_pos: Vector3 = Vector3.ZERO) -> void:
+	if is_multiplayer_authority():
+		_apply_damage_internal(amount, hit_pos)
+	else:
+		rpc_take_damage.rpc_id(get_multiplayer_authority(), amount, hit_pos)
+
+func _apply_damage_internal(amount: float, _hit_pos: Vector3 = Vector3.ZERO) -> void:
 	if is_dead:
 		return
 
@@ -240,7 +276,7 @@ func take_damage(amount: float, _hit_pos: Vector3 = Vector3.ZERO) -> void:
 		hud.update_display()
 
 	if current_health <= 0.0:
-		die()
+		rpc_die.rpc()
 
 func heal(amount: float) -> void:
 	if is_dead:
@@ -251,6 +287,10 @@ func heal(amount: float) -> void:
 
 	if is_multiplayer_authority() and hud:
 		hud.update_display()
+
+@rpc("any_peer", "call_local", "reliable")
+func rpc_die() -> void:
+	die()
 
 func die() -> void:
 	if is_dead:
@@ -284,6 +324,7 @@ func respawn() -> void:
 		collision_shape.set_deferred("disabled", false)
 	if mesh_instance:
 		mesh_instance.show()
+		mesh_instance.visible = true
 	if hud and "death_overlay" in hud and hud.death_overlay:
 		hud.death_overlay.hide()
 
@@ -465,43 +506,6 @@ func _unhandled_input(event: InputEvent) -> void:
 	if active_mechanics:
 		active_mechanics.handle_ability_input(event)
 
-func _find_nearby_inflation_target() -> Node3D:
-	var closest: Node3D = null
-	var closest_dist: float = 4.0 # Max interaction radius for connecting hose
-
-	# 1. Search Thin Players
-	var players := get_tree().get_nodes_in_group("players")
-	for node in players:
-		if node == self or not node is Player:
-			continue
-		var p: Player = node as Player
-		if p.selected_character_id.to_lower() == "thin" and not p.is_dead:
-			var dist: float = global_position.distance_to(p.global_position)
-			if dist < closest_dist:
-				closest_dist = dist
-				closest = p
-
-	# 2. Search DummyNPC Mannequins (For instant solo testing!)
-	var dummies: Array = []
-	_find_nodes_of_type_recursive(get_tree().root, "DummyNPC", dummies)
-	for d in dummies:
-		if d is DummyNPC:
-			var dummy: DummyNPC = d as DummyNPC
-			var dist: float = global_position.distance_to(dummy.global_position)
-			if dist < closest_dist:
-				closest_dist = dist
-				closest = dummy
-
-	return closest
-
-func _find_nodes_of_type_recursive(node: Node, type_name: String, result: Array) -> void:
-	if not node:
-		return
-	if node.get_class() == type_name or node.is_class(type_name) or (node.get_script() and node.get_script().get_global_name() == type_name):
-		result.append(node)
-	for child in node.get_children():
-		_find_nodes_of_type_recursive(child, type_name, result)
-
 func _perform_melee_attack() -> void:
 	if not is_multiplayer_authority() or not camera_3d:
 		return
@@ -525,6 +529,11 @@ func _perform_melee_attack() -> void:
 
 var _last_carry_state: bool = false
 
+func _process(_delta: float) -> void:
+	if not is_multiplayer_authority():
+		if mesh_instance and not is_dead and not mesh_instance.visible:
+			mesh_instance.show()
+
 func _physics_process(delta: float) -> void:
 	if not is_multiplayer_authority():
 		return
@@ -539,7 +548,7 @@ func _physics_process(delta: float) -> void:
 			if hud:
 				hud.update_death_display(true, _respawn_timer)
 			if _respawn_timer <= 0.0:
-				respawn()
+				rpc_respawn.rpc()
 		return
 
 	# Landing impact calculation
@@ -727,6 +736,9 @@ func set_target_fov(fov_val: float) -> void:
 		tw.tween_property(camera_3d, "fov", fov_val, 0.25)
 
 func set_crouch_state(crouching: bool) -> void:
+	if is_crouching != crouching:
+		is_crouching = crouching
+
 	var target_h: float = crouch_height if crouching else stand_height
 	var target_head_y: float = crouch_head_y if crouching else stand_head_y
 	if collision_shape and collision_shape.shape is CapsuleShape3D:

@@ -540,42 +540,53 @@ func rpc_slingshot_launch(target_path: NodePath, launch_velocity: Vector3) -> vo
 
 	print("🚀 SLINGSHOT LAUNCH: Fat launched %s into the air! Velocity: %s" % [target_node.name, str(launch_velocity)])
 
-func add_stench(amount: float) -> void:
-	stench_level = clampf(stench_level + amount, 0.0, max_stench)
+@rpc("any_peer", "call_local", "unreliable")
+func rpc_sync_stench(level: float) -> void:
+	stench_level = level
 	stench_changed.emit(stench_level, max_stench)
 	_update_gas_visuals()
 
+func add_stench(amount: float) -> void:
+	stench_level = clampf(stench_level + amount, 0.0, max_stench)
+	stench_changed.emit(stench_level, max_stench)
+	rpc_sync_stench.rpc(stench_level)
+
 func update_mechanics(delta: float) -> void:
-	if not _ensure_player_ref() or not player.is_multiplayer_authority() or player.is_dead:
+	if not _ensure_player_ref() or player.is_dead:
 		return
 
-	if _slingshot_cooldown > 0.0:
-		_slingshot_cooldown = maxf(_slingshot_cooldown - delta, 0.0)
+	if player.is_multiplayer_authority():
+		if _slingshot_cooldown > 0.0:
+			_slingshot_cooldown = maxf(_slingshot_cooldown - delta, 0.0)
 
-	if player and player.hud and player.hud.has_method("update_slingshot_cooldown"):
-		player.hud.update_slingshot_cooldown(_slingshot_cooldown, slingshot_cooldown_max)
+		if player and player.hud and player.hud.has_method("update_slingshot_cooldown"):
+			player.hud.update_slingshot_cooldown(_slingshot_cooldown, slingshot_cooldown_max)
 
-	var input_dir: Vector3 = player.get_movement_input()
+		var input_dir: Vector3 = player.get_movement_input()
 
-	if input_dir.length_squared() > 0.01:
-		var is_sprinting: bool = (player.synced_state_name.to_lower() == "sprint")
-		var rate: float = stench_sprint_rate if is_sprinting else stench_walk_rate
+		if input_dir.length_squared() > 0.01:
+			var is_sprinting: bool = (player.synced_state_name.to_lower() == "sprint")
+			var rate: float = stench_sprint_rate if is_sprinting else stench_walk_rate
 
-		stench_level = clampf(stench_level + rate * delta, 0.0, max_stench)
-		stench_changed.emit(stench_level, max_stench)
+			var old_level := stench_level
+			stench_level = clampf(stench_level + rate * delta, 0.0, max_stench)
+			stench_changed.emit(stench_level, max_stench)
+			if absf(old_level - stench_level) >= 0.5:
+				rpc_sync_stench.rpc(stench_level)
+
+		_update_aoe_poison_damage(delta)
 
 	_update_gas_visuals()
-	_update_aoe_poison_damage(delta)
 
 func wash_stench() -> void:
 	stench_level = 0.0
 	stench_changed.emit(stench_level, max_stench)
-	_update_gas_visuals()
+	rpc_sync_stench.rpc(0.0)
 
 func wash_stench_gradual(amount: float) -> void:
 	stench_level = clampf(stench_level - amount, 0.0, max_stench)
 	stench_changed.emit(stench_level, max_stench)
-	_update_gas_visuals()
+	rpc_sync_stench.rpc(stench_level)
 
 func _update_gas_visuals() -> void:
 	var intensity := stench_level / max_stench

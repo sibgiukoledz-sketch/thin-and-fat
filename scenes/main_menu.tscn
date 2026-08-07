@@ -1,86 +1,97 @@
-[gd_scene load_steps=9 format=3 uid="uid://c8mainmenufps01"]
+[gd_scene load_steps=10 format=3 uid="uid://c8mainmenufps01"]
 
 [ext_resource type="Script" path="res://scripts/ui/main_menu.gd" id="1_menu"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_parchment_bg"]
-bg_color = Color(0.84, 0.79, 0.7, 1)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dark_bg"]
+bg_color = Color(0.06, 0.08, 0.12, 1)
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bone_frame"]
-bg_color = Color(0.88, 0.84, 0.76, 0.95)
-border_width_left = 6
-border_width_top = 6
-border_width_right = 6
-border_width_bottom = 6
-border_color = Color(0.95, 0.93, 0.88, 1)
-corner_radius_top_left = 18
-corner_radius_top_right = 18
-corner_radius_bottom_right = 18
-corner_radius_bottom_left = 18
-shadow_color = Color(0.25, 0.2, 0.15, 0.35)
-shadow_size = 12
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bone_btn"]
-bg_color = Color(0.78, 0.73, 0.64, 1)
-border_width_left = 3
-border_width_top = 3
-border_width_right = 3
-border_width_bottom = 3
-border_color = Color(0.94, 0.92, 0.86, 1)
-corner_radius_top_left = 12
-corner_radius_top_right = 12
-corner_radius_bottom_right = 12
-corner_radius_bottom_left = 12
-shadow_color = Color(0.2, 0.16, 0.12, 0.3)
-shadow_size = 4
-shadow_offset = Vector2(0, 3)
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bone_btn_hover"]
-bg_color = Color(0.88, 0.83, 0.74, 1)
-border_width_left = 3
-border_width_top = 3
-border_width_right = 3
-border_width_bottom = 3
-border_color = Color(0.98, 0.96, 0.92, 1)
-corner_radius_top_left = 12
-corner_radius_top_right = 12
-corner_radius_bottom_right = 12
-corner_radius_bottom_left = 12
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bone_btn_pressed"]
-bg_color = Color(0.68, 0.63, 0.54, 1)
-border_width_left = 3
-border_width_top = 3
-border_width_right = 3
-border_width_bottom = 3
-border_color = Color(0.85, 0.82, 0.75, 1)
-corner_radius_top_left = 12
-corner_radius_top_right = 12
-corner_radius_bottom_right = 12
-corner_radius_bottom_left = 12
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_stone_btn"]
-bg_color = Color(0.55, 0.52, 0.46, 1)
-border_width_left = 3
-border_width_top = 3
-border_width_right = 3
-border_width_bottom = 3
-border_color = Color(0.7, 0.66, 0.6, 1)
-corner_radius_top_left = 12
-corner_radius_top_right = 12
-corner_radius_bottom_right = 12
-corner_radius_bottom_left = 12
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_input"]
-bg_color = Color(0.92, 0.89, 0.82, 1)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_card"]
+bg_color = Color(0.1, 0.14, 0.2, 0.95)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
-border_color = Color(0.6, 0.54, 0.44, 1)
-corner_radius_top_left = 6
-corner_radius_top_right = 6
-corner_radius_bottom_right = 6
-corner_radius_bottom_left = 6
+border_color = Color(0.3, 0.65, 0.95, 0.6)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+shadow_color = Color(0.0, 0.0, 0.0, 0.5)
+shadow_size = 12
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_radmin_card"]
+bg_color = Color(0.12, 0.18, 0.26, 0.9)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.2, 0.8, 1, 0.6)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_primary_btn"]
+bg_color = Color(0.15, 0.65, 0.35, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.4, 0.95, 0.6, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+shadow_color = Color(0.1, 0.4, 0.2, 0.4)
+shadow_size = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_primary_btn_hover"]
+bg_color = Color(0.2, 0.8, 0.4, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.7, 1, 0.8, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn"]
+bg_color = Color(0.16, 0.24, 0.36, 0.95)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.35, 0.65, 0.95, 0.5)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_hover"]
+bg_color = Color(0.24, 0.42, 0.68, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.5, 0.85, 1, 0.9)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_quit_btn"]
+bg_color = Color(0.45, 0.15, 0.15, 0.9)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.9, 0.35, 0.35, 0.6)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
 
 [node name="MainMenu" type="Control"]
 layout_mode = 3
@@ -98,212 +109,191 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_parchment_bg")
+theme_override_styles/panel = SubResource("StyleBoxFlat_dark_bg")
 
-[node name="OuterBorderFrame" type="MarginContainer" parent="."]
+[node name="CenterContainer" type="CenterContainer" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/margin_left = 24
-theme_override_constants/margin_top = 24
-theme_override_constants/margin_right = 24
-theme_override_constants/margin_bottom = 24
 
-[node name="MainPanel" type="Panel" parent="OuterBorderFrame"]
+[node name="MainCard" type="PanelContainer" parent="CenterContainer"]
+custom_minimum_size = Vector2(850, 560)
 layout_mode = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_bone_frame")
+theme_override_styles/panel = SubResource("StyleBoxFlat_card")
 
-[node name="TopBanner" type="HBoxContainer" parent="OuterBorderFrame/MainPanel"]
-layout_mode = 1
-anchors_preset = 10
-anchor_right = 1.0
-offset_top = 12.0
-offset_bottom = 44.0
-grow_horizontal = 2
-alignment = 1
-
-[node name="ProfileLabel" type="Label" parent="OuterBorderFrame/MainPanel/TopBanner"]
+[node name="Margin" type="MarginContainer" parent="CenterContainer/MainCard"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.25, 0.22, 0.18, 1)
+theme_override_constants/margin_left = 36
+theme_override_constants/margin_top = 28
+theme_override_constants/margin_right = 36
+theme_override_constants/margin_bottom = 28
+
+[node name="VBox" type="VBoxContainer" parent="CenterContainer/MainCard/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="TitleBox" type="VBoxContainer" parent="CenterContainer/MainCard/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 2
+
+[node name="MainTitle" type="Label" parent="CenterContainer/MainCard/Margin/VBox/TitleBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.35, 0.85, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 10
+theme_override_font_sizes/font_size = 38
+text = "🏃‍♂️ THIN & FAT 🦛"
+horizontal_alignment = 1
+
+[node name="Subtitle" type="Label" parent="CenterContainer/MainCard/Margin/VBox/TitleBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.8, 0.95, 0.9)
+theme_override_font_sizes/font_size = 16
+text = "Co-Op Multiplayer Chamber — RADMIN VPN READY"
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="CenterContainer/MainCard/Margin/VBox"]
+layout_mode = 2
+
+[node name="RadminBanner" type="PanelContainer" parent="CenterContainer/MainCard/Margin/VBox"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_radmin_card")
+
+[node name="MarginContainer" type="MarginContainer" parent="CenterContainer/MainCard/Margin/VBox/RadminBanner"]
+layout_mode = 2
+theme_override_constants/margin_left = 14
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 14
+theme_override_constants/margin_bottom = 10
+
+[node name="HBox" type="HBoxContainer" parent="CenterContainer/MainCard/Margin/VBox/RadminBanner/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="RadminLabel" type="Label" parent="CenterContainer/MainCard/Margin/VBox/RadminBanner/MarginContainer/HBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.4, 0.95, 0.7, 1)
 theme_override_font_sizes/font_size = 14
-text = "🦴 Player Profile: Guest 🦴"
+text = "🌐 RADMIN VPN ОБНАРУЖЕН: Сканирование IP..."
+vertical_alignment = 1
 
-[node name="ContentContainer" type="HBoxContainer" parent="OuterBorderFrame/MainPanel"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = 32.0
-offset_top = 48.0
-offset_right = -32.0
-offset_bottom = -32.0
-grow_horizontal = 2
-grow_vertical = 2
-
-[node name="LeftColumn" type="VBoxContainer" parent="OuterBorderFrame/MainPanel/ContentContainer"]
-custom_minimum_size = Vector2(340, 0)
+[node name="CopyIPButton" type="Button" parent="CenterContainer/MainCard/Margin/VBox/RadminBanner/MarginContainer/HBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(160, 34)
 layout_mode = 2
-theme_override_constants/separation = 14
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 13
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+text = "📋 КОПИРОВАТЬ IP"
 
-[node name="TitleContainer" type="VBoxContainer" parent="OuterBorderFrame/MainPanel/ContentContainer/LeftColumn"]
+[node name="ContentColumns" type="HBoxContainer" parent="CenterContainer/MainCard/Margin/VBox"]
 layout_mode = 2
-theme_override_constants/separation = 0
+size_flags_vertical = 3
+theme_override_constants/separation = 24
 
-[node name="TitleLabel" type="Label" parent="OuterBorderFrame/MainPanel/ContentContainer/LeftColumn/TitleContainer"]
+[node name="LeftMenuButtons" type="VBoxContainer" parent="CenterContainer/MainCard/Margin/VBox/ContentColumns"]
+custom_minimum_size = Vector2(360, 0)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.2, 0.25, 0.32, 1)
-theme_override_font_sizes/font_size = 26
-text = "THE"
-horizontal_alignment = 1
+theme_override_constants/separation = 12
 
-[node name="MainTitle" type="Label" parent="OuterBorderFrame/MainPanel/ContentContainer/LeftColumn/TitleContainer"]
+[node name="HostInstantButton" type="Button" parent="CenterContainer/MainCard/Margin/VBox/ContentColumns/LeftMenuButtons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 56)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.18, 0.22, 0.28, 1)
-theme_override_font_sizes/font_size = 32
-text = "SLENDER & FAT"
-horizontal_alignment = 1
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("StyleBoxFlat_primary_btn")
+theme_override_styles/hover = SubResource("StyleBoxFlat_primary_btn_hover")
+text = "🚀 СОЗДАТЬ СЕРВЕР (1-КЛИК)"
 
-[node name="SubtitleLabel" type="Label" parent="OuterBorderFrame/MainPanel/ContentContainer/LeftColumn/TitleContainer"]
+[node name="LobbyButton" type="Button" parent="CenterContainer/MainCard/Margin/VBox/ContentColumns/LeftMenuButtons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.22, 0.26, 0.32, 1)
-theme_override_font_sizes/font_size = 28
-text = "QUEST"
-horizontal_alignment = 1
+theme_override_colors/font_color = Color(0.9, 0.95, 1, 1)
+theme_override_font_sizes/font_size = 16
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+text = "🎮 ПОДКЛЮЧИТЬСЯ К ДРУГУ (JOIN)"
 
-[node name="HSeparator" type="HSeparator" parent="OuterBorderFrame/MainPanel/ContentContainer/LeftColumn"]
-layout_mode = 2
-
-[node name="ButtonsStack" type="VBoxContainer" parent="OuterBorderFrame/MainPanel/ContentContainer/LeftColumn"]
-layout_mode = 2
-theme_override_constants/separation = 10
-
-[node name="PlayButton" type="Button" parent="OuterBorderFrame/MainPanel/ContentContainer/LeftColumn/ButtonsStack"]
+[node name="CharSelectButton" type="Button" parent="CenterContainer/MainCard/Margin/VBox/ContentColumns/LeftMenuButtons"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.18, 0.15, 0.12, 1)
-theme_override_colors/font_hover_color = Color(0.05, 0.05, 0.05, 1)
-theme_override_font_sizes/font_size = 16
-theme_override_styles/normal = SubResource("StyleBoxFlat_bone_btn")
-theme_override_styles/hover = SubResource("StyleBoxFlat_bone_btn_hover")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_bone_btn_pressed")
-text = "[ PLAY MULTIPLAYER ]"
+theme_override_colors/font_color = Color(0.9, 0.95, 1, 1)
+theme_override_font_sizes/font_size = 14
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+text = "🦛 ВЫБРАН: ЖИРДЯЙ (СМЕНИТЬ)"
 
-[node name="CharSelectButton" type="Button" parent="OuterBorderFrame/MainPanel/ContentContainer/LeftColumn/ButtonsStack"]
+[node name="QuitButton" type="Button" parent="CenterContainer/MainCard/Margin/VBox/ContentColumns/LeftMenuButtons"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.18, 0.15, 0.12, 1)
-theme_override_colors/font_hover_color = Color(0.05, 0.05, 0.05, 1)
+theme_override_colors/font_color = Color(1, 0.6, 0.6, 1)
 theme_override_font_sizes/font_size = 14
-theme_override_styles/normal = SubResource("StyleBoxFlat_bone_btn")
-theme_override_styles/hover = SubResource("StyleBoxFlat_bone_btn_hover")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_bone_btn_pressed")
-text = "[ CHARACTER SELECT ]"
+theme_override_styles/normal = SubResource("StyleBoxFlat_quit_btn")
+text = "🚪 ВЫЙТИ ИЗ ИГРЫ"
 
-[node name="SettingsButton" type="Button" parent="OuterBorderFrame/MainPanel/ContentContainer/LeftColumn/ButtonsStack"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 44)
-layout_mode = 2
-theme_override_colors/font_color = Color(0.18, 0.15, 0.12, 1)
-theme_override_colors/font_hover_color = Color(0.05, 0.05, 0.05, 1)
-theme_override_font_sizes/font_size = 14
-theme_override_styles/normal = SubResource("StyleBoxFlat_stone_btn")
-text = "[ SETTINGS ]"
-
-[node name="QuitButton" type="Button" parent="OuterBorderFrame/MainPanel/ContentContainer/LeftColumn/ButtonsStack"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 44)
-layout_mode = 2
-theme_override_colors/font_color = Color(0.18, 0.15, 0.12, 1)
-theme_override_colors/font_hover_color = Color(0.05, 0.05, 0.05, 1)
-theme_override_font_sizes/font_size = 14
-theme_override_styles/normal = SubResource("StyleBoxFlat_bone_btn")
-theme_override_styles/hover = SubResource("StyleBoxFlat_bone_btn_hover")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_bone_btn_pressed")
-text = "[ QUIT ]"
-
-[node name="RightCharacterDisplayArea" type="Control" parent="OuterBorderFrame/MainPanel/ContentContainer"]
+[node name="RightInfoCard" type="VBoxContainer" parent="CenterContainer/MainCard/Margin/VBox/ContentColumns"]
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_constants/separation = 12
 
-[node name="CharacterPreviewPanel" type="Panel" parent="OuterBorderFrame/MainPanel/ContentContainer/RightCharacterDisplayArea"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
+[node name="CardPanel" type="PanelContainer" parent="CenterContainer/MainCard/Margin/VBox/ContentColumns/RightInfoCard"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_radmin_card")
 
-[node name="CharInfoCard" type="VBoxContainer" parent="OuterBorderFrame/MainPanel/ContentContainer/RightCharacterDisplayArea"]
-layout_mode = 1
-anchors_preset = 5
-anchor_left = 0.5
-anchor_right = 0.5
-offset_left = -160.0
-offset_top = 20.0
-offset_right = 160.0
-offset_bottom = 80.0
-grow_horizontal = 2
+[node name="Margin" type="MarginContainer" parent="CenterContainer/MainCard/Margin/VBox/ContentColumns/RightInfoCard/CardPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 16
 
-[node name="CharNameLabel" type="Label" parent="OuterBorderFrame/MainPanel/ContentContainer/RightCharacterDisplayArea/CharInfoCard"]
+[node name="VBox" type="VBoxContainer" parent="CenterContainer/MainCard/Margin/VBox/ContentColumns/RightInfoCard/CardPanel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="CharTitle" type="Label" parent="CenterContainer/MainCard/Margin/VBox/ContentColumns/RightInfoCard/CardPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.3, 0.9, 1, 1)
+theme_override_font_sizes/font_size = 18
+text = "ИНФОРМАЦИЯ О ПЕРСОНАЖЕ"
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="CenterContainer/MainCard/Margin/VBox/ContentColumns/RightInfoCard/CardPanel/Margin/VBox"]
+layout_mode = 2
+
+[node name="CharNameLabel" type="Label" parent="CenterContainer/MainCard/Margin/VBox/ContentColumns/RightInfoCard/CardPanel/Margin/VBox"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0.2, 0.16, 0.12, 1)
+theme_override_colors/font_color = Color(1, 0.8, 0.3, 1)
 theme_override_font_sizes/font_size = 20
-text = "🦛 2. Жирный (Жирдяй)"
+text = "🦛 2. ЖИРДЯЙ (FAT)"
 horizontal_alignment = 1
 
-[node name="CharDescLabel" type="Label" parent="OuterBorderFrame/MainPanel/ContentContainer/RightCharacterDisplayArea/CharInfoCard"]
+[node name="CharDescLabel" type="Label" parent="CenterContainer/MainCard/Margin/VBox/ContentColumns/RightInfoCard/CardPanel/Margin/VBox"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0.35, 0.3, 0.24, 1)
-theme_override_font_sizes/font_size = 12
-text = "Широкий хитбокс, низкий рост (1.5м), 160 HP"
+size_flags_vertical = 3
+theme_override_colors/font_color = Color(0.85, 0.9, 0.95, 0.9)
+theme_override_font_sizes/font_size = 14
+text = "160 HP | Силач: Толкает тяжелые 450кг валуны | Носит валун над головой | Вонючий токсичный пердёж"
 horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 2
 
-[node name="BottomRightOptionsPanel" type="PanelContainer" parent="OuterBorderFrame/MainPanel"]
-layout_mode = 1
-anchors_preset = 3
-anchor_left = 1.0
-anchor_top = 1.0
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = -210.0
-offset_top = -95.0
-offset_right = -28.0
-offset_bottom = -24.0
-grow_horizontal = 0
-grow_vertical = 0
-theme_override_styles/panel = SubResource("StyleBoxFlat_bone_btn")
-
-[node name="MarginContainer" type="MarginContainer" parent="OuterBorderFrame/MainPanel/BottomRightOptionsPanel"]
+[node name="RadminInfoLabel" type="Label" parent="CenterContainer/MainCard/Margin/VBox/ContentColumns/RightInfoCard/CardPanel/Margin/VBox"]
 layout_mode = 2
-theme_override_constants/margin_left = 10
-theme_override_constants/margin_top = 8
-theme_override_constants/margin_right = 10
-theme_override_constants/margin_bottom = 8
-
-[node name="HBoxContainer" type="HBoxContainer" parent="OuterBorderFrame/MainPanel/BottomRightOptionsPanel/MarginContainer"]
-layout_mode = 2
-alignment = 1
-
-[node name="AudioToggleBtn" type="Button" parent="OuterBorderFrame/MainPanel/BottomRightOptionsPanel/MarginContainer/HBoxContainer"]
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0.2, 0.16, 0.12, 1)
-theme_override_font_sizes/font_size = 11
-text = "🔊 Sound/Music\nToggle"
-
-[node name="VSeparator" type="VSeparator" parent="OuterBorderFrame/MainPanel/BottomRightOptionsPanel/MarginContainer/HBoxContainer"]
-layout_mode = 2
-
-[node name="LangSelectBtn" type="Button" parent="OuterBorderFrame/MainPanel/BottomRightOptionsPanel/MarginContainer/HBoxContainer"]
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0.2, 0.16, 0.12, 1)
-theme_override_font_sizes/font_size = 11
-text = "🌐 Language\nSelect"
+theme_override_colors/font_color = Color(0.5, 0.85, 0.6, 0.95)
+theme_override_font_sizes/font_size = 13
+text = "💡 Инструкция Radmin VPN:\n1. Хост нажмите 'СОЗДАТЬ СЕРВЕР'\n2. Друг скопируйте Radmin IP хоста и нажмите 'ПОДКЛЮЧИТЬСЯ'\n3. Наслаждайтесь совместной игрой!"
+autowrap_mode = 2

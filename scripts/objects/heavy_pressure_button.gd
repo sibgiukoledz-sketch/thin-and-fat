@@ -140,7 +140,7 @@ func _press_button(trigger: Node) -> void:
 	button_pressed.emit(trigger)
 	button_toggled.emit(true)
 
-	print("🔘 HEAVY BUTTON PRESSED! Total Weight: %.1f kg (Trigger: %s)" % [_current_weight, trigger.name if trigger else "Unknown"])
+	print("🔘 HEAVY BUTTON PRESSED! Total Weight: %.1f kg (Trigger: %s)" % [_current_weight, String(trigger.name) if trigger else "Unknown"])
 
 	var target: Node = _get_target_node()
 	if target:
@@ -221,5 +221,5 @@ func _on_body_entered(body: Node) -> void:
 			# Feedback to Thin player that they are too light!
 			print("ℹ️ Thin player is too light (80 kg)! Need Fat (160 kg) or Heavy Boulder (450 kg).")
 
-func _on_body_exited(body: Node) -> void:
+func _on_body_exited(_body: Node) -> void:
 	pass

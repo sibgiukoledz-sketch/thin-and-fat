@@ -61,12 +61,16 @@ func _physics_process(delta: float) -> void:
 	_animate_lever(delta)
 	_handle_player_input()
 
+@rpc("any_peer", "call_local", "reliable")
+func rpc_set_lever_state(new_state: bool) -> void:
+	set_lever_state(new_state)
+
 func toggle_lever() -> void:
 	if is_one_time and is_on:
 		print("🔒 Lever is locked in ON position!")
 		return
 
-	set_lever_state(not is_on)
+	rpc_set_lever_state.rpc(not is_on)
 
 func set_lever_state(new_state: bool) -> void:
 	is_on = new_state

@@ -223,7 +223,7 @@ func _apply_wind_physics(delta: float, max_wind_distance: float) -> void:
 					npc.velocity.z = lerpf(npc.velocity.z, push_vel.z, 14.0 * delta)
 					npc.move_and_slide()
 
-func _check_is_shielded(fan_origin: Vector3, victim_pos: Vector3) -> bool:
+func _check_is_shielded(_fan_origin: Vector3, victim_pos: Vector3) -> bool:
 	var wind_dir: Vector3 = global_transform.basis.z.normalized()
 	var fan_pos_2d: Vector3 = global_position
 	fan_pos_2d.y = 0.0

@@ -138,17 +138,17 @@ func trigger_nausea(amount: float) -> void:
 		nausea_intensity = clampf(nausea_intensity + amount, 0.0, 1.0)
 		player.nausea_intensity = nausea_intensity
 
-func trigger_vomit() -> void:
+@rpc("any_peer", "call_local", "reliable")
+func rpc_trigger_vomit() -> void:
 	_severe_nausea_duration = 0.0
 	_vomit_cooldown_timer = 8.0
 	_vomit_anim_timer = 1.8
 
-	# Temporary stomach relief after vomiting
 	nausea_intensity = maxf(nausea_intensity - 0.35, 0.15)
 	if player:
 		player.nausea_intensity = nausea_intensity
 
-	# Emit all 3 particle passes
+	# Emit all 3 particle passes on ALL clients!
 	if _vomit_particles:
 		_vomit_particles.restart()
 		_vomit_particles.emitting = true
@@ -159,8 +159,7 @@ func trigger_vomit() -> void:
 		_vomit_chunks.restart()
 		_vomit_chunks.emitting = true
 
-	# Violent retch: Camera pitch jerk & temporary FOV punch
-	if player:
+	if player and player.is_multiplayer_authority():
 		if player.head:
 			player.head.rotation.x = clampf(player.head.rotation.x + deg_to_rad(42.0), deg_to_rad(-89.0), deg_to_rad(89.0))
 		if player.camera_3d:
@@ -169,28 +168,30 @@ func trigger_vomit() -> void:
 		if player.hud and player.hud.has_method("set_nausea_intensity"):
 			player.hud.set_nausea_intensity(1.0)
 
-		# Raycast forward & down from mouth to project vomit onto surfaces
-		if player.is_multiplayer_authority():
-			var mouth_pos: Vector3 = player.head.global_position if player.head else player.global_position + Vector3(0, 1.5, 0)
-			var forward: Vector3 = -player.global_transform.basis.z
-			var ray_end: Vector3 = mouth_pos + forward * 3.5 + Vector3(0, -2.5, 0)
+func trigger_vomit() -> void:
+	rpc_trigger_vomit.rpc()
 
-			var space_state: PhysicsDirectSpaceState3D = player.get_world_3d().direct_space_state
-			var query: PhysicsRayQueryParameters3D = PhysicsRayQueryParameters3D.create(mouth_pos, ray_end)
-			query.exclude = [player]
+	if player and player.is_multiplayer_authority():
+		var mouth_pos: Vector3 = player.head.global_position if player.head else player.global_position + Vector3(0, 1.5, 0)
+		var forward: Vector3 = -player.global_transform.basis.z
+		var ray_end: Vector3 = mouth_pos + forward * 3.5 + Vector3(0, -2.5, 0)
 
-			var hit: Dictionary = space_state.intersect_ray(query)
-			var hit_pos: Vector3 = player.global_position + forward * 1.5
-			var hit_normal: Vector3 = Vector3.UP
-			var hit_node_path: NodePath = NodePath()
+		var space_state: PhysicsDirectSpaceState3D = player.get_world_3d().direct_space_state
+		var query: PhysicsRayQueryParameters3D = PhysicsRayQueryParameters3D.create(mouth_pos, ray_end)
+		query.exclude = [player]
 
-			if not hit.is_empty():
-				hit_pos = hit.get("position", hit_pos)
-				hit_normal = hit.get("normal", Vector3.UP)
-				if hit.get("collider") is Node:
-					hit_node_path = (hit["collider"] as Node).get_path()
+		var hit: Dictionary = space_state.intersect_ray(query)
+		var hit_pos: Vector3 = player.global_position + forward * 1.5
+		var hit_normal: Vector3 = Vector3.UP
+		var hit_node_path: NodePath = NodePath()
 
-			player.rpc_spawn_vomit_puddle.rpc(hit_pos, hit_normal, hit_node_path)
+		if not hit.is_empty():
+			hit_pos = hit.get("position", hit_pos)
+			hit_normal = hit.get("normal", Vector3.UP)
+			if hit.get("collider") is Node:
+				hit_node_path = (hit["collider"] as Node).get_path()
+
+		player.rpc_spawn_vomit_puddle.rpc(hit_pos, hit_normal, hit_node_path)
 
 	print("🤮 AAA VOMIT BURST: Player vomited!")
 
