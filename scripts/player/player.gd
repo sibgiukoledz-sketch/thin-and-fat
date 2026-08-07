@@ -85,6 +85,7 @@ var stand_head_y: float = 1.5
 var crouch_head_y: float = 0.8
 
 func _ready() -> void:
+	add_to_group("players")
 	collision_layer = 2
 	collision_mask = 7 # Layer 1 (Environment) + Layer 2 (Players) + Layer 3 (RigidBody Objects / Boulder / NPCs)
 	if ProjectSettings.has_setting("physics/3d/default_gravity"):
@@ -119,6 +120,12 @@ func _ready() -> void:
 		vomit_component = VomitComponent.new()
 		vomit_component.name = "VomitComponent"
 		add_child(vomit_component)
+
+	if not get_node_or_null("InflationSystem"):
+		var infl := InflationSystem.new()
+		infl.name = "InflationSystem"
+		add_child(infl)
+		infl.setup(self)
 
 	set_character(selected_character_id)
 
@@ -437,6 +444,28 @@ func _unhandled_input(event: InputEvent) -> void:
 	if hud and hud.has_method("is_pause_menu_open") and hud.is_pause_menu_open():
 		return
 
+	# --- QTE Inflation Pump: Fat presses E to pump air into Thin ---
+	var is_e_pressed: bool = event.is_action_pressed("interact") or (event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_E)
+	if is_e_pressed:
+		var infl_sys := get_node_or_null("InflationSystem") as InflationSystem
+		if infl_sys and infl_sys.is_inflating:
+			var in_zone: bool = (infl_sys.qte_cursor_pos >= infl_sys.qte_zone_min and infl_sys.qte_cursor_pos <= infl_sys.qte_zone_max)
+			infl_sys.rpc_perform_pump_qte.rpc(in_zone)
+			get_viewport().set_input_as_handled()
+			return
+		# Fat starts inflation when pressing E near Thin
+		elif infl_sys and not infl_sys.is_inflating and not infl_sys.is_balloon_mode and selected_character_id.to_lower() == "fat":
+			var thin_partner: Player = _find_nearby_thin_player()
+			if thin_partner:
+				infl_sys.rpc_start_inflation.rpc(thin_partner.get_path())
+				get_viewport().set_input_as_handled()
+				return
+		# Fat presses E to deflate/release balloon mode
+		elif infl_sys and infl_sys.is_balloon_mode:
+			infl_sys.rpc_stop_inflation.rpc()
+			get_viewport().set_input_as_handled()
+			return
+
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		if Input.mouse_mode != Input.MOUSE_MODE_CAPTURED:
 			Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
@@ -457,6 +486,23 @@ func _unhandled_input(event: InputEvent) -> void:
 
 	if active_mechanics:
 		active_mechanics.handle_ability_input(event)
+
+func _find_nearby_thin_player() -> Player:
+	var players := get_tree().get_nodes_in_group("players")
+	var closest: Player = null
+	var closest_dist: float = 3.5 # Max interaction distance for inflation
+
+	for node in players:
+		if node == self or not node is Player:
+			continue
+		var p: Player = node as Player
+		if p.selected_character_id.to_lower() == "thin" and not p.is_dead:
+			var dist: float = global_position.distance_to(p.global_position)
+			if dist < closest_dist:
+				closest_dist = dist
+				closest = p
+
+	return closest
 
 func _perform_melee_attack() -> void:
 	if not is_multiplayer_authority() or not camera_3d:

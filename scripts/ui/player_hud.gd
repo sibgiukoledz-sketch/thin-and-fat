@@ -32,10 +32,17 @@ extends CanvasLayer
 @onready var slingshot_timer_label: Label = $SlingshotAbilityWidget/CircleBg/TimerLabel
 @onready var slingshot_key_label: Label = $SlingshotAbilityWidget/KeyBadge/KeyLabel
 
+var _pump_qte_panel: Panel
+var _qte_cursor: Panel
+var _qte_target_zone: Panel
+var _qte_title: Label
+var _qte_progress_bar: ProgressBar
+
 var player: Player
 var _fps_timer: float = 0.0
 
 func _ready() -> void:
+	_setup_pump_qte_ui()
 	if btn_resume:
 		btn_resume.pressed.connect(hide_pause_menu)
 	if btn_switch_char:
@@ -57,7 +64,79 @@ func _ready() -> void:
 			get_tree().change_scene_to_file("res://scenes/main_menu.tscn")
 		)
 
+func _setup_pump_qte_ui() -> void:
+	if _pump_qte_panel:
+		return
+
+	_pump_qte_panel = Panel.new()
+	_pump_qte_panel.name = "PumpQTEPanel"
+	_pump_qte_panel.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
+	_pump_qte_panel.position = Vector2(-220, -180)
+	_pump_qte_panel.size = Vector2(440, 110)
+	_pump_qte_panel.hide()
+
+	var panel_style := StyleBoxFlat.new()
+	panel_style.bg_color = Color(0.1, 0.12, 0.18, 0.90)
+	panel_style.border_width_left = 3
+	panel_style.border_width_top = 3
+	panel_style.border_width_right = 3
+	panel_style.border_width_bottom = 3
+	panel_style.border_color = Color(0.2, 0.85, 0.95, 0.9)
+	panel_style.corner_radius_top_left = 10
+	panel_style.corner_radius_top_right = 10
+	panel_style.corner_radius_bottom_right = 10
+	panel_style.corner_radius_bottom_left = 10
+	_pump_qte_panel.add_theme_stylebox_override("panel", panel_style)
+
+	_qte_title = Label.new()
+	_qte_title.text = "🎈 РИТМИЧНОЕ НАКАЧИВАНИЕ: [E] НАЖМИТЕ В ЗЕЛЁНОЙ ЗОНЕ!"
+	_qte_title.position = Vector2(10, 8)
+	_qte_title.size = Vector2(420, 26)
+	_qte_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_qte_title.add_theme_font_size_override("font_size", 13)
+	_qte_title.add_theme_color_override("font_color", Color(1.0, 0.9, 0.4))
+
+	_qte_progress_bar = ProgressBar.new()
+	_qte_progress_bar.position = Vector2(20, 36)
+	_qte_progress_bar.size = Vector2(400, 18)
+	_qte_progress_bar.min_value = 0.0
+	_qte_progress_bar.max_value = 100.0
+	_qte_progress_bar.show_percentage = true
+
+	# Rhythm Track Base
+	var track := Panel.new()
+	track.position = Vector2(20, 64)
+	track.size = Vector2(400, 24)
+	var track_style := StyleBoxFlat.new()
+	track_style.bg_color = Color(0.05, 0.05, 0.08, 0.95)
+	track.add_theme_stylebox_override("panel", track_style)
+
+	# Target Green Zone (Middle 30%)
+	_qte_target_zone = Panel.new()
+	_qte_target_zone.position = Vector2(144, 0)
+	_qte_target_zone.size = Vector2(112, 24)
+	var target_style := StyleBoxFlat.new()
+	target_style.bg_color = Color(0.2, 0.95, 0.4, 0.85)
+	_qte_target_zone.add_theme_stylebox_override("panel", target_style)
+	track.add_child(_qte_target_zone)
+
+	# Moving Cursor
+	_qte_cursor = Panel.new()
+	_qte_cursor.position = Vector2(0, -3)
+	_qte_cursor.size = Vector2(10, 30)
+	var cursor_style := StyleBoxFlat.new()
+	cursor_style.bg_color = Color(1.0, 0.95, 0.2, 1.0)
+	_qte_cursor.add_theme_stylebox_override("panel", cursor_style)
+	track.add_child(_qte_cursor)
+
+	_pump_qte_panel.add_child(_qte_title)
+	_pump_qte_panel.add_child(_qte_progress_bar)
+	_pump_qte_panel.add_child(track)
+
+	add_child(_pump_qte_panel)
+
 func _process(delta: float) -> void:
+	_update_pump_qte_ui()
 	_fps_timer += delta
 	if _fps_timer >= 0.25:
 		_fps_timer = 0.0
@@ -65,6 +144,21 @@ func _process(delta: float) -> void:
 			var fps: int = int(Engine.get_frames_per_second())
 			var ms: float = (1.0 / maxf(float(fps), 1.0)) * 1000.0
 			fps_label.text = "⚡ %d FPS (%.1f ms)" % [fps, ms]
+
+func _update_pump_qte_ui() -> void:
+	if not _pump_qte_panel or not player:
+		return
+
+	var infl_sys := player.get_node_or_null("InflationSystem") as InflationSystem
+	if not infl_sys or not infl_sys.is_inflating:
+		_pump_qte_panel.hide()
+		return
+
+	_pump_qte_panel.show()
+	if _qte_cursor:
+		_qte_cursor.position.x = infl_sys.qte_cursor_pos * 390.0
+	if _qte_progress_bar:
+		_qte_progress_bar.value = infl_sys.inflation_progress * 100.0
 
 func setup(player_node: Player) -> void:
 	player = player_node
