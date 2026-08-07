@@ -10,19 +10,11 @@ signal character_switched(new_char_id: String)
 signal player_died
 signal player_landed(downward_velocity: float)
 
-const MOUSE_SENSITIVITY_DEFAULT := 0.0025
-const ZOOM_STEP := 0.5
-const MIN_ZOOM := 0.0
-const MAX_ZOOM := 8.0
-
 # Movement constants used by FSM states
 const WALK_SPEED := 5.0
 const SPRINT_SPEED := 9.0
 const CROUCH_SPEED := 2.5
-const NORMAL_FOV := 75.0
-const SPRINT_FOV := 85.0
 const AIR_ACCEL_FACTOR := 0.35
-
 
 @export var peer_id: int = 1
 @export var selected_character_id: String = "fat":
@@ -52,7 +44,7 @@ const AIR_ACCEL_FACTOR := 0.35
 @export var walk_speed: float = 4.5
 @export var run_speed: float = 7.5
 @export var jump_velocity: float = 6.5
-@export var mouse_sensitivity: float = MOUSE_SENSITIVITY_DEFAULT
+@export var mouse_sensitivity: float = 0.0025
 
 # Physics state
 var gravity: float = 18.0
@@ -77,7 +69,6 @@ var target_speed: float = 0.0
 		if character_model and character_model.has_method("play_anim"):
 			character_model.call("play_anim", synced_state_name)
 
-
 # Component & Node References
 @onready var head: Node3D = $Head
 @onready var spring_arm: SpringArm3D = $Head/SpringArm3D
@@ -86,28 +77,30 @@ var target_speed: float = 0.0
 @onready var mesh_instance: MeshInstance3D = $MeshInstance3D
 @onready var overhead_ray_cast: RayCast3D = get_node_or_null("OverheadRayCast") as RayCast3D
 @onready var state_machine: StateMachine = $StateMachine
-var active_mechanics: BaseCharacterMechanics = null
-var vomit_component: VomitComponent = null
 @onready var hud: PlayerHUD = $HUD
 
+# Modular Sub-Components
+var camera_component: PlayerCameraComponent = null
+var visual_loader: CharacterVisualLoader = null
+var combat_component: PlayerCombatComponent = null
+var active_mechanics: BaseCharacterMechanics = null
+var vomit_component: VomitComponent = null
 
-# Health & Status overlay tracking
+# Health & Status tracking
 var nausea_intensity: float = 0.0
 var _respawn_timer: float = 0.0
 var _was_in_air: bool = false
 var _last_air_velocity_y: float = 0.0
 var _step_timer: float = 0.0
 
-# Roblox-style Camera Zoom
-var target_camera_zoom: float = 0.0
-var current_camera_zoom: float = 0.0
-var is_first_person: bool = true
-
 # Standing/Crouching height lerps
 var stand_height: float = 1.8
 var crouch_height: float = 1.0
 var stand_head_y: float = 1.5
 var crouch_head_y: float = 0.8
+
+var character_model: Node3D = null
+var voice_indicator_label: Label3D = null
 
 func _enter_tree() -> void:
 	var id_from_name := name.to_int()
@@ -118,18 +111,17 @@ func _enter_tree() -> void:
 
 	set_multiplayer_authority(peer_id)
 
-var voice_indicator_label: Label3D = null
-
 func _ready() -> void:
 	add_to_group("players")
 	collision_layer = 2
-	collision_mask = 7 # Layer 1 (Environment) + Layer 2 (Players) + Layer 3 (RigidBody Objects / Boulder / NPCs)
+	collision_mask = 7
+
+	_setup_sub_components()
 	_setup_voice_indicator()
 
 	if ProjectSettings.has_setting("physics/3d/default_gravity"):
 		gravity = ProjectSettings.get_setting("physics/3d/default_gravity")
 
-	# Duplicate shape and mesh resources so height/radius changes do NOT affect other player instances!
 	if collision_shape and collision_shape.shape:
 		collision_shape.shape = collision_shape.shape.duplicate()
 	if mesh_instance and mesh_instance.mesh:
@@ -154,12 +146,26 @@ func _ready() -> void:
 		if mesh_instance:
 			mesh_instance.show()
 
+	set_character(selected_character_id)
+
+func _setup_sub_components() -> void:
+	camera_component = PlayerCameraComponent.new()
+	camera_component.name = "CameraComponent"
+	add_child(camera_component)
+	camera_component.setup(self, head, spring_arm, camera_3d)
+
+	visual_loader = CharacterVisualLoader.new()
+	visual_loader.name = "CharacterVisualLoader"
+	add_child(visual_loader)
+
+	combat_component = PlayerCombatComponent.new()
+	combat_component.name = "CombatComponent"
+	add_child(combat_component)
+
 	if not vomit_component:
 		vomit_component = VomitComponent.new()
 		vomit_component.name = "VomitComponent"
 		add_child(vomit_component)
-
-	set_character(selected_character_id)
 
 func _setup_voice_indicator() -> void:
 	if not voice_indicator_label:
@@ -177,7 +183,6 @@ func _setup_voice_indicator() -> void:
 func set_voice_indicator(is_speaking: bool) -> void:
 	if not voice_indicator_label:
 		_setup_voice_indicator()
-
 	if voice_indicator_label:
 		voice_indicator_label.visible = is_speaking
 
@@ -190,7 +195,7 @@ func set_character(char_id: String) -> void:
 		max_stamina = 100.0
 		walk_speed = 3.6
 		run_speed = 5.8
-		jump_velocity = 3.2 # Extremely heavy low hop (~20 cm height!)
+		jump_velocity = 3.2
 		stamina_drain_rate = 35.0
 		stamina_regen_rate = 22.0
 		stand_height = 1.8
@@ -205,7 +210,6 @@ func set_character(char_id: String) -> void:
 			collision_shape.shape = cap_shape
 
 		_build_character_visuals(true)
-		# Attach Fat Mechanics Component
 		_attach_mechanics_component("res://scripts/player/characters/fat_mechanics.gd")
 
 	else: # Thin
@@ -228,7 +232,6 @@ func set_character(char_id: String) -> void:
 			collision_shape.shape = cap_shape
 
 		_build_character_visuals(false)
-		# Attach Thin Mechanics Component
 		_attach_mechanics_component("res://scripts/player/characters/thin_mechanics.gd")
 
 	current_health = max_health
@@ -237,7 +240,7 @@ func set_character(char_id: String) -> void:
 	if collision_shape:
 		collision_shape.position.y = stand_height * 0.5
 	if mesh_instance:
-		mesh_instance.position.y = 0.0 # Ground level!
+		mesh_instance.position.y = 0.0
 	if head:
 		head.position.y = stand_head_y
 
@@ -248,24 +251,245 @@ func _attach_mechanics_component(script_path: String) -> void:
 		active_mechanics.queue_free()
 		active_mechanics = null
 
-	var scr := load(script_path) as Script
-	if scr:
-		var comp := Node.new()
-		comp.name = "CharacterMechanics"
-		comp.set_script(scr)
-		add_child(comp)
-		active_mechanics = comp as BaseCharacterMechanics
-
-		if active_mechanics and active_mechanics.has_method("setup"):
+	if ResourceLoader.exists(script_path):
+		var script := load(script_path) as Script
+		if script:
+			active_mechanics = script.new() as BaseCharacterMechanics
+			active_mechanics.name = "CharacterMechanics"
+			add_child(active_mechanics)
 			active_mechanics.setup(self)
 
-@rpc("any_peer", "call_local", "reliable")
-func rpc_take_damage(amount: float, hit_pos: Vector3 = Vector3.ZERO) -> void:
+func _unhandled_input(event: InputEvent) -> void:
+	if not is_multiplayer_authority() or is_dead:
+		return
+
+	if hud and hud.has_method("is_pause_menu_open") and hud.is_pause_menu_open():
+		return
+
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		if Input.mouse_mode != Input.MOUSE_MODE_CAPTURED:
+			Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+		else:
+			if combat_component:
+				combat_component.perform_melee_attack(self, camera_3d, selected_character_id)
+
+	if camera_component:
+		camera_component.handle_input(event, mouse_sensitivity, nausea_intensity)
+
+	if active_mechanics:
+		active_mechanics.handle_ability_input(event)
+
+var _last_carry_state: bool = false
+
+func _process(delta: float) -> void:
+	if not is_multiplayer_authority():
+		if mesh_instance and not is_dead and not mesh_instance.visible:
+			mesh_instance.show()
+
+	if camera_component:
+		var is_sprinting := (synced_state_name.to_lower() == "sprint" or is_sprint_requested())
+		camera_component.update_camera(delta, is_sprinting)
+
+func _physics_process(delta: float) -> void:
 	if not is_multiplayer_authority():
 		return
-	_apply_damage_internal(amount, hit_pos)
+
+	if _last_carry_state != is_carrying_heavy_object:
+		_last_carry_state = is_carrying_heavy_object
+		_update_carried_boulder_collision_shape()
+
+	if is_dead:
+		if is_multiplayer_authority():
+			_respawn_timer -= delta
+			if hud:
+				hud.update_death_display(true, _respawn_timer)
+			if _respawn_timer <= 0.0:
+				rpc_respawn.rpc()
+		return
+
+	if is_on_floor() and _was_in_air:
+		var fall_impact: float = absf(_last_air_velocity_y)
+		player_landed.emit(fall_impact)
+		if AudioManager and fall_impact > 1.5:
+			AudioManager.play_sfx_3d("land", global_position)
+		if fall_impact > 12.0:
+			var fall_dmg: float = (fall_impact - 12.0) * 4.0
+			take_damage(fall_dmg)
+
+	_was_in_air = not is_on_floor()
+	if not is_on_floor():
+		_last_air_velocity_y = velocity.y
+	else:
+		var horiz_vel := Vector2(velocity.x, velocity.z).length()
+		if horiz_vel > 0.5:
+			var step_interval := 0.48 if selected_character_id.to_lower() == "fat" else 0.32
+			if synced_state_name.to_lower() == "sprint":
+				step_interval *= 0.7
+			_step_timer += delta
+			if _step_timer >= step_interval:
+				_step_timer = 0.0
+				if AudioManager:
+					AudioManager.play_sfx_3d("step_" + selected_character_id.to_lower(), global_position)
+
+	_handle_stamina_regen(delta)
+
+	# Dynamic animation state updates
+	var target_anim := "idle"
+	if not is_on_floor():
+		target_anim = "jump"
+	elif is_crouching:
+		target_anim = "crouch"
+	elif velocity.length() > 0.3:
+		if synced_state_name.to_lower() == "sprint" or is_sprint_requested():
+			target_anim = "sprint"
+		else:
+			target_anim = "walk"
+
+	if character_model and character_model.has_method("play_anim"):
+		character_model.call("play_anim", target_anim)
+
+	if is_paper_flattened:
+		var overhead_open := is_overhead_clear()
+		if overhead_open:
+			paper_flatten_timer -= delta
+			if paper_flatten_timer <= 0.0:
+				rpc_inflate_back_to_normal.rpc()
+			elif is_multiplayer_authority() and Input.is_action_just_pressed("jump"):
+				rpc_inflate_back_to_normal.rpc()
+		else:
+			paper_flatten_timer = maxf(paper_flatten_timer, 15.0)
+
+	if active_mechanics:
+		active_mechanics.update_mechanics(delta)
+		active_mechanics.physics_update_mechanics(delta)
+
+	if vomit_component:
+		vomit_component.update_nausea_effects(delta)
+
+	if is_multiplayer_authority() and hud:
+		hud.update_display()
+		if nausea_intensity > 0.0:
+			hud.set_nausea_intensity(nausea_intensity)
+
+func _update_carried_boulder_collision_shape() -> void:
+	if not collision_shape:
+		return
+	var is_fat := (selected_character_id.to_lower() == "fat")
+	var cap_shape := CapsuleShape3D.new()
+
+	if is_fat:
+		if is_carrying_heavy_object:
+			cap_shape.radius = 1.65
+			cap_shape.height = 2.8
+		else:
+			cap_shape.radius = 0.65
+			cap_shape.height = 1.8
+	else:
+		cap_shape.radius = 0.35
+		cap_shape.height = 2.4
+
+	collision_shape.shape = cap_shape
+
+func is_sprint_requested() -> bool:
+	return Input.is_action_pressed("sprint") and not is_stamina_exhausted
+
+func drain_stamina(amount: float) -> void:
+	current_stamina = clampf(current_stamina - amount, 0.0, max_stamina)
+	stamina_changed.emit(current_stamina, max_stamina)
+	if current_stamina <= 0.0:
+		is_stamina_exhausted = true
+
+func _handle_stamina_regen(delta: float) -> void:
+	var is_moving := (velocity.length() > 0.1)
+	var is_sprinting := (synced_state_name.to_lower() == "sprint")
+
+	if is_sprinting and is_moving:
+		drain_stamina(stamina_drain_rate * delta)
+	else:
+		if current_stamina < max_stamina:
+			current_stamina = clampf(current_stamina + stamina_regen_rate * delta, 0.0, max_stamina)
+			stamina_changed.emit(current_stamina, max_stamina)
+			if current_stamina >= max_stamina * 0.30:
+				is_stamina_exhausted = false
+
+func set_crouch_state(crouch: bool) -> void:
+	is_crouching = crouch
+	var target_h := crouch_height if is_crouching else stand_height
+	var target_head := crouch_head_y if is_crouching else stand_head_y
+
+	if collision_shape and collision_shape.shape is CapsuleShape3D:
+		var cap := collision_shape.shape as CapsuleShape3D
+		var tw := create_tween().set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		tw.tween_property(cap, "height", target_h, 0.2)
+		tw.parallel().tween_property(collision_shape, "position:y", target_h * 0.5, 0.2)
+
+	if head:
+		var tw_head := create_tween().set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		tw_head.tween_property(head, "position:y", target_head, 0.2)
+
+func is_overhead_clear() -> bool:
+	if not overhead_ray_cast:
+		return true
+	overhead_ray_cast.force_raycast_update()
+	return not overhead_ray_cast.is_colliding()
+
+func apply_paper_flatten(duration: float = 10.0) -> void:
+	if not is_multiplayer_authority():
+		return
+	rpc_apply_paper_flatten.rpc(duration)
+
+@rpc("any_peer", "call_local", "reliable")
+func rpc_apply_paper_flatten(duration: float = 10.0) -> void:
+	is_paper_flattened = true
+	paper_flatten_timer = duration
+
+	if collision_shape and collision_shape.shape is CapsuleShape3D:
+		var flat_cap := collision_shape.shape as CapsuleShape3D
+		flat_cap.height = 0.25
+		collision_shape.shape = flat_cap
+		collision_shape.position.y = 0.125
+
+	if mesh_instance:
+		if _flatten_tween and _flatten_tween.is_valid():
+			_flatten_tween.kill()
+
+		_flatten_tween = create_tween().set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
+		_flatten_tween.tween_property(mesh_instance, "scale", Vector3(1.7, 0.08, 1.7), 0.3)
+		_flatten_tween.parallel().tween_property(mesh_instance, "position:y", 0.04, 0.3)
+
+	if head:
+		var tw_head := create_tween().set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		tw_head.tween_property(head, "position:y", 0.35, 0.3)
+
+@rpc("any_peer", "call_local", "reliable")
+func rpc_inflate_back_to_normal() -> void:
+	if not is_paper_flattened:
+		return
+
+	is_paper_flattened = false
+	paper_flatten_timer = 0.0
+
+	if collision_shape and collision_shape.shape is CapsuleShape3D:
+		var normal_cap := collision_shape.shape as CapsuleShape3D
+		normal_cap.height = stand_height
+		collision_shape.shape = normal_cap
+		collision_shape.position.y = stand_height * 0.5
+
+	if mesh_instance:
+		var orig_pos_y: float = 0.0
+		_flatten_tween = create_tween().set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
+		_flatten_tween.tween_property(mesh_instance, "scale", Vector3(1.25, 1.25, 1.25), 0.15)
+		_flatten_tween.parallel().tween_property(mesh_instance, "position:y", 0.1, 0.15)
+		_flatten_tween.tween_property(mesh_instance, "scale", Vector3.ONE, 0.25)
+		_flatten_tween.parallel().tween_property(mesh_instance, "position:y", orig_pos_y, 0.25)
+
+	if head:
+		var tw_head := create_tween().set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		tw_head.tween_property(head, "position:y", stand_head_y, 0.25)
 
 func take_damage(amount: float, hit_pos: Vector3 = Vector3.ZERO) -> void:
+	if not is_multiplayer_authority():
+		return
 	if is_multiplayer_authority():
 		_apply_damage_internal(amount, hit_pos)
 	else:
@@ -317,7 +541,9 @@ func die() -> void:
 	if AudioManager:
 		AudioManager.play_sfx_3d("player_die", global_position)
 
-	print("💀 PLAYER DIED: %s" % name)
+@rpc("any_peer", "call_local", "reliable")
+func rpc_respawn() -> void:
+	respawn()
 
 func respawn() -> void:
 	current_health = max_health
@@ -328,726 +554,40 @@ func respawn() -> void:
 	if vomit_component:
 		vomit_component.nausea_intensity = 0.0
 
-	if active_mechanics and active_mechanics.has_method("wash_stench"):
-		active_mechanics.wash_stench()
-
 	_stop_ragdoll()
 
 	if collision_shape:
-		collision_shape.set_deferred("disabled", false)
-	if mesh_instance:
-		mesh_instance.show()
-		mesh_instance.visible = true
+		collision_shape.disabled = false
+		collision_shape.position.y = stand_height * 0.5
+
 	if hud and "death_overlay" in hud and hud.death_overlay:
 		hud.death_overlay.hide()
 
-	var sp_nodes := get_tree().get_nodes_in_group("spawn_points")
-	if sp_nodes.size() > 0:
-		var sp: Node3D = sp_nodes.pick_random()
-		global_position = sp.global_position
+	if NetworkManager:
+		var spawn_pos: Vector3 = NetworkManager.get_spawn_position_for_peer(peer_id)
+		global_position = spawn_pos
 	else:
-		global_position = Vector3(randf_range(-4.0, 4.0), 1.5, randf_range(-4.0, 4.0))
+		global_position = Vector3(0, 2, 0)
 
-	if AudioManager:
-		AudioManager.play_sfx_3d("player_respawn", global_position)
-
-	print("✨ PLAYER RESPAWNED: %s" % name)
-
-@rpc("any_peer", "call_local", "reliable")
-func rpc_respawn() -> void:
-	respawn()
-
-@rpc("any_peer", "call_local", "reliable")
-func rpc_toggle_character() -> void:
-	if selected_character_id.to_lower() == "fat":
-		set_character("thin")
-	else:
-		set_character("fat")
-	respawn()
-
-@rpc("any_peer", "call_local", "reliable")
-func rpc_flatten_into_paper(duration: float = 20.0) -> void:
-	if is_dead or is_paper_flattened:
-		return
-
-	is_paper_flattened = true
-	paper_flatten_timer = duration
-
-	if _flatten_tween and _flatten_tween.is_valid():
-		_flatten_tween.kill()
-
-	# 1. Update Collision Shape to low, ultra-flat disc capsule (height = 0.15m, radius = 0.35m)
-	# This allows Thin to slide under low horizontal door slits, low wall vents, and tight gaps!
-	if collision_shape:
-		var flat_cap := CapsuleShape3D.new()
-		flat_cap.radius = 0.35
-		flat_cap.height = 0.15
-		collision_shape.shape = flat_cap
-		collision_shape.position.y = 0.08
-
-	# 2. Flatten Mesh Instance into a 4 cm thin pancake disc lying flat on the ground floor!
-	if mesh_instance:
-		var pancake_scale := Vector3(1.8, 0.04, 1.8) # Wide, ultra-flat floor pancake!
-		var pancake_pos_y := 0.04 # Pressed flat directly onto the ground floor
-
-		_flatten_tween = create_tween().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-		_flatten_tween.tween_property(mesh_instance, "scale", pancake_scale, 0.10)
-		_flatten_tween.parallel().tween_property(mesh_instance, "position:y", pancake_pos_y, 0.10)
-
-	# 3. Lower camera head to near-floor level for flat pancake perspective
+	velocity = Vector3.ZERO
 	if head:
-		var tw_head := create_tween().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-		tw_head.tween_property(head, "position:y", 0.25, 0.12)
-
-	print("🥞 FLOOR PANCAKE: %s squished into a flat floor pancake by the heavy boulder! Can slide under low slits!" % name)
-
-@rpc("any_peer", "call_local", "reliable")
-func rpc_inflate_back_to_normal() -> void:
-	if not is_paper_flattened:
-		return
-
-	is_paper_flattened = false
-	paper_flatten_timer = 0.0
-
-	if _flatten_tween and _flatten_tween.is_valid():
-		_flatten_tween.kill()
-
-	# 1. Restore original collision shape
-	if collision_shape:
-		var normal_cap := CapsuleShape3D.new()
-		var is_fat := (selected_character_id.to_lower() == "fat")
-		normal_cap.radius = 0.65 if is_fat else 0.28
-		normal_cap.height = stand_height
-		collision_shape.shape = normal_cap
-		collision_shape.position.y = stand_height * 0.5
-
-	# 2. Balloon inflation pop animation back to standing shape (Guaranteed Vector3.ONE!)
-	if mesh_instance:
-		var orig_pos_y: float = 0.0
-		_flatten_tween = create_tween().set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
-		_flatten_tween.tween_property(mesh_instance, "scale", Vector3(1.25, 1.25, 1.25), 0.15)
-		_flatten_tween.parallel().tween_property(mesh_instance, "position:y", 0.1, 0.15)
-		_flatten_tween.tween_property(mesh_instance, "scale", Vector3.ONE, 0.25)
-		_flatten_tween.parallel().tween_property(mesh_instance, "position:y", orig_pos_y, 0.25)
-
-	# 3. Restore camera head position
-	if head:
-		var tw_head := create_tween().set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
-		tw_head.tween_property(head, "position:y", stand_head_y, 0.35)
-
-	print("🎈 RE-INFLATED: %s inflated back to full height!" % name)
-
-func is_overhead_clear() -> bool:
-	if overhead_ray_cast:
-		overhead_ray_cast.target_position = Vector3(0, stand_height + 0.3, 0)
-		overhead_ray_cast.force_raycast_update()
-		return not overhead_ray_cast.is_colliding()
-
-	var space_state := get_world_3d().direct_space_state
-	if not space_state:
-		return true
-
-	var start_pos := global_position + Vector3(0, 0.2, 0)
-	var end_pos := global_position + Vector3(0, stand_height + 0.3, 0)
-
-	var query := PhysicsRayQueryParameters3D.create(start_pos, end_pos)
-	query.exclude = [self]
-	query.collision_mask = 1 | 4 # World environment + Heavy Objects / Doors
-
-	var result := space_state.intersect_ray(query)
-	return result.is_empty()
-
-# Nausea & Vomit Delegation
-func trigger_vomit() -> void:
-	if vomit_component:
-		vomit_component.trigger_vomit()
-
-func trigger_nausea(amount: float) -> void:
-	if vomit_component:
-		vomit_component.trigger_nausea(amount)
-		nausea_intensity = vomit_component.nausea_intensity
-
-@rpc("any_peer", "call_local", "reliable")
-func rpc_spawn_vomit_puddle(spawn_pos: Vector3, normal: Vector3, target_path: NodePath) -> void:
-	var puddle_scene := load("res://scenes/vomit_puddle.tscn") as PackedScene
-	if puddle_scene:
-		var puddle := puddle_scene.instantiate() as VomitPuddle
-		get_tree().root.add_child(puddle)
-
-		var target_node: Node3D = null
-		if not target_path.is_empty() and has_node(target_path):
-			target_node = get_node_or_null(target_path) as Node3D
-
-		if puddle.has_method("align_to_surface"):
-			puddle.align_to_surface(spawn_pos, normal, target_node)
-
-# Input & Movement Controls
-func _unhandled_input(event: InputEvent) -> void:
-	if not is_multiplayer_authority() or is_dead:
-		return
-
-	if event.is_action_pressed("ui_cancel"):
-		if hud and hud.has_method("toggle_pause_menu"):
-			hud.toggle_pause_menu()
-		else:
-			if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
-				Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-			else:
-				Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
-		return
-
-	# When Pause Menu is open, ignore game inputs so UI buttons can be clicked cleanly!
-	if hud and hud.has_method("is_pause_menu_open") and hud.is_pause_menu_open():
-		return
-
-	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		if Input.mouse_mode != Input.MOUSE_MODE_CAPTURED:
-			Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
-		else:
-			_perform_melee_attack()
-
-	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
-		var sens := mouse_sensitivity * (1.0 - nausea_intensity * 0.60)
-		rotate_y(-event.relative.x * sens)
-		head.rotate_x(-event.relative.y * sens)
-		head.rotation.x = clampf(head.rotation.x, deg_to_rad(-89.0), deg_to_rad(89.0))
-
-	if event is InputEventMouseButton and event.pressed:
-		if event.button_index == MOUSE_BUTTON_WHEEL_UP:
-			target_camera_zoom = clampf(target_camera_zoom - ZOOM_STEP, MIN_ZOOM, MAX_ZOOM)
-		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
-			target_camera_zoom = clampf(target_camera_zoom + ZOOM_STEP, MIN_ZOOM, MAX_ZOOM)
-
-	if active_mechanics:
-		active_mechanics.handle_ability_input(event)
-
-func _perform_melee_attack() -> void:
-	if not is_multiplayer_authority() or not camera_3d:
-		return
-
-	var space_state := get_world_3d().direct_space_state
-	var cam_pos := camera_3d.global_position
-	var ray_dir := -camera_3d.global_transform.basis.z
-	var ray_end := cam_pos + ray_dir * 4.0
-
-	var query := PhysicsRayQueryParameters3D.create(cam_pos, ray_end)
-	query.exclude = [self]
-
-	var result := space_state.intersect_ray(query)
-	if result:
-		var hit_collider: Object = result.collider
-		var hit_pos: Vector3 = result.position
-		if hit_collider and hit_collider.has_method("take_damage"):
-			var dmg: float = 35.0 if selected_character_id.to_lower() == "fat" else 20.0
-			hit_collider.take_damage(dmg, hit_pos)
-			print("🥊 MELEE HIT: %s dealt %.1f damage to %s" % [name, dmg, hit_collider.name])
-
-var _last_carry_state: bool = false
-
-func _process(_delta: float) -> void:
-	if not is_multiplayer_authority():
-		if mesh_instance and not is_dead and not mesh_instance.visible:
-			mesh_instance.show()
-
-func _physics_process(delta: float) -> void:
-	if not is_multiplayer_authority():
-		return
-
-	if _last_carry_state != is_carrying_heavy_object:
-		_last_carry_state = is_carrying_heavy_object
-		_update_carried_boulder_collision_shape()
-
-	if is_dead:
-		if is_multiplayer_authority():
-			_respawn_timer -= delta
-			if hud:
-				hud.update_death_display(true, _respawn_timer)
-			if _respawn_timer <= 0.0:
-				rpc_respawn.rpc()
-		return
-
-	# Landing impact & audio calculation
-	if is_on_floor() and _was_in_air:
-		var fall_impact: float = absf(_last_air_velocity_y)
-		player_landed.emit(fall_impact)
-		if AudioManager and fall_impact > 1.5:
-			AudioManager.play_sfx_3d("land", global_position)
-		if fall_impact > 12.0:
-			var fall_dmg: float = (fall_impact - 12.0) * 4.0
-			take_damage(fall_dmg)
-
-	_was_in_air = not is_on_floor()
-	if not is_on_floor():
-		_last_air_velocity_y = velocity.y
-	else:
-		# Footstep audio player
-		var horiz_vel := Vector2(velocity.x, velocity.z).length()
-		if horiz_vel > 0.5:
-			var step_interval := 0.48 if selected_character_id.to_lower() == "fat" else 0.32
-			if synced_state_name.to_lower() == "sprint":
-				step_interval *= 0.7
-			_step_timer += delta
-			if _step_timer >= step_interval:
-				_step_timer = 0.0
-				if AudioManager:
-					AudioManager.play_sfx_3d("step_" + selected_character_id.to_lower(), global_position)
-
-	_handle_stamina_regen(delta)
-	_update_camera_zoom(delta)
-
-	# Dynamic animation state updates for custom 3D model
-	var target_anim := "idle"
-	if not is_on_floor():
-		target_anim = "jump"
-	elif is_crouching:
-		target_anim = "crouch"
-	elif velocity.length() > 0.3:
-		if synced_state_name.to_lower() == "sprint" or is_sprint_requested():
-			target_anim = "sprint"
-		else:
-			target_anim = "walk"
-
-	if character_model and character_model.has_method("play_anim"):
-		character_model.call("play_anim", target_anim)
-
-	if is_paper_flattened:
-		var overhead_open := is_overhead_clear()
-		if overhead_open:
-			paper_flatten_timer -= delta
-			if paper_flatten_timer <= 0.0:
-				rpc_inflate_back_to_normal.rpc()
-			elif is_multiplayer_authority() and Input.is_action_just_pressed("jump"):
-				rpc_inflate_back_to_normal.rpc()
-		else:
-			# Pause timer while under narrow ceiling/doorway so player never gets stuck or crushed!
-			paper_flatten_timer = maxf(paper_flatten_timer, 15.0)
-
-	if active_mechanics:
-		active_mechanics.update_mechanics(delta)
-		active_mechanics.physics_update_mechanics(delta)
-
-	if vomit_component:
-		vomit_component.update_nausea_effects(delta)
+		head.rotation = Vector3.ZERO
 
 	if is_multiplayer_authority() and hud:
 		hud.update_display()
-		if nausea_intensity > 0.0:
-			hud.set_nausea_intensity(nausea_intensity)
 
-func _update_carried_boulder_collision_shape() -> void:
-	if not collision_shape:
-		return
-	var is_fat := (selected_character_id.to_lower() == "fat")
-	var cap_shape := CapsuleShape3D.new()
-
-	if is_fat:
-		if is_carrying_heavy_object:
-			# Expand Fat's capsule radius to 1.65m (3.3m total width) matching 3.5m boulder size!
-			cap_shape.radius = 1.65
-			cap_shape.height = 2.8
-		else:
-			cap_shape.radius = 0.65
-			cap_shape.height = 1.5
-	else:
-		cap_shape.radius = 0.28
-		cap_shape.height = 2.4
-
-	collision_shape.shape = cap_shape
-
-func _handle_stamina_regen(delta: float) -> void:
-	if state_machine:
-		synced_state_name = state_machine.current_state_name
-		var cur_state: String = synced_state_name.to_lower()
-		if cur_state == "sprint":
-			current_stamina = clampf(current_stamina - stamina_drain_rate * delta, 0.0, max_stamina)
-			stamina_changed.emit(current_stamina, max_stamina)
-			if current_stamina <= 0.001:
-				is_stamina_exhausted = true
-				shift_must_be_released = true
-		else:
-			if current_stamina < max_stamina:
-				current_stamina = clampf(current_stamina + stamina_regen_rate * delta, 0.0, max_stamina)
-				stamina_changed.emit(current_stamina, max_stamina)
-			elif current_stamina >= max_stamina:
-				is_stamina_exhausted = false
-				shift_must_be_released = false
-
-func _update_camera_zoom(delta: float) -> void:
-	current_camera_zoom = lerpf(current_camera_zoom, target_camera_zoom, 14.0 * delta)
-	if spring_arm:
-		spring_arm.spring_length = current_camera_zoom
-	if camera_3d and camera_3d.fov < 74.9:
-		camera_3d.fov = lerpf(camera_3d.fov, 75.0, 4.0 * delta)
-
-	is_first_person = (current_camera_zoom < 0.25)
-	var crosshair: Control = hud.crosshair if (hud and "crosshair" in hud) else null
-
-	if is_multiplayer_authority():
-		if mesh_instance:
-			mesh_instance.visible = not is_first_person
-		if crosshair:
-			crosshair.visible = is_first_person
-	else:
-		if mesh_instance:
-			mesh_instance.show()
-
-func get_movement_input() -> Vector3:
-	var raw_input := Input.get_vector("move_left", "move_right", "move_forward", "move_backward")
-	var dir := (global_transform.basis * Vector3(raw_input.x, 0.0, raw_input.y)).normalized()
-	return dir
-
-func get_effective_speed(base_spd: float) -> float:
-	var spd := base_spd
-	if is_carrying_heavy_object:
-		spd *= 0.50 # 50% speed penalty when carrying heavy boulder!
-	return spd
-
-func apply_movement(dir: Vector3, move_spd: float, delta: float, accel_factor: float = 1.0) -> void:
-	var final_spd := get_effective_speed(move_spd)
-	var target_vel_x := dir.x * final_spd
-	var target_vel_z := dir.z * final_spd
-	var accel := 14.0 * accel_factor
-	velocity.x = lerpf(velocity.x, target_vel_x, accel * delta)
-	velocity.z = lerpf(velocity.z, target_vel_z, accel * delta)
-	move_and_slide()
-	_handle_rigidbody_pushing(delta)
-
-func _handle_rigidbody_pushing(delta: float) -> void:
-	var is_fat := (selected_character_id.to_lower() == "fat")
-
-	for i in range(get_slide_collision_count()):
-		var collision := get_slide_collision(i)
-		var collider := collision.get_collider()
-
-		if collider is RigidBody3D:
-			var rb := collider as RigidBody3D
-			if rb.freeze:
-				continue
-
-			var is_heavy := (rb is HeavyBoulder or rb.mass >= 100.0 or rb.is_in_group("heavy_objects"))
-
-			if is_heavy:
-				if not is_fat:
-					# Thin player CANNOT push heavy objects horizontally, but allow gravity (y) so boulder stays grounded!
-					rb.linear_velocity.x = 0.0
-					rb.linear_velocity.z = 0.0
-					rb.angular_velocity = Vector3.ZERO
-				else:
-					# Fat player CAN push heavy objects!
-					var push_dir := -collision.get_normal()
-					push_dir.y = 0.0
-					if push_dir.length_squared() > 0.001:
-						push_dir = push_dir.normalized()
-						rb.apply_central_force(push_dir * 1800.0)
-
-					# Regulate max rolling speed when Fat pushes it
-					if rb.linear_velocity.length() > 3.5:
-						rb.linear_velocity = rb.linear_velocity.normalized() * 3.5
-						rb.angular_velocity = rb.angular_velocity.normalized() * minf(rb.angular_velocity.length(), 4.5)
-			else:
-				# Light rigidbodies (mass < 100.0)
-				var push_dir := -collision.get_normal()
-				push_dir.y = 0.0
-				push_dir = push_dir.normalized()
-				var push_force := 20.0 if is_fat else 8.0
-				rb.apply_central_impulse(push_dir * push_force * delta * 60.0)
-
-
-
-func is_jump_requested() -> bool:
-	return Input.is_action_just_pressed("jump")
-
-func is_crouch_requested() -> bool:
-	return Input.is_action_pressed("crouch") or Input.is_action_pressed("ui_down")
-
-func is_sprint_requested() -> bool:
-	return Input.is_action_pressed("sprint") and not is_stamina_exhausted
-
-func apply_gravity(delta: float) -> void:
-	if not is_on_floor():
-		var grav_mult: float = 1.45 if selected_character_id.to_lower() == "fat" else 1.0
-		velocity.y -= gravity * grav_mult * delta
-
-func apply_jump_impulse() -> void:
-	if is_carrying_heavy_object:
-		velocity.y = jump_velocity * 0.55
-	else:
-		velocity.y = jump_velocity
-
-	if AudioManager:
-		AudioManager.play_sfx_3d("jump_" + selected_character_id.to_lower(), global_position)
-
-func set_target_fov(fov_val: float) -> void:
-	if camera_3d:
-		var tw: Tween = create_tween().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-		tw.tween_property(camera_3d, "fov", fov_val, 0.25)
-
-func set_crouch_state(crouching: bool) -> void:
-	if is_crouching != crouching:
-		is_crouching = crouching
-
-	var target_h: float = crouch_height if crouching else stand_height
-	var target_head_y: float = crouch_head_y if crouching else stand_head_y
-	if collision_shape and collision_shape.shape is CapsuleShape3D:
-		(collision_shape.shape as CapsuleShape3D).height = target_h
-		collision_shape.position.y = target_h * 0.5
-	if mesh_instance and mesh_instance.mesh is CapsuleMesh:
-		(mesh_instance.mesh as CapsuleMesh).height = target_h
-		mesh_instance.position.y = target_h * 0.5
-	if head:
-		head.position.y = target_head_y
-
-func can_uncrouch() -> bool:
-	if not head:
-		return true
-	var space_state: PhysicsDirectSpaceState3D = get_world_3d().direct_space_state
-	var from: Vector3 = global_position + Vector3(0, crouch_height, 0)
-	var to: Vector3 = global_position + Vector3(0, stand_height + 0.1, 0)
-	var query: PhysicsRayQueryParameters3D = PhysicsRayQueryParameters3D.create(from, to)
-	query.exclude = [self]
-	var result: Dictionary = space_state.intersect_ray(query)
-	return result.is_empty()
-
-var character_model: Node3D = null
-var _is_ragdoll_active: bool = false
+@rpc("any_peer", "call_local", "unreliable")
+func rpc_take_damage(amount: float, hit_pos: Vector3 = Vector3.ZERO) -> void:
+	_apply_damage_internal(amount, hit_pos)
 
 func _start_ragdoll() -> void:
-	_is_ragdoll_active = true
-	if character_model and character_model.has_method("start_ragdoll"):
-		character_model.call("start_ragdoll", velocity)
-	elif mesh_instance:
-		mesh_instance.show()
-		mesh_instance.visible = true
+	if visual_loader:
+		visual_loader.start_ragdoll(velocity, mesh_instance)
 
 func _stop_ragdoll() -> void:
-	_is_ragdoll_active = false
-	if character_model and character_model.has_method("stop_ragdoll"):
-		character_model.call("stop_ragdoll")
-	if mesh_instance:
-		mesh_instance.rotation = Vector3.ZERO
+	if visual_loader:
+		visual_loader.stop_ragdoll(mesh_instance)
 
 func _build_character_visuals(is_fat: bool) -> void:
-	if not mesh_instance:
-		return
-
-	# Clear any previous child detail nodes from mesh_instance
-	for child in mesh_instance.get_children():
-		child.queue_free()
-
-	mesh_instance.mesh = null
-	var scene_path := "res://scenes/characters/%s_character.tscn" % ("fat" if is_fat else "thin")
-	if ResourceLoader.exists(scene_path):
-		var char_scene := load(scene_path) as PackedScene
-		if char_scene:
-			character_model = char_scene.instantiate() as Node3D
-			character_model.rotation_degrees.y = 0.0
-			mesh_instance.add_child(character_model)
-			print("🎨 LOADED CHARACTER SCENE: %s" % scene_path)
-			return
-
-	# Shared Materials from Concept Art:
-	# Skin: Smooth warm greyish-tan (#84807C)
-	var skin_mat := StandardMaterial3D.new()
-	skin_mat.albedo_color = Color(0.52, 0.50, 0.48, 1.0)
-	skin_mat.roughness = 0.55
-
-	# Pants: Dark slate blue-grey (#2C303D)
-	var pants_mat := StandardMaterial3D.new()
-	pants_mat.albedo_color = Color(0.18, 0.20, 0.26, 1.0)
-	pants_mat.roughness = 0.65
-
-	# Face Features: Matte Black (#141414)
-	var face_mat := StandardMaterial3D.new()
-	face_mat.albedo_color = Color(0.08, 0.08, 0.08, 1.0)
-	face_mat.roughness = 0.8
-
-	var skel := Skeleton3D.new()
-	skel.name = "Skeleton3D"
-	mesh_instance.mesh = null
-	mesh_instance.add_child(skel)
-
-	if is_fat:
-		# ==============================================================================
-		# FAT CHARACTER ("Жирдяй" - matching Gemini_Generated_Image_qbah5vqbah5vqbah.png)
-		# ==============================================================================
-		# 1. Giant Round Belly & Upper Torso
-		var belly := MeshInstance3D.new()
-		belly.name = "GiantBelly"
-		var b_mesh := SphereMesh.new()
-		b_mesh.radius = 0.75
-		b_mesh.height = 1.35
-		b_mesh.radial_segments = 32
-		b_mesh.rings = 24
-		belly.mesh = b_mesh
-		belly.material_override = skin_mat
-		belly.position = Vector3(0, 0.15, 0)
-		skel.add_child(belly)
-
-		# 2. Dark Slate Blue Pants & Lower Body
-		var pants := MeshInstance3D.new()
-		pants.name = "DarkPants"
-		var p_mesh := SphereMesh.new()
-		p_mesh.radius = 0.70
-		p_mesh.height = 0.75
-		pants.mesh = p_mesh
-		pants.material_override = pants_mat
-		pants.position = Vector3(0, -0.32, 0)
-		skel.add_child(pants)
-
-		# 3. Feet
-		for side in [-1.0, 1.0]:
-			var foot := MeshInstance3D.new()
-			foot.name = "Foot_" + ("L" if side < 0 else "R")
-			var f_mesh := BoxMesh.new()
-			f_mesh.size = Vector3(0.26, 0.14, 0.32)
-			foot.mesh = f_mesh
-			foot.material_override = pants_mat
-			foot.position = Vector3(side * 0.28, -0.68, 0.05)
-			skel.add_child(foot)
-
-		# 4. T-Pose Arms
-		for side in [-1.0, 1.0]:
-			var arm := MeshInstance3D.new()
-			arm.name = "Arm_" + ("L" if side < 0 else "R")
-			var a_mesh := CylinderMesh.new()
-			a_mesh.top_radius = 0.24
-			a_mesh.bottom_radius = 0.12
-			a_mesh.height = 0.95
-			arm.mesh = a_mesh
-			arm.material_override = skin_mat
-			arm.position = Vector3(side * 0.95, 0.42, 0.0)
-			arm.rotation_degrees.z = side * -90.0
-			skel.add_child(arm)
-
-		# 5. Round Head with Cute Face (😊)
-		var head_mesh := MeshInstance3D.new()
-		head_mesh.name = "RoundHead"
-		var h_mesh := SphereMesh.new()
-		h_mesh.radius = 0.28
-		h_mesh.height = 0.56
-		head_mesh.mesh = h_mesh
-		head_mesh.material_override = skin_mat
-		head_mesh.position = Vector3(0, 0.88, 0)
-		skel.add_child(head_mesh)
-
-		# 6. Signature Face Features (😊 Dot Eyes & Curved Smile)
-		for side in [-1.0, 1.0]:
-			var eye := MeshInstance3D.new()
-			eye.name = "Eye_" + ("L" if side < 0 else "R")
-			var e_mesh := SphereMesh.new()
-			e_mesh.radius = 0.026
-			e_mesh.height = 0.05
-			eye.mesh = e_mesh
-			eye.material_override = face_mat
-			eye.position = Vector3(side * 0.075, 0.92, -0.265)
-			skel.add_child(eye)
-
-		# Curved Smile (‿)
-		var smile := MeshInstance3D.new()
-		smile.name = "Smile"
-		var s_mesh := TorusMesh.new()
-		s_mesh.inner_radius = 0.045
-		s_mesh.outer_radius = 0.065
-		smile.mesh = s_mesh
-		smile.material_override = face_mat
-		smile.position = Vector3(0, 0.82, -0.268)
-		smile.rotation_degrees.x = 90.0
-		skel.add_child(smile)
-
-	else:
-		# ==============================================================================
-		# THIN CHARACTER ("Худой" - matching Gemini_Generated_Image_19i6b219i6b219i6.png)
-		# ==============================================================================
-		# 1. Slender Needle Torso
-		var torso := MeshInstance3D.new()
-		torso.name = "SlenderTorso"
-		var t_mesh := CylinderMesh.new()
-		t_mesh.top_radius = 0.16
-		t_mesh.bottom_radius = 0.15
-		t_mesh.height = 1.35
-		torso.mesh = t_mesh
-		torso.material_override = skin_mat
-		torso.position = Vector3(0, 0.25, 0)
-		skel.add_child(torso)
-
-		# 2. Long Skinny Dark Pants & Legs
-		for side in [-1.0, 1.0]:
-			var leg := MeshInstance3D.new()
-			leg.name = "Leg_" + ("L" if side < 0 else "R")
-			var l_mesh := CylinderMesh.new()
-			l_mesh.top_radius = 0.09
-			l_mesh.bottom_radius = 0.08
-			l_mesh.height = 1.25
-			leg.mesh = l_mesh
-			leg.material_override = pants_mat
-			leg.position = Vector3(side * 0.14, -0.65, 0)
-			skel.add_child(leg)
-
-			var foot := MeshInstance3D.new()
-			foot.name = "Foot_" + ("L" if side < 0 else "R")
-			var f_mesh := BoxMesh.new()
-			f_mesh.size = Vector3(0.14, 0.10, 0.25)
-			foot.mesh = f_mesh
-			foot.material_override = pants_mat
-			foot.position = Vector3(side * 0.14, -1.25, 0.04)
-			skel.add_child(foot)
-
-		# 3. Extremely Long T-Pose Arms
-		for side in [-1.0, 1.0]:
-			var arm := MeshInstance3D.new()
-			arm.name = "Arm_" + ("L" if side < 0 else "R")
-			var a_mesh := CylinderMesh.new()
-			a_mesh.top_radius = 0.08
-			a_mesh.bottom_radius = 0.06
-			a_mesh.height = 1.15
-			arm.mesh = a_mesh
-			arm.material_override = skin_mat
-			arm.position = Vector3(side * 0.72, 0.75, 0.0)
-			arm.rotation_degrees.z = side * -90.0
-			skel.add_child(arm)
-
-		# 4. Long Thin Neck & Round Head
-		var neck := MeshInstance3D.new()
-		neck.name = "ThinNeck"
-		var n_mesh := CylinderMesh.new()
-		n_mesh.top_radius = 0.08
-		n_mesh.bottom_radius = 0.09
-		n_mesh.height = 0.32
-		neck.mesh = n_mesh
-		neck.material_override = skin_mat
-		neck.position = Vector3(0, 0.98, 0)
-		skel.add_child(neck)
-
-		var head_mesh := MeshInstance3D.new()
-		head_mesh.name = "RoundHead"
-		var h_mesh := SphereMesh.new()
-		h_mesh.radius = 0.26
-		h_mesh.height = 0.52
-		head_mesh.mesh = h_mesh
-		head_mesh.material_override = skin_mat
-		head_mesh.position = Vector3(0, 1.25, 0)
-		skel.add_child(head_mesh)
-
-		# 5. Signature Face Features (😊 Dot Eyes & Curved Smile)
-		for side in [-1.0, 1.0]:
-			var eye := MeshInstance3D.new()
-			eye.name = "Eye_" + ("L" if side < 0 else "R")
-			var e_mesh := SphereMesh.new()
-			e_mesh.radius = 0.024
-			e_mesh.height = 0.045
-			eye.mesh = e_mesh
-			eye.material_override = face_mat
-			eye.position = Vector3(side * 0.07, 1.28, -0.245)
-			skel.add_child(eye)
-
-		# Curved Smile (‿)
-		var smile := MeshInstance3D.new()
-		smile.name = "Smile"
-		var s_mesh := TorusMesh.new()
-		s_mesh.inner_radius = 0.042
-		s_mesh.outer_radius = 0.060
-		smile.mesh = s_mesh
-		smile.material_override = face_mat
-		smile.position = Vector3(0, 1.19, -0.248)
-		smile.rotation_degrees.x = 90.0
-		skel.add_child(smile)
+	if visual_loader:
+		character_model = visual_loader.build_visuals(mesh_instance, is_fat)
