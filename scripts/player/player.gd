@@ -523,17 +523,20 @@ func _handle_rigidbody_pushing(delta: float) -> void:
 			if is_heavy:
 				if not is_fat:
 					# Thin player CANNOT push heavy objects (like 450kg HeavyBoulder)!
-					var push_dir := -collision.get_normal()
-					var vel_dot := rb.linear_velocity.dot(push_dir)
-					# If the boulder is moving in Thin's pushing direction or at low speed, zero it out completely
-					if vel_dot >= 0.0 or rb.linear_velocity.length() < 3.5:
-						rb.linear_velocity = Vector3.ZERO
-						rb.angular_velocity = Vector3.ZERO
+					rb.linear_velocity = Vector3.ZERO
+					rb.angular_velocity = Vector3.ZERO
 				else:
-					# Fat player CAN push heavy objects, but at a controlled heavy rolling pace
-					if rb.linear_velocity.length() > 3.0:
-						rb.linear_velocity = rb.linear_velocity.normalized() * 3.0
-						rb.angular_velocity = rb.angular_velocity.normalized() * minf(rb.angular_velocity.length(), 4.0)
+					# Fat player CAN push heavy objects!
+					var push_dir := -collision.get_normal()
+					push_dir.y = 0.0
+					if push_dir.length_squared() > 0.001:
+						push_dir = push_dir.normalized()
+						rb.apply_central_force(push_dir * 1800.0)
+
+					# Regulate max rolling speed when Fat pushes it
+					if rb.linear_velocity.length() > 3.5:
+						rb.linear_velocity = rb.linear_velocity.normalized() * 3.5
+						rb.angular_velocity = rb.angular_velocity.normalized() * minf(rb.angular_velocity.length(), 4.5)
 			else:
 				# Light rigidbodies (mass < 100.0)
 				var push_dir := -collision.get_normal()

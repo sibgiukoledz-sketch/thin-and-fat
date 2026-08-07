@@ -396,21 +396,25 @@ func _process(delta: float) -> void:
 func _physics_process(_delta: float) -> void:
 	if not _is_carried and not _is_crushing:
 		if freeze:
-			# Unfreeze only if Fat player is actively pushing towards the boulder
+			# Unfreeze only if Fat player is pressing movement keys towards the boulder
 			if interaction_area:
 				var bodies: Array[Node3D] = interaction_area.get_overlapping_bodies()
 				for body in bodies:
 					if body is Player:
 						var p: Player = body as Player
-						if p.selected_character_id.to_lower() == "fat" and p.velocity.length() > 0.1:
-							var dir_to_boulder: Vector3 = (global_position - p.global_position).normalized()
-							if p.velocity.dot(dir_to_boulder) > 0.0:
-								freeze = false
-								sleeping = false
-								break
+						if p.selected_character_id.to_lower() == "fat" and not p.is_dead:
+							var move_dir: Vector3 = p.get_movement_input() if p.has_method("get_movement_input") else Vector3.ZERO
+							var dir_to_boulder: Vector3 = (global_position - p.global_position)
+							dir_to_boulder.y = 0.0
+							if dir_to_boulder.length_squared() > 0.001 and move_dir.length_squared() > 0.01:
+								dir_to_boulder = dir_to_boulder.normalized()
+								if move_dir.dot(dir_to_boulder) > 0.15:
+									freeze = false
+									sleeping = false
+									break
 		else:
 			# Refreeze into a static immovable rock when stopped
-			if linear_velocity.length() < 0.1 and angular_velocity.length() < 0.1:
+			if linear_velocity.length() < 0.12 and angular_velocity.length() < 0.12:
 				freeze = true
 
 func _unhandled_input(event: InputEvent) -> void:
