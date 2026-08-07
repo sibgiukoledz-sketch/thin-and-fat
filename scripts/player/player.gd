@@ -311,25 +311,20 @@ func rpc_flatten_into_paper(duration: float = 20.0) -> void:
 	if collision_shape:
 		var thin_cap := CapsuleShape3D.new()
 		thin_cap.radius = 0.08
-		thin_cap.height = 0.3
+		thin_cap.height = stand_height
 		collision_shape.shape = thin_cap
-		collision_shape.position.y = 0.15
+		collision_shape.position.y = stand_height * 0.5
 
-	# 2. Flatten Mesh Instance into a 4 cm paper sheet on the floor
+	# 2. Transform Mesh Instance into a 2D Paper Cutout Sheet (5cm thin!)
 	if mesh_instance:
-		var pancake_scale := Vector3(2.2, 0.04, 2.2) # Super flat paper sheet!
-		var pancake_pos_y := 0.04
+		var paper_scale := Vector3(0.05, 1.0, 1.4) # 2D Paper Cutout Sheet!
+		var orig_pos_y: float = stand_height * 0.5
 
 		var tw := create_tween().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-		tw.tween_property(mesh_instance, "scale", pancake_scale, 0.08)
-		tw.parallel().tween_property(mesh_instance, "position:y", pancake_pos_y, 0.08)
+		tw.tween_property(mesh_instance, "scale", paper_scale, 0.12)
+		tw.parallel().tween_property(mesh_instance, "position:y", orig_pos_y, 0.12)
 
-	# 3. Lower camera head to reflect paper sheet level
-	if head:
-		var tw_head := create_tween().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-		tw_head.tween_property(head, "position:y", 0.35, 0.10)
-
-	print("📜 PAPER FLATTENED: %s is now a paper-thin sheet! Can slip through narrow slits!" % name)
+	print("📜 2D PAPER CUTOUT: %s turned into a 2D paper cutout! Can slip through narrow door slits!" % name)
 
 @rpc("any_peer", "call_local", "reliable")
 func rpc_inflate_back_to_normal() -> void:
@@ -619,8 +614,9 @@ func _handle_rigidbody_pushing(delta: float) -> void:
 
 			if is_heavy:
 				if not is_fat:
-					# Thin player CANNOT push heavy objects (like 450kg HeavyBoulder)!
-					rb.linear_velocity = Vector3.ZERO
+					# Thin player CANNOT push heavy objects horizontally, but allow gravity (y) so boulder stays grounded!
+					rb.linear_velocity.x = 0.0
+					rb.linear_velocity.z = 0.0
 					rb.angular_velocity = Vector3.ZERO
 				else:
 					# Fat player CAN push heavy objects!

@@ -603,18 +603,18 @@ func _damage_nodes_recursive(node: Node, center: Vector3, speed: float) -> void:
 		return
 
 	if node is Node3D and node != self and node != _carrier_player:
-		if node is Player:
-			var p: Player = node as Player
-			if p.selected_character_id.to_lower() == "fat":
-				return
-			elif p.selected_character_id.to_lower() == "thin":
-				if p.has_method("rpc_flatten_into_paper") and not p.is_paper_flattened:
-					p.rpc_flatten_into_paper.rpc(20.0)
-				return
-
 		var n3d: Node3D = node as Node3D
 		var dist: float = center.distance_to(n3d.global_position)
 		if dist <= impact_radius:
+			if node is Player:
+				var p: Player = node as Player
+				if p.selected_character_id.to_lower() == "fat":
+					return
+				elif p.selected_character_id.to_lower() == "thin":
+					if p.has_method("rpc_flatten_into_paper") and not p.is_paper_flattened:
+						p.rpc_flatten_into_paper.rpc(20.0)
+					return
+
 			if node.has_method("take_damage"):
 				var falloff: float = 1.0 - (dist / impact_radius)
 				var final_dmg: float = maxf(damage_on_impact * (speed / 15.0) * falloff, 15.0)
