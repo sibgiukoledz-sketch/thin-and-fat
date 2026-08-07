@@ -412,9 +412,9 @@ func _pop_seismic_nodes_recursive(node: Node, center: Vector3, radius: float, im
 			elif node is Player:
 				var target_player: Player = node as Player
 				if not target_player.is_dead:
-					if target_player.selected_character_id.to_lower() == "thin":
+					if target_player.selected_character_id.to_lower() == "thin" and (impact_speed >= 8.5 or is_pancake) and dist <= 3.5:
 						target_player.apply_paper_flatten(15.0)
-						print("📄 FAT SLAMMED ON THIN: Flattened %s into paper!" % target_player.name)
+						print("📄 FAT HIGH FALL SLAMMED ON THIN: Flattened %s into paper!" % target_player.name)
 					else:
 						var mult: float = 1.8 if is_pancake else 1.0
 						var pop_y_vel: float = clampf(8.5 * (impact_speed / 3.5) * falloff * mult, 6.0, 18.5)
