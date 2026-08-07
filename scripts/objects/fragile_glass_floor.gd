@@ -353,7 +353,7 @@ func _spawn_3d_physical_shards() -> void:
 			shard_rb.name = "GlassShard3D"
 			shard_rb.mass = randf_range(0.15, 0.4)
 			shard_rb.rotation = Vector3(randf_range(-PI, PI), randf_range(-PI, PI), randf_range(-PI, PI))
-			shard_rb.collision_layer = 4 # Debris layer (No Player collision!)
+			shard_rb.collision_layer = 16 # Pure Visual Debris layer (No Player collision!)
 			shard_rb.collision_mask = 1
 
 			# Add to scene tree FIRST before setting global_position
