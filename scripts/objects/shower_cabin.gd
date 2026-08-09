@@ -17,10 +17,10 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	for body in get_overlapping_bodies():
-		if body is Player:
-			_wash_player_gradual(body as Player, delta)
+		if body.has_method("is_multiplayer_authority"):
+			_wash_player_gradual(body as CharacterBody3D, delta)
 
-func _wash_player_gradual(player_node: Player, delta: float) -> void:
+func _wash_player_gradual(player_node: CharacterBody3D, delta: float) -> void:
 	if not player_node:
 		return
 

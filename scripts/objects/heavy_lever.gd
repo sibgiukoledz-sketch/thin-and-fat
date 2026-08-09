@@ -155,21 +155,19 @@ func _handle_player_input() -> void:
 				toggle_lever()
 
 func _on_body_entered(body: Node) -> void:
-	if body is Player:
-		var p: Player = body as Player
-		if not _players_in_range.has(p):
-			_players_in_range.append(p)
-		if p.is_multiplayer_authority():
-			_show_prompt(p)
+	if body.has_method("is_multiplayer_authority"):
+		if not _players_in_range.has(body):
+			_players_in_range.append(body)
+		if body.is_multiplayer_authority():
+			_show_prompt(body)
 
 func _on_body_exited(body: Node) -> void:
-	if body is Player:
-		var p: Player = body as Player
-		_players_in_range.erase(p)
-		if p.is_multiplayer_authority():
-			_hide_prompt(p)
+	if body.has_method("is_multiplayer_authority"):
+		_players_in_range.erase(body)
+		if body.is_multiplayer_authority():
+			_hide_prompt(body)
 
-func _show_prompt(p: Player) -> void:
+func _show_prompt(p: Node) -> void:
 	# Show interactive HUD prompt to player
 	if p.has_node("HUD"):
 		var hud: Node = p.get_node("HUD")
@@ -177,7 +175,7 @@ func _show_prompt(p: Player) -> void:
 			var state_text: String = "выключить" if is_on else "включить"
 			hud.show_interaction_prompt("[E] Потянуть рычаг (%s)" % state_text)
 
-func _hide_prompt(p: Player) -> void:
+func _hide_prompt(p: Node) -> void:
 	if p.has_node("HUD"):
 		var hud: Node = p.get_node("HUD")
 		if hud.has_method("hide_interaction_prompt"):

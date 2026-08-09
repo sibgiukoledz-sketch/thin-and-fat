@@ -219,8 +219,8 @@ func _create_fly_particles() -> void:
 func _physics_process(delta: float) -> void:
 	# Continuous nausea buildup while standing in vomit puddle
 	for body in get_overlapping_bodies():
-		if body is Player:
-			var p := body as Player
+		if body.has_method("trigger_nausea"):
+			var p := body as CharacterBody3D
 			if p.has_method("trigger_nausea"):
 				p.trigger_nausea(0.35 * delta)
 
@@ -245,8 +245,8 @@ func _process(delta: float) -> void:
 		queue_free()
 
 func _on_body_entered(body: Node3D) -> void:
-	if body is Player:
-		var p := body as Player
+	if body.has_method("trigger_nausea"):
+		var p := body as CharacterBody3D
 		if p.has_method("trigger_nausea"):
 			p.trigger_nausea(extra_nausea)
 			if AudioManager:

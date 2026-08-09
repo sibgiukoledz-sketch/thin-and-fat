@@ -255,9 +255,9 @@ func _on_body_entered(body: Node) -> void:
 	if is_broken or _is_breaking:
 		return
 
-	if body is Player:
-		var p: Player = body as Player
-		if p.selected_character_id.to_lower() == "fat" or p.is_carrying_heavy_object or p.velocity.length_squared() > 100.0:
+	if body.has_method("is_multiplayer_authority"):
+		var p: CharacterBody3D = body as CharacterBody3D
+		if String(p.get("selected_character_id")).to_lower() == "fat" or p.get("is_carrying_heavy_object") or p.velocity.length_squared() > 100.0:
 			_handle_heavy_step()
 	elif body is HeavyBoulder or body is RigidBody3D:
 		rpc_start_shatter_sequence.rpc()

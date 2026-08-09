@@ -156,8 +156,8 @@ func _apply_wind_physics(delta: float, max_wind_distance: float) -> void:
 			if body == self or body is StaticBody3D:
 				continue
 
-			if body is Player:
-				var p: Player = body as Player
+			if body.has_method("is_multiplayer_authority"):
+				var p: CharacterBody3D = body as CharacterBody3D
 				var p_dist: float = fan_origin.distance_to(p.global_position)
 
 				# IF PLAYER IS BEYOND THE BOULDER (p_dist > max_wind_distance), PLAYER IS 100% IN WIND SHADOW!
@@ -195,9 +195,9 @@ func _apply_wind_physics(delta: float, max_wind_distance: float) -> void:
 
 	# 2. Spatial corridor search for Thin players & DummyNPCs inside wind reach zone
 	for child in root.find_children("*", "CharacterBody3D", true, false):
-		if child is Player:
-			var player_node: Player = child as Player
-			if player_node.selected_character_id.to_lower() == "thin" and not player_node.is_dead:
+		if child.has_method("is_multiplayer_authority"):
+			var player_node: CharacterBody3D = child as CharacterBody3D
+			if String(player_node.get("selected_character_id")).to_lower() == "thin" and not player_node.get("is_dead"):
 				var rel_pos: Vector3 = player_node.global_position - fan_origin
 				var forward_dist: float = rel_pos.dot(wind_dir)
 				var side_dist: float = (rel_pos - wind_dir * forward_dist).length()
@@ -255,9 +255,9 @@ func _check_is_shielded(_fan_origin: Vector3, victim_pos: Vector3) -> bool:
 	# 2. Check Fat player shielding
 	var players: Array[Node] = root.find_children("*", "CharacterBody3D", true, false)
 	for p in players:
-		if p is Player:
-			var player_node: Player = p as Player
-			if player_node.selected_character_id.to_lower() == "fat" and not player_node.is_dead:
+		if p.has_method("is_multiplayer_authority"):
+			var player_node: CharacterBody3D = p as CharacterBody3D
+			if String(player_node.get("selected_character_id")).to_lower() == "fat" and not player_node.get("is_dead"):
 				var fat_pos_2d: Vector3 = player_node.global_position
 				fat_pos_2d.y = 0.0
 				var rel_fat: Vector3 = fat_pos_2d - fan_pos_2d

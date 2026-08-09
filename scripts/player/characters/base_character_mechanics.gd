@@ -3,17 +3,17 @@ extends Node
 
 ## Base class for unique character mechanics and abilities.
 
-var player: Player
+var player: CharacterBody3D
 
 func _ready() -> void:
 	if owner:
 		if not owner.is_node_ready():
 			await owner.ready
-		player = owner as Player
-	elif get_parent() is Player:
-		player = get_parent() as Player
+		player = owner as CharacterBody3D
+	elif get_parent():
+		player = get_parent() as CharacterBody3D
 
-func setup(p: Player) -> void:
+func setup(p: CharacterBody3D) -> void:
 	player = p
 
 func handle_ability_input(_event: InputEvent) -> void:

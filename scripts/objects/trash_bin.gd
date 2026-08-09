@@ -33,14 +33,14 @@ func _update_prompt() -> void:
 func _process(delta: float) -> void:
 	var overlapping := get_overlapping_bodies()
 	for body in overlapping:
-		if body is Player:
-			_handle_player_inside(body as Player, delta)
+		if body.has_method("is_multiplayer_authority"):
+			_handle_player_inside(body as CharacterBody3D, delta)
 
 func _on_body_entered(body: Node) -> void:
-	if body is Player:
-		_grant_stench_to_player(body as Player)
+	if body.has_method("is_multiplayer_authority"):
+		_grant_stench_to_player(body as CharacterBody3D)
 
-func _handle_player_inside(player_node: Player, delta: float) -> void:
+func _handle_player_inside(player_node: CharacterBody3D, delta: float) -> void:
 	if not is_infinite or _is_used:
 		return
 
@@ -49,7 +49,7 @@ func _handle_player_inside(player_node: Player, delta: float) -> void:
 		_tick_timer = 0.0
 		_grant_stench_to_player(player_node)
 
-func _grant_stench_to_player(player_node: Player) -> void:
+func _grant_stench_to_player(player_node: CharacterBody3D) -> void:
 	if not player_node:
 		return
 

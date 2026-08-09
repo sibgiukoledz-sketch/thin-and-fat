@@ -3,7 +3,7 @@ extends Node
 
 ## Component managing Vomit Particle Systems, Nausea Post-Processing, Retching Animations, and Vomit Puddle Spawning.
 
-var player: Player
+var player: CharacterBody3D
 
 # Particle Emitters
 var _vomit_particles: GPUParticles3D
@@ -17,10 +17,10 @@ var _vomit_anim_timer: float = 0.0
 var _severe_nausea_duration: float = 0.0
 
 func _ready() -> void:
-	if owner and owner is Player:
-		player = owner as Player
-	elif get_parent() is Player:
-		player = get_parent() as Player
+	if owner:
+		player = owner as CharacterBody3D
+	elif get_parent():
+		player = get_parent() as CharacterBody3D
 
 	_setup_vomit_particles()
 

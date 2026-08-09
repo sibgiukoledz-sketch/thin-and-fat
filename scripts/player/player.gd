@@ -141,6 +141,12 @@ func _ready() -> void:
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 		if camera_3d:
 			camera_3d.make_current()
+			var listener := camera_3d.get_node_or_null("AudioListener3D") as AudioListener3D
+			if not listener:
+				listener = AudioListener3D.new()
+				listener.name = "AudioListener3D"
+				camera_3d.add_child(listener)
+			listener.make_current()
 		if hud:
 			hud.setup(self)
 	else:
@@ -271,6 +277,12 @@ func apply_gravity(delta: float) -> void:
 		velocity.y -= gravity * fall_mult * delta
 
 func apply_movement(input_dir: Vector3, target_spd: float, delta: float, accel_factor: float = 1.0) -> void:
+	if is_movement_blocked():
+		velocity.x = lerpf(velocity.x, 0.0, 18.0 * delta)
+		velocity.z = lerpf(velocity.z, 0.0, 18.0 * delta)
+		move_and_slide()
+		return
+
 	var accel := 14.0 * accel_factor if input_dir.length_squared() > 0.01 else 10.0
 	velocity.x = lerpf(velocity.x, input_dir.x * target_spd, accel * delta)
 	velocity.z = lerpf(velocity.z, input_dir.z * target_spd, accel * delta)
@@ -553,6 +565,11 @@ func apply_paper_flatten(duration: float = 10.0) -> void:
 func rpc_apply_paper_flatten(duration: float = 10.0) -> void:
 	is_paper_flattened = true
 	paper_flatten_timer = duration
+
+	velocity.x = 0.0
+	velocity.z = 0.0
+	if state_machine:
+		state_machine.transition_to("Idle")
 
 	if collision_shape and collision_shape.shape is CapsuleShape3D:
 		var flat_cap := collision_shape.shape as CapsuleShape3D

@@ -34,9 +34,9 @@ func _on_side_impact(body: Node, side: int) -> void:
 	var is_heavy_slam: bool = false
 	var downward_speed: float = 0.0
 
-	if body is Player:
-		var p: Player = body as Player
-		if p.selected_character_id.to_lower() == "fat":
+	if body.has_method("is_multiplayer_authority"):
+		var p: CharacterBody3D = body as CharacterBody3D
+		if String(p.get("selected_character_id")).to_lower() == "fat":
 			# Only launch if Fat JUMPED / FELL from a height (velocity.y < -1.8 m/s) or carried heavy item
 			if p.velocity.y < -1.8 or p.is_carrying_heavy_object:
 				is_heavy_slam = true
@@ -122,9 +122,9 @@ func rpc_trigger_catapult_slam(slam_side: int, launch_force: float) -> void:
 
 	# 4. Launch Target Entities Skyward
 	for victim in launch_targets:
-		if victim is Player:
-			var p: Player = victim as Player
-			p.is_fall_damage_immune = true
+		if victim.has_method("is_multiplayer_authority"):
+			var p: CharacterBody3D = victim as CharacterBody3D
+			p.set("is_fall_damage_immune", true)
 			p.velocity.y = launch_force
 			p.velocity.x += launch_dir_x * 4.0
 			p.velocity.z += randf_range(-1.0, 1.0)

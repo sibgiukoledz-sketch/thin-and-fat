@@ -19,7 +19,7 @@ signal boulder_impact(position: Vector3)
 @onready var interaction_area: Area3D = $InteractionArea
 
 var _is_carried: bool = false
-var _carrier_player: Player = null
+var _carrier_player: CharacterBody3D = null
 
 # 4-Tier AAA VFX Nodes (Top-level World Space)
 var _vfx_dict: Dictionary = {}
@@ -140,12 +140,12 @@ func _unhandled_input(event: InputEvent) -> void:
 						break
 
 func _on_interaction_body_entered(body: Node) -> void:
-	if body is Player:
-		var p: Player = body as Player
+	if body.has_method("is_multiplayer_authority"):
+		var p: CharacterBody3D = body as CharacterBody3D
 		if p.is_multiplayer_authority() and Input.is_action_just_pressed("interact"):
 			try_interact_boulder(p)
 
-func try_interact_boulder(player: Player) -> void:
+func try_interact_boulder(player: CharacterBody3D) -> void:
 	if not player:
 		return
 
@@ -164,7 +164,7 @@ func try_interact_boulder(player: Player) -> void:
 
 @rpc("any_peer", "call_local", "reliable")
 func rpc_pickup_boulder(player_path: NodePath) -> void:
-	var player_node := get_node_or_null(player_path) as Player
+	var player_node := get_node_or_null(player_path) as CharacterBody3D
 	if not player_node:
 		return
 
@@ -184,7 +184,7 @@ func rpc_pickup_boulder(player_path: NodePath) -> void:
 
 @rpc("any_peer", "call_local", "reliable")
 func rpc_throw_boulder(player_path: NodePath, throw_dir: Vector3) -> void:
-	var player_node := get_node_or_null(player_path) as Player
+	var player_node := get_node_or_null(player_path) as CharacterBody3D
 	if not player_node:
 		player_node = _carrier_player
 
@@ -209,9 +209,9 @@ func rpc_throw_boulder(player_path: NodePath, throw_dir: Vector3) -> void:
 	print("🪨 BOULDER THROWN WITH IMPULSE: %s" % str(impulse_vector))
 
 func _on_physics_body_entered(body: Node) -> void:
-	if body is Player:
-		var p: Player = body as Player
-		if p.selected_character_id.to_lower() == "thin":
+	if body.has_method("is_multiplayer_authority"):
+		var p: CharacterBody3D = body as CharacterBody3D
+		if String(p.get("selected_character_id")).to_lower() == "thin":
 			var vel := linear_velocity.length()
 			if vel > 0.8:
 				p.apply_paper_flatten(10.0)
@@ -246,9 +246,9 @@ func _apply_area_crush_damage() -> void:
 	var results := space_state.intersect_shape(query)
 	for res in results:
 		var collider: Object = res.collider
-		if collider is Player and collider != _carrier_player:
-			var p: Player = collider as Player
-			if p.selected_character_id.to_lower() == "thin":
+		if collider.has_method("is_multiplayer_authority") and collider != _carrier_player:
+			var p: CharacterBody3D = collider as CharacterBody3D
+			if String(p.get("selected_character_id")).to_lower() == "thin":
 				p.apply_paper_flatten(10.0)
 				print("💥 BOULDER CRUSHED THIN PLAYER INTO PAPER!")
 			else:

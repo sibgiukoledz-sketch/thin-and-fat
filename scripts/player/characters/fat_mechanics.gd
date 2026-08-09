@@ -40,10 +40,10 @@ func is_movement_blocked() -> bool:
 	return is_belly_trampoline
 
 
-func setup(p: Player) -> void:
+func setup(p: CharacterBody3D) -> void:
 	player = p
 	if player:
-		if not player.player_landed.is_connected(_on_player_landed):
+		if player.has_signal("player_landed") and not player.player_landed.is_connected(_on_player_landed):
 			player.player_landed.connect(_on_player_landed)
 
 	_setup_visual_nodes()
@@ -53,11 +53,11 @@ func setup(p: Player) -> void:
 
 func _ready() -> void:
 	super._ready()
-	if not player and get_parent() is Player:
-		player = get_parent() as Player
+	if not player and get_parent() is CharacterBody3D:
+		player = get_parent() as CharacterBody3D
 
 	if player:
-		if not player.player_landed.is_connected(_on_player_landed):
+		if player.has_signal("player_landed") and not player.player_landed.is_connected(_on_player_landed):
 			player.player_landed.connect(_on_player_landed)
 
 	_setup_visual_nodes()
@@ -439,8 +439,8 @@ func _pop_seismic_nodes_recursive(node: Node, center: Vector3, radius: float, im
 				print("🥞 GRAVITATIONAL LAUNCH: Launched & scattered RigidBody %s into the air!" % rb.name)
 
 			# Case B: Teammates / Other Players -> LAUNCH INTO THE STRATOSPHERE!
-			elif node is Player:
-				var target_player: Player = node as Player
+			elif node.has_method("is_multiplayer_authority") and node != player:
+				var target_player: CharacterBody3D = node as CharacterBody3D
 				if not target_player.is_dead:
 					if target_player.selected_character_id.to_lower() == "thin" and (impact_speed >= 8.5 or is_pancake) and dist <= 3.5:
 						target_player.apply_paper_flatten(15.0)
@@ -566,8 +566,8 @@ func _on_trampoline_body_entered(body: Node) -> void:
 
 	var bounce_pos: Vector3 = (body as Node3D).global_position if body is Node3D else player.global_position
 
-	if body is Player:
-		var target_p := body as Player
+	if body.has_method("is_multiplayer_authority"):
+		var target_p := body as CharacterBody3D
 		if not target_p.is_dead:
 			target_p.is_fall_damage_immune = true
 			target_p.velocity.y = 15.0
@@ -648,9 +648,9 @@ func _find_thin_target() -> Node3D:
 	return _find_thin_target_recursive(root, player.global_position, 3.8)
 
 func _is_valid_thin_target(node: Node3D) -> bool:
-	if node is Player and node != player:
-		var p: Player = node as Player
-		return p.selected_character_id.to_lower() == "thin" and not p.is_dead
+	if node.has_method("is_multiplayer_authority") and node != player:
+		var p: CharacterBody3D = node as CharacterBody3D
+		return String(p.get("selected_character_id")).to_lower() == "thin" and not p.get("is_dead")
 	elif node is DummyNPC:
 		var dummy: DummyNPC = node as DummyNPC
 		return not dummy.is_dead
@@ -679,8 +679,8 @@ func rpc_slingshot_launch(target_path: NodePath, launch_velocity: Vector3) -> vo
 		return
 
 	# Apply Slingshot Launch to Player or DummyNPC
-	if target_node is Player:
-		var p: Player = target_node as Player
+	if target_node.has_method("is_multiplayer_authority"):
+		var p: CharacterBody3D = target_node as CharacterBody3D
 		p.velocity = launch_velocity
 		if p.camera_3d:
 			p.set_target_fov(95.0)
@@ -809,8 +809,8 @@ func _damage_nodes_recursive(node: Node, center: Vector3) -> void:
 		_damage_nodes_recursive(child, center)
 
 func _ensure_player_ref() -> bool:
-	if not player and get_parent() is Player:
-		player = get_parent() as Player
+	if not player and get_parent() is CharacterBody3D:
+		player = get_parent() as CharacterBody3D
 	return player != null
 
 func _exit_tree() -> void:

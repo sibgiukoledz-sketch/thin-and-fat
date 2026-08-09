@@ -20,15 +20,12 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	var overlapping := get_overlapping_bodies()
 	for body in overlapping:
-		if body is Player:
-			var player_node := body as Player
-			# Trigger Nausea continuously while inside
-			if player_node.has_method("trigger_nausea"):
-				player_node.trigger_nausea(nausea_per_sec * delta)
+		if body.has_method("trigger_nausea"):
+			body.call("trigger_nausea", nausea_per_sec * delta)
 
 	_damage_timer += delta
 	if _damage_timer >= 1.0:
 		_damage_timer = 0.0
 		for body in overlapping:
-			if body is Player and body.is_multiplayer_authority():
-				body.take_damage(damage_per_sec)
+			if body.has_method("take_damage") and body.is_multiplayer_authority():
+				body.call("take_damage", damage_per_sec)
