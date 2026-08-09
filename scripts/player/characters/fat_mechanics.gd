@@ -32,6 +32,10 @@ var _slingshot_blast_particles: GPUParticles3D
 @export var slingshot_cooldown_max: float = 1.8
 var _slingshot_cooldown: float = 0.0
 
+# Belly Trampoline Pose Mechanics
+var is_belly_trampoline: bool = false
+var _trampoline_area: Area3D = null
+
 
 func setup(p: Player) -> void:
 	player = p
@@ -546,7 +550,7 @@ func _on_trampoline_body_entered(body: Node) -> void:
 	if not is_belly_trampoline or not body or body == player:
 		return
 
-	var bounce_pos := body.global_position if body is Node3D else player.global_position
+	var bounce_pos: Vector3 = (body as Node3D).global_position if body is Node3D else player.global_position
 
 	if body is Player:
 		var target_p := body as Player
