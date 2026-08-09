@@ -29,9 +29,11 @@ var is_magnetized_to_ceiling: bool = false
 var target_ceiling_y: float = 0.0
 
 var _spark_particles: GPUParticles3D = null
+var _plasma_particles: GPUParticles3D = null
 var _electric_light: OmniLight3D = null
 var _surface_detector: SurfaceDetectorComponent = null
 var _crackle_sfx_timer: float = 0.0
+var _spark_texture: ImageTexture = null
 
 func _ready() -> void:
 	super._ready()
@@ -40,6 +42,25 @@ func setup(p: CharacterBody3D) -> void:
 	super.setup(p)
 	_setup_visual_and_audio_effects()
 	_setup_surface_detector()
+
+static func _generate_lightning_spark_texture() -> ImageTexture:
+	var img := Image.create(64, 64, false, Image.FORMAT_RGBA8)
+	img.fill(Color(0, 0, 0, 0))
+	
+	# Draw realistic jagged lightning arc filament with glowing core & plasma aura
+	for y in range(64):
+		var t := float(y) / 63.0
+		var alpha := sin(t * PI)
+		var center_x := 32 + int(sin(t * PI * 7.0) * 8.0 + sin(t * PI * 13.0) * 3.0) # Jagged lightning zig-zag
+		
+		for x in range(clampi(center_x - 7, 0, 63), clampi(center_x + 8, 0, 63)):
+			var dist := absf(float(x - center_x)) / 7.0
+			var intensity := pow(1.0 - dist, 2.2) * alpha
+			var core := pow(1.0 - dist, 5.0) * alpha
+			var col := Color(0.3 + core * 0.7, 0.85 + core * 0.15, 1.0, intensity)
+			img.set_pixel(x, y, col)
+			
+	return ImageTexture.create_from_image(img)
 
 func _setup_visual_and_audio_effects() -> void:
 	if not player:
@@ -56,15 +77,18 @@ func _setup_visual_and_audio_effects() -> void:
 		_electric_light.position = Vector3(0, 1.2, 0)
 		player.add_child(_electric_light)
 
-	# Detailed animated electric sparks particle system
+	if not _spark_texture:
+		_spark_texture = _generate_lightning_spark_texture()
+
+	# Layer 1: Velocity-aligned jagged lightning arc needles
 	_spark_particles = player.get_node_or_null("ElectricSparksParticles") as GPUParticles3D
 	if not _spark_particles:
 		_spark_particles = GPUParticles3D.new()
 		_spark_particles.name = "ElectricSparksParticles"
-		_spark_particles.amount = 48
-		_spark_particles.lifetime = 0.35
-		_spark_particles.explosiveness = 0.1
-		_spark_particles.randomness = 0.85
+		_spark_particles.amount = 54
+		_spark_particles.lifetime = 0.28
+		_spark_particles.explosiveness = 0.2
+		_spark_particles.randomness = 0.9
 		_spark_particles.emitting = false
 
 		var p_mat := ParticleProcessMaterial.new()
@@ -72,24 +96,58 @@ func _setup_visual_and_audio_effects() -> void:
 		p_mat.emission_box_extents = Vector3(0.35, 0.95, 0.35)
 		p_mat.direction = Vector3(0, 1, 0)
 		p_mat.spread = 180.0
-		p_mat.initial_velocity_min = 0.6
-		p_mat.initial_velocity_max = 2.4
+		p_mat.initial_velocity_min = 1.2
+		p_mat.initial_velocity_max = 3.8
 		p_mat.gravity = Vector3(0, 1.5, 0)
-		p_mat.color = Color(0.2, 0.9, 1.0, 1.0)
+		p_mat.particle_flag_align_y = true # Stretches lightning bolts in direction of velocity!
 
 		var quad := QuadMesh.new()
-		quad.size = Vector2(0.12, 0.12)
+		quad.size = Vector2(0.06, 0.42) # Stretched lightning arc needle!
 		var spark_mat := StandardMaterial3D.new()
 		spark_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 		spark_mat.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
-		spark_mat.albedo_color = Color(0.35, 0.95, 1.0, 0.95)
-		spark_mat.billboard_mode = BaseMaterial3D.BILLBOARD_PARTICLES
+		spark_mat.albedo_color = Color(0.4, 0.95, 1.0, 0.95)
+		spark_mat.albedo_texture = _spark_texture
 		quad.material = spark_mat
 		_spark_particles.draw_pass_1 = quad
 
 		_spark_particles.process_material = p_mat
 		_spark_particles.position = Vector3(0, 1.1, 0)
 		player.add_child(_spark_particles)
+
+	# Layer 2: Floating plasma micro-orbs glowing around Thin's skeleton
+	_plasma_particles = player.get_node_or_null("ElectricPlasmaParticles") as GPUParticles3D
+	if not _plasma_particles:
+		_plasma_particles = GPUParticles3D.new()
+		_plasma_particles.name = "ElectricPlasmaParticles"
+		_plasma_particles.amount = 32
+		_plasma_particles.lifetime = 0.45
+		_plasma_particles.explosiveness = 0.05
+		_plasma_particles.randomness = 0.7
+		_plasma_particles.emitting = false
+
+		var p_mat2 := ParticleProcessMaterial.new()
+		p_mat2.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_BOX
+		p_mat2.emission_box_extents = Vector3(0.4, 1.0, 0.4)
+		p_mat2.direction = Vector3(0, 1, 0)
+		p_mat2.spread = 180.0
+		p_mat2.initial_velocity_min = 0.2
+		p_mat2.initial_velocity_max = 1.0
+		p_mat2.gravity = Vector3(0, 2.0, 0)
+
+		var quad2 := QuadMesh.new()
+		quad2.size = Vector2(0.08, 0.08)
+		var plasma_mat := StandardMaterial3D.new()
+		plasma_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		plasma_mat.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+		plasma_mat.albedo_color = Color(0.2, 0.8, 1.0, 0.8)
+		plasma_mat.billboard_mode = BaseMaterial3D.BILLBOARD_PARTICLES
+		quad2.material = plasma_mat
+		_plasma_particles.draw_pass_1 = quad2
+
+		_plasma_particles.process_material = p_mat2
+		_plasma_particles.position = Vector3(0, 1.1, 0)
+		player.add_child(_plasma_particles)
 
 func _setup_surface_detector() -> void:
 	if not player:
@@ -244,8 +302,15 @@ func _set_upside_down(upside_down: bool) -> void:
 
 func _update_spark_visuals() -> void:
 	if _electric_light:
-		var target_energy := (static_charge / MAX_STATIC_CHARGE) * 3.2 if is_electrified else 0.0
-		_electric_light.light_energy = lerpf(_electric_light.light_energy, target_energy, 0.15)
+		if is_electrified:
+			var base_energy := (static_charge / MAX_STATIC_CHARGE) * 3.2
+			_electric_light.light_energy = base_energy + randf_range(-0.4, 0.4) # Realistic electric arc flicker!
+			_electric_light.light_color = Color(0.25, 0.85 + randf_range(-0.1, 0.1), 1.0)
+		else:
+			_electric_light.light_energy = lerpf(_electric_light.light_energy, 0.0, 0.2)
 
 	if _spark_particles:
 		_spark_particles.emitting = is_electrified
+
+	if _plasma_particles:
+		_plasma_particles.emitting = is_electrified
