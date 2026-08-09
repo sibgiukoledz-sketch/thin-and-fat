@@ -9,6 +9,7 @@ display_name = "Металлическая Поверхность"
 step_sound_event = "step_metal"
 impact_sound_event = "step_metal"
 is_metallic = true
+is_magnetic = true
 is_static_charger = false
 static_charge_rate = 0.0
 is_grounded = false

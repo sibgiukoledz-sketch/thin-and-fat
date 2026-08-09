@@ -273,6 +273,10 @@ func get_movement_input() -> Vector3:
 	if is_movement_blocked():
 		return Vector3.ZERO
 	var raw_input := Input.get_vector("move_left", "move_right", "move_forward", "move_backward")
+	
+	if active_mechanics and "is_magnetized_to_ceiling" in active_mechanics and bool(active_mechanics.is_magnetized_to_ceiling):
+		raw_input.x = -raw_input.x
+
 	var dir := (transform.basis * Vector3(raw_input.x, 0, raw_input.y)).normalized()
 	return dir
 

@@ -3,7 +3,7 @@ extends BaseCharacterMechanics
 
 ## Dedicated Controller for "Thin / Худой" character mechanics:
 ## 1. Static Electrification (Наэлектризовывание): Rubbing against wool curtains or carpet floors charges Thin.
-## 2. Magnetism (Механика Магнита и Скрепки): Electrified Thin is magnetically pulled toward metal ceilings and clings upside down (FEET ON CEILING) to crawl over chasms.
+## 2. Magnetism (Механика Магнита и Скрепки): Electrified Thin is magnetically pulled toward metal ceilings and clings upside down (FEET ON CEILING, FACING FORWARD) to crawl over chasms.
 ## 3. Discharging: Discharged when Fat flips a Breaker switch or when touching a Grounding plate.
 
 signal static_charge_changed(current_charge: float, max_charge: float)
@@ -136,21 +136,21 @@ func physics_update_mechanics(delta: float) -> void:
 
 func _check_and_apply_magnetic_attraction(delta: float) -> void:
 	var ceil_mat := _surface_detector.current_ceiling_material
-	var is_metal_ceiling := (ceil_mat != null and ceil_mat.is_metallic)
+	var is_magnetic_surface := (ceil_mat != null and (ceil_mat.is_magnetic or ceil_mat.is_metallic))
 
 	var overhead_ray := _surface_detector.get_node_or_null("OverheadMaterialRay") as RayCast3D
 	
-	if (is_metal_ceiling or (overhead_ray and overhead_ray.is_colliding())) and overhead_ray.is_colliding():
+	if is_magnetic_surface and overhead_ray and overhead_ray.is_colliding():
 		var col_point := overhead_ray.get_collision_point()
 		var dist_to_ceiling := col_point.y - player.global_position.y
 
-		# Strong magnetic pull upwards toward metal ceiling within 6.0 meters
-		if dist_to_ceiling > 0.0 and dist_to_ceiling < 6.0:
-			var pull_accel := 18.0
-			player.velocity.y = lerpf(player.velocity.y, pull_accel, 12.0 * delta)
+		# Smooth, floaty magnetic attraction upwards toward magnetic ceiling within 5.5 meters
+		if dist_to_ceiling > 0.0 and dist_to_ceiling < 5.5:
+			var target_pull_speed := 8.0
+			player.velocity.y = lerpf(player.velocity.y, target_pull_speed, 5.0 * delta)
 
-			# Snap to ceiling magnetic crawl state when close enough
-			if dist_to_ceiling <= 3.2:
+			# Snap to ceiling magnetic crawl state smoothly when close enough
+			if dist_to_ceiling <= 3.0:
 				if not is_magnetized_to_ceiling:
 					is_magnetized_to_ceiling = true
 					magnetic_attachment_changed.emit(true)
@@ -158,9 +158,9 @@ func _check_and_apply_magnetic_attraction(delta: float) -> void:
 					if AudioManager:
 						AudioManager.play_sfx_3d("magnetic_attach", player.global_position, 30.0)
 
-				# Position player collision shape cleanly below ceiling (zero penetration)
+				# Position player collision shape smoothly below ceiling
 				target_ceiling_y = col_point.y - 2.4
-				player.global_position.y = lerpf(player.global_position.y, target_ceiling_y, 22.0 * delta)
+				player.global_position.y = lerpf(player.global_position.y, target_ceiling_y, 8.0 * delta)
 				player.velocity.y = 0.0
 	else:
 		if is_magnetized_to_ceiling:
@@ -192,9 +192,9 @@ func _set_upside_down(upside_down: bool) -> void:
 
 	if upside_down:
 		if player.mesh_instance:
-			player.mesh_instance.rotation_degrees.x = 180.0
+			player.mesh_instance.rotation_degrees.x = 0.0
 			player.mesh_instance.rotation_degrees.y = 0.0
-			player.mesh_instance.rotation_degrees.z = 0.0
+			player.mesh_instance.rotation_degrees.z = 180.0
 			player.mesh_instance.position.y = 2.4
 	else:
 		if player.mesh_instance:

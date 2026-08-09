@@ -8,7 +8,8 @@ extends Resource
 @export var display_name: String = "Камень"
 @export var step_sound_event: String = "step_stone"
 @export var impact_sound_event: String = "land"
-@export var is_metallic: bool = false ## Attracts magnetized Thin character (ceiling/wall stick)
+@export var is_metallic: bool = false ## Metallic physical characteristic
+@export var is_magnetic: bool = false ## Specifically attracts magnetized Thin character (metal ceiling / magnetic surface)
 @export var is_static_charger: bool = false ## Charges Thin with static electricity when walked/rubbed on
 @export var static_charge_rate: float = 40.0 ## Static charge gain per second of movement
 @export var is_grounded: bool = false ## Discharges static electricity immediately when stepped on

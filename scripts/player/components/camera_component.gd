@@ -5,7 +5,8 @@ extends Node
 ## - Handles Roblox-style 1st person / 3rd person smooth camera zoom (Scroll Wheel)
 ## - Mouse look rotation (Yaw on Player, Pitch clamped -89..89 on Head)
 ## - Sprint FOV transitions & nausea camera tilt
-## - Supports smooth ceiling crawling camera height & FOV positioning
+## - Supports 180° ceiling crawling camera flip on Head node:
+##   Ceiling appears as floor for Thin with natural mouse controls!
 
 const MOUSE_SENSITIVITY_DEFAULT := 0.0025
 const ZOOM_STEP := 0.5
@@ -29,15 +30,24 @@ func setup(p_player: CharacterBody3D, p_head: Node3D, p_spring_arm: SpringArm3D,
 	spring_arm = p_spring_arm
 	camera_3d = p_camera
 
-func handle_input(event: InputEvent, mouse_sensitivity: float, nausea_intensity: float, _is_ceiling_crawling: bool = false) -> void:
+func handle_input(event: InputEvent, mouse_sensitivity: float, nausea_intensity: float, is_ceiling_crawling: bool = false) -> void:
 	if not player or not player.is_multiplayer_authority():
 		return
 
 	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
+		var motion := event as InputEventMouseMotion
 		var sens := mouse_sensitivity * (1.0 - nausea_intensity * 0.60)
-		player.rotate_y(-event.relative.x * sens)
+		var rel_x: float = motion.relative.x
+		var rel_y: float = motion.relative.y
+
+		# When ceiling crawling with 180° inverted camera, invert mouse look deltas
+		if is_ceiling_crawling:
+			rel_x = -rel_x
+			rel_y = -rel_y
+
+		player.rotate_y(-rel_x * sens)
 		if head:
-			head.rotate_x(-event.relative.y * sens)
+			head.rotate_x(-rel_y * sens)
 			head.rotation.x = clampf(head.rotation.x, deg_to_rad(-89.0), deg_to_rad(89.0))
 
 	if event is InputEventMouseButton and event.pressed:
@@ -54,10 +64,12 @@ func update_camera(delta: float, is_sprinting: bool, is_ceiling_crawling: bool =
 		spring_arm.spring_length = current_camera_zoom
 
 	if head:
-		var target_head_y: float = -0.4 if is_ceiling_crawling else (player.stand_head_y if player else 1.8)
+		var target_head_y: float = 0.6 if is_ceiling_crawling else (player.stand_head_y if player else 1.8)
 		head.position.y = lerpf(head.position.y, target_head_y, delta * 10.0)
+		var target_z_deg: float = 180.0 if is_ceiling_crawling else 0.0
+		head.rotation_degrees.z = lerpf(head.rotation_degrees.z, target_z_deg, delta * 12.0)
 
 	if camera_3d:
-		var target_fov := (SPRINT_FOV if is_sprinting else NORMAL_FOV) + (10.0 if is_ceiling_crawling else 0.0)
+		var target_fov := SPRINT_FOV if is_sprinting else NORMAL_FOV
 		camera_3d.fov = lerpf(camera_3d.fov, target_fov, delta * 8.0)
-		camera_3d.rotation_degrees.z = lerpf(camera_3d.rotation_degrees.z, 0.0, delta * 10.0)
+		camera_3d.rotation_degrees.z = 0.0
