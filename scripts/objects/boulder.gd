@@ -209,15 +209,18 @@ func rpc_throw_boulder(player_path: NodePath, throw_dir: Vector3) -> void:
 	print("🪨 BOULDER THROWN WITH IMPULSE: %s" % str(impulse_vector))
 
 func _on_physics_body_entered(body: Node) -> void:
-	if body.has_method("is_multiplayer_authority"):
+	if body and body is CharacterBody3D and body.has_method("is_multiplayer_authority"):
 		var p: CharacterBody3D = body as CharacterBody3D
-		if String(p.get("selected_character_id")).to_lower() == "thin":
-			var vel := linear_velocity.length()
-			if vel > 0.8:
-				p.apply_paper_flatten(10.0)
-				if AudioManager:
-					AudioManager.play_sfx_3d("boulder_impact", global_position)
-				print("💥 BOULDER ROLLED OVER THIN PLAYER AND FLATTENED HIM!")
+		if p:
+			var char_id: String = String(p.get("selected_character_id"))
+			if char_id.to_lower() == "thin":
+				var vel := linear_velocity.length()
+				if vel > 0.8:
+					if p.has_method("apply_paper_flatten"):
+						p.call("apply_paper_flatten", 10.0)
+					if AudioManager:
+						AudioManager.play_sfx_3d("boulder_impact", global_position)
+					print("💥 BOULDER ROLLED OVER THIN PLAYER AND FLATTENED HIM!")
 	var now: float = Time.get_ticks_msec() / 1000.0
 	if now - _last_impact_time < 0.20:
 		return
@@ -246,13 +249,17 @@ func _apply_area_crush_damage() -> void:
 	var results := space_state.intersect_shape(query)
 	for res in results:
 		var collider: Object = res.collider
-		if collider.has_method("is_multiplayer_authority") and collider != _carrier_player:
+		if collider and collider is CharacterBody3D and collider.has_method("is_multiplayer_authority") and collider != _carrier_player:
 			var p: CharacterBody3D = collider as CharacterBody3D
-			if String(p.get("selected_character_id")).to_lower() == "thin":
-				p.apply_paper_flatten(10.0)
-				print("💥 BOULDER CRUSHED THIN PLAYER INTO PAPER!")
-			else:
-				p.take_damage(damage_on_impact, global_position)
+			if p:
+				var char_id: String = String(p.get("selected_character_id"))
+				if char_id.to_lower() == "thin":
+					if p.has_method("apply_paper_flatten"):
+						p.call("apply_paper_flatten", 10.0)
+					print("💥 BOULDER CRUSHED THIN PLAYER INTO PAPER!")
+				else:
+					if p.has_method("take_damage"):
+						p.call("take_damage", damage_on_impact, global_position)
 
 func _show_warning(msg: String) -> void:
 	_warning_text = msg
