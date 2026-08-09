@@ -58,11 +58,13 @@ func _ready() -> void:
 
 	_update_character_ui(NetworkManager.local_character_id if NetworkManager else "fat")
 
-	# Check if already connected or hosted
-	var is_net_connected: bool = (multiplayer.multiplayer_peer != null and multiplayer.multiplayer_peer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTED)
-	if is_net_connected:
+	# Always open SetupView (IP input form) unless actively connected in room with 2+ players
+	var is_active_room: bool = (multiplayer.multiplayer_peer != null and multiplayer.multiplayer_peer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTED and NetworkManager and NetworkManager.connected_players.size() >= 2)
+	if is_active_room:
 		_show_active_lobby_view()
 	else:
+		if NetworkManager and not is_active_room:
+			NetworkManager.disconnect_game()
 		_show_setup_view()
 
 func _show_setup_view() -> void:

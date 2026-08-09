@@ -1,24 +1,18 @@
 extends Node
 
 ## Universal AAA 3D Positional Spatial Voice Chat Manager for Godot 4.
-## Features:
-## - Push-to-Talk (Default: 'V') & Always-On Modes.
-## - Low-bandwidth 16-bit PCM Audio Capture via AudioEffectCapture.
-## - Live Local Mic Loopback Test with real-time level meter.
-## - 3D Spatialized Positional Playback per peer (AudioStreamPlayer3D).
-## - Visual 3D Speaking Indicators & Per-Peer Mute / Volume controls.
+## Standard Implementation using AudioEffectCapture, AudioStreamMicrophone, and AudioStreamGenerator.
 
 signal voice_state_changed(is_speaking: bool)
 signal peer_speaking_changed(peer_id: int, is_speaking: bool)
 
 @export var ptt_action: String = "voice_chat"
-@export var sample_rate: int = 22050 # High-fidelity 22.05 kHz sample rate
 @export var push_to_talk: bool = true
 
 const RECORD_BUS_NAME: String = "VoiceRecordBus"
 const VOICE_VOX_BUS: String = "VoicePlaybackBus"
 
-var _capture_effect: AudioEffectCapture
+var _capture_effect: AudioEffectCapture = null
 var _is_speaking: bool = false
 var _muted_peers: Dictionary = {} # peer_id -> bool
 var _peer_players: Dictionary = {} # peer_id -> AudioStreamPlayer3D
@@ -47,19 +41,15 @@ func _setup_voice_input_action() -> void:
 		InputMap.action_add_event(ptt_action, ev)
 
 func _setup_voice_buses() -> void:
-	# 1. Voice Capture Record Bus
+	# 1. Voice Record Bus (Muted send to prevent local echo back)
 	var rec_idx := AudioServer.get_bus_index(RECORD_BUS_NAME)
 	if rec_idx == -1:
 		rec_idx = AudioServer.bus_count
 		AudioServer.add_bus(rec_idx)
 		AudioServer.set_bus_name(rec_idx, RECORD_BUS_NAME)
 		AudioServer.set_bus_send(rec_idx, "Master")
+		AudioServer.set_bus_mute(rec_idx, true)
 
-	# GODOT 4 ENGINE FIX: Keep bus unmuted, set volume to -80dB (silent) so AudioEffectCapture processes mic frames!
-	AudioServer.set_bus_mute(rec_idx, false)
-	AudioServer.set_bus_volume_db(rec_idx, -80.0)
-
-	# Add AudioEffectCapture to record bus
 	_capture_effect = null
 	for i in range(AudioServer.get_bus_effect_count(rec_idx)):
 		var eff := AudioServer.get_bus_effect(rec_idx, i)
@@ -72,7 +62,7 @@ func _setup_voice_buses() -> void:
 		_capture_effect.buffer_length = 0.5
 		AudioServer.add_bus_effect(rec_idx, _capture_effect)
 
-	# 2. Voice Playback Bus (Connected to SFX / Master)
+	# 2. Voice Playback Bus
 	var vox_idx := AudioServer.get_bus_index(VOICE_VOX_BUS)
 	if vox_idx == -1:
 		vox_idx = AudioServer.bus_count
@@ -100,8 +90,8 @@ func _ensure_test_player() -> void:
 		_test_player.name = "MicTestAudioPlayer"
 		_test_player.bus = VOICE_VOX_BUS
 		var gen := AudioStreamGenerator.new()
-		gen.mix_rate = 44100.0
-		gen.buffer_length = 0.4
+		gen.mix_rate = AudioServer.get_mix_rate()
+		gen.buffer_length = 0.5
 		_test_player.stream = gen
 		add_child(_test_player)
 		_test_player.play()
@@ -131,83 +121,58 @@ func _update_speaking_timers(delta: float) -> void:
 			_set_peer_speaking(peer_id, false)
 
 func _handle_input_and_capture() -> void:
-	var should_talk: bool = false
+	if not _capture_effect:
+		return
+
+	var frames_avail: int = _capture_effect.get_frames_available()
+	if frames_avail <= 0:
+		return
+
+	var raw_frames: PackedVector2Array = _capture_effect.get_buffer(frames_avail)
+
+	# 1. Real-time meter level calculation
+	var max_amp: float = 0.0
+	for f in raw_frames:
+		max_amp = maxf(max_amp, maxf(absf(f.x), absf(f.y)))
+	_last_mic_level = lerpf(_last_mic_level, clampf(max_amp * 4.0, 0.0, 1.0), 0.35)
+
+	# 2. Mic Test Mode (Settings GUI)
 	if mic_test_active:
-		should_talk = true
-	elif push_to_talk:
+		_ensure_test_player()
+		if _test_playback:
+			for frame in raw_frames:
+				if _test_playback.can_push_buffer(1):
+					_test_playback.push_frame(frame)
+		return
+	else:
+		if _test_player and _test_player.playing:
+			_test_player.stop()
+
+	# 3. Check talking state
+	var should_talk: bool = false
+	if push_to_talk:
 		should_talk = Input.is_action_pressed(ptt_action)
 	else:
-		should_talk = true
+		should_talk = (max_amp > 0.02)
 
-	# Check active multiplayer status if not in local mic test
 	var is_in_match := (multiplayer and multiplayer.has_multiplayer_peer() and multiplayer.multiplayer_peer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTED)
-	if not mic_test_active and not is_in_match:
+	if not is_in_match:
 		should_talk = false
 
 	if should_talk != _is_speaking:
 		_is_speaking = should_talk
 		voice_state_changed.emit(_is_speaking)
-		if not mic_test_active and is_in_match:
+		if is_in_match:
 			rpc_set_peer_speaking.rpc(multiplayer.get_unique_id(), _is_speaking)
 
-	if not _capture_effect:
+	if not _is_speaking or not is_in_match:
 		return
 
-	# Capture frames available
-	var frames_avail: int = _capture_effect.get_frames_available()
-	if frames_avail > 0:
-		var pcm_vector: PackedVector2Array = _capture_effect.get_buffer(frames_avail)
-
-		# Calculate real-time mic volume level
-		var max_amp: float = 0.0
-		for f in pcm_vector:
-			var amp: float = maxf(absf(f.x), absf(f.y))
-			if amp > max_amp:
-				max_amp = amp
-		_last_mic_level = lerpf(_last_mic_level, clampf(max_amp * 4.5, 0.0, 1.0), 0.35)
-
-		# If mic testing is active: play back audio locally so player hears their mic!
-		if mic_test_active:
-			_ensure_test_player()
-			if _test_playback:
-				var can_push: int = _test_playback.get_frames_available()
-				if can_push > 0:
-					var push_count: int = mini(can_push, pcm_vector.size())
-					var test_frames: PackedVector2Array = pcm_vector if push_count == pcm_vector.size() else pcm_vector.slice(0, push_count)
-					_test_playback.push_buffer(test_frames)
-			return
-		else:
-			if _test_player and _test_player.playing:
-				_test_player.stop()
-
-		if not _is_speaking:
-			return
-
-		if frames_avail >= 128:
-			var compressed_bytes: PackedByteArray = _compress_pcm_frames(pcm_vector)
-			if compressed_bytes.size() > 0 and is_in_match:
-				rpc_receive_voice_chunk.rpc(multiplayer.get_unique_id(), compressed_bytes)
-
-func _compress_pcm_frames(frames: PackedVector2Array) -> PackedByteArray:
-	# Downsample & Quantize 32-bit Vector2 PCM frames into 16-bit PCM byte array
-	var step: int = maxi(1, int(44100.0 / float(sample_rate)))
-	var count: int = int(float(frames.size()) / float(step))
-	var bytes := PackedByteArray()
-	bytes.resize(count * 2)
-
-	var idx: int = 0
-	var i: int = 0
-	while i < frames.size() and idx < count * 2:
-		var mono_sample: float = (frames[i].x + frames[i].y) * 0.5
-		var int16_sample: int = int(clampf(mono_sample * 32767.0, -32768.0, 32767.0))
-		bytes.encode_s16(idx, int16_sample)
-		idx += 2
-		i += step
-
-	return bytes
+	# 4. Stream audio data across network
+	rpc_receive_voice_chunk.rpc(multiplayer.get_unique_id(), raw_frames)
 
 @rpc("any_peer", "call_remote", "unreliable_ordered")
-func rpc_receive_voice_chunk(sender_id: int, audio_bytes: PackedByteArray) -> void:
+func rpc_receive_voice_chunk(sender_id: int, audio_data: PackedVector2Array) -> void:
 	if _muted_peers.get(sender_id, false):
 		return
 
@@ -218,43 +183,26 @@ func rpc_receive_voice_chunk(sender_id: int, audio_bytes: PackedByteArray) -> vo
 	_peer_speak_timers[sender_id] = 0.4
 	_set_peer_speaking(sender_id, true)
 
-	# Decompress 16-bit PCM into PackedVector2Array and push buffer
-	var sample_count: int = audio_bytes.size() / 2
-	if sample_count == 0:
-		return
-
-	var frames := PackedVector2Array()
-	frames.resize(sample_count)
-
-	for i in range(sample_count):
-		var sample_f: float = float(audio_bytes.decode_s16(i * 2)) / 32767.0
-		frames[i] = Vector2(sample_f, sample_f)
-
-	var can_push: int = playback.get_frames_available()
-	if can_push > 0:
-		var push_count: int = mini(can_push, frames.size())
-		if push_count < frames.size():
-			frames = frames.slice(0, push_count)
-		playback.push_buffer(frames)
+	for frame in audio_data:
+		if playback.can_push_buffer(1):
+			playback.push_frame(frame)
 
 func _get_or_create_peer_player(peer_id: int) -> AudioStreamGeneratorPlayback:
 	if _peer_playback.has(peer_id) and is_instance_valid(_peer_players.get(peer_id, null)):
 		return _peer_playback[peer_id]
 
-	# Create 3D Spatialized AudioStreamPlayer3D for remote peer
 	var p3d := AudioStreamPlayer3D.new()
 	p3d.name = "VoicePlayer3D_%d" % peer_id
 	p3d.bus = VOICE_VOX_BUS
-	p3d.max_distance = 35.0
-	p3d.unit_size = 5.0
+	p3d.max_distance = 40.0
+	p3d.unit_size = 6.0
 	p3d.attenuation_model = AudioStreamPlayer3D.ATTENUATION_INVERSE_DISTANCE
 
 	var generator := AudioStreamGenerator.new()
-	generator.mix_rate = float(sample_rate)
-	generator.buffer_length = 0.4
+	generator.mix_rate = AudioServer.get_mix_rate()
+	generator.buffer_length = 0.5
 	p3d.stream = generator
 
-	# Attach player to remote player's 3D node in the world if available
 	var root: Node = get_tree().root
 	var target_parent: Node = root
 	var player_node := root.find_child(str(peer_id), true, false)
