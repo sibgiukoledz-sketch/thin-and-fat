@@ -156,36 +156,38 @@ func _apply_wind_physics(delta: float, max_wind_distance: float) -> void:
 			if body == self or body is StaticBody3D:
 				continue
 
-			if body.has_method("is_multiplayer_authority"):
+			if body and body is CharacterBody3D and body.has_method("is_multiplayer_authority"):
 				var p: CharacterBody3D = body as CharacterBody3D
-				var p_dist: float = fan_origin.distance_to(p.global_position)
+				if p:
+					var p_dist: float = fan_origin.distance_to(p.global_position)
 
-				# IF PLAYER IS BEYOND THE BOULDER (p_dist > max_wind_distance), PLAYER IS 100% IN WIND SHADOW!
-				if p_dist > max_wind_distance + 0.5:
-					continue
+					# IF PLAYER IS BEYOND THE BOULDER (p_dist > max_wind_distance), PLAYER IS 100% IN WIND SHADOW!
+					if p_dist > max_wind_distance + 0.5:
+						continue
 
-				if _check_is_shielded(fan_origin, p.global_position):
-					continue
+					if _check_is_shielded(fan_origin, p.global_position):
+						continue
 
-				if p.selected_character_id.to_lower() == "fat":
-					var dot_fat: float = p.velocity.dot(wind_dir)
-					# 1. Subtle minor heavy drift backward when Fat stands still or moves slowly
-					if dot_fat < 0.5:
-						p.velocity += wind_dir * (wind_force * 0.12) * delta
-					# 2. Heavy resistance when Fat pushes forward against the wind
-					if dot_fat < 0.0:
-						p.velocity -= wind_dir * (dot_fat * 0.25)
-					continue
+					var char_id := String(p.get("selected_character_id"))
+					if char_id.to_lower() == "fat":
+						var dot_fat: float = p.velocity.dot(wind_dir)
+						# 1. Subtle minor heavy drift backward when Fat stands still or moves slowly
+						if dot_fat < 0.5:
+							p.velocity += wind_dir * (wind_force * 0.12) * delta
+						# 2. Heavy resistance when Fat pushes forward against the wind
+						if dot_fat < 0.0:
+							p.velocity -= wind_dir * (dot_fat * 0.25)
+						continue
 
-				# Thin Player: check if shielded by Fat or Heavy Boulder!
-				if _check_is_shielded(fan_origin, p.global_position):
-					continue
+					# Thin Player: check if shielded by Fat or Heavy Boulder!
+					if _check_is_shielded(fan_origin, p.global_position):
+						continue
 
-				# Blown backward violently by wind!
-				var push_vel: Vector3 = wind_dir * (wind_force * 1.6)
-				p.velocity.x = lerpf(p.velocity.x, push_vel.x, 14.0 * delta)
-				p.velocity.z = lerpf(p.velocity.z, push_vel.z, 14.0 * delta)
-				p.move_and_slide()
+					# Blown backward violently by wind!
+					var push_vel: Vector3 = wind_dir * (wind_force * 1.6)
+					p.velocity.x = lerpf(p.velocity.x, push_vel.x, 14.0 * delta)
+					p.velocity.z = lerpf(p.velocity.z, push_vel.z, 14.0 * delta)
+					p.move_and_slide()
 
 			elif body is RigidBody3D:
 				var rb: RigidBody3D = body as RigidBody3D
@@ -195,9 +197,9 @@ func _apply_wind_physics(delta: float, max_wind_distance: float) -> void:
 
 	# 2. Spatial corridor search for Thin players & DummyNPCs inside wind reach zone
 	for child in root.find_children("*", "CharacterBody3D", true, false):
-		if child.has_method("is_multiplayer_authority"):
+		if child and child is CharacterBody3D and child.has_method("is_multiplayer_authority"):
 			var player_node: CharacterBody3D = child as CharacterBody3D
-			if String(player_node.get("selected_character_id")).to_lower() == "thin" and not player_node.get("is_dead"):
+			if player_node and String(player_node.get("selected_character_id")).to_lower() == "thin" and not bool(player_node.get("is_dead")):
 				var rel_pos: Vector3 = player_node.global_position - fan_origin
 				var forward_dist: float = rel_pos.dot(wind_dir)
 				var side_dist: float = (rel_pos - wind_dir * forward_dist).length()
@@ -255,9 +257,9 @@ func _check_is_shielded(_fan_origin: Vector3, victim_pos: Vector3) -> bool:
 	# 2. Check Fat player shielding
 	var players: Array[Node] = root.find_children("*", "CharacterBody3D", true, false)
 	for p in players:
-		if p.has_method("is_multiplayer_authority"):
+		if p and p is CharacterBody3D and p.has_method("is_multiplayer_authority"):
 			var player_node: CharacterBody3D = p as CharacterBody3D
-			if String(player_node.get("selected_character_id")).to_lower() == "fat" and not player_node.get("is_dead"):
+			if player_node and String(player_node.get("selected_character_id")).to_lower() == "fat" and not bool(player_node.get("is_dead")):
 				var fat_pos_2d: Vector3 = player_node.global_position
 				fat_pos_2d.y = 0.0
 				var rel_fat: Vector3 = fat_pos_2d - fan_pos_2d
