@@ -66,19 +66,7 @@ func _ready() -> void:
 	_setup_trampoline_area()
 
 func _setup_trampoline_area() -> void:
-	if _trampoline_area:
-		return
-
-	var target_parent: Node3D = null
-	if player and player.mesh_instance:
-		target_parent = player.mesh_instance.find_child("GiantBelly", true, false) as Node3D
-		if not target_parent:
-			target_parent = player.mesh_instance
-
-	if not target_parent:
-		target_parent = player if player else (get_parent() as Node3D)
-
-	if not target_parent:
+	if _trampoline_area or not player:
 		return
 
 	_trampoline_area = Area3D.new()
@@ -90,17 +78,13 @@ func _setup_trampoline_area() -> void:
 	var sphere := SphereShape3D.new()
 	sphere.radius = 0.95
 	shape.shape = sphere
-
-	# Position sphere directly around the round GiantBelly dome
-	if target_parent.name == "GiantBelly":
-		shape.position = Vector3(0, 0, -0.15)
-	else:
-		shape.position = Vector3(0, 0.85, -0.15)
+	shape.position = Vector3.ZERO
 
 	_trampoline_area.add_child(shape)
+	_trampoline_area.position = Vector3(0, 0.55, 0)
 	_trampoline_area.body_entered.connect(_on_trampoline_body_entered)
 	_trampoline_area.monitoring = false
-	target_parent.add_child(_trampoline_area)
+	player.add_child(_trampoline_area)
 
 func _setup_visual_nodes() -> void:
 	var parent_3d: Node3D = player if player else (get_parent() as Node3D)
@@ -544,6 +528,7 @@ func rpc_toggle_belly_trampoline(active: bool) -> void:
 			player.collision_shape.position = Vector3(0, 0.22, -0.1)
 
 		if _trampoline_area:
+			_trampoline_area.position = Vector3(0, 0.55, 0)
 			_trampoline_area.monitoring = true
 
 		if AudioManager:
@@ -570,6 +555,7 @@ func rpc_toggle_belly_trampoline(active: bool) -> void:
 			player.collision_shape.position = Vector3(0, 0.9, 0)
 
 		if _trampoline_area:
+			_trampoline_area.position = Vector3(0, 0.85, 0)
 			_trampoline_area.monitoring = false
 
 		print("🛏 BELLY TRAMPOLINE: Fat stood back up.")
