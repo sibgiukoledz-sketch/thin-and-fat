@@ -314,6 +314,18 @@ func _synthesize_sound_event(key: String) -> AudioStreamWAV:
 				var sample_16 := int(clampf(val, -1.0, 1.0) * 32767.0)
 				pcm_data.encode_s16(i * 2, sample_16)
 
+		"trampoline_bounce":
+			duration = 0.45
+			samples_count = int(sample_rate * duration)
+			pcm_data.resize(samples_count * 2)
+			for i in range(samples_count):
+				var t := float(i) / float(sample_rate)
+				var env := exp(-5.0 * t)
+				var freq := lerpf(140.0, 420.0, sin(t * 24.0) * 0.5 + 0.5)
+				var val := sin(2.0 * PI * freq * t) * env * 0.85
+				var sample_16 := int(clampf(val, -1.0, 1.0) * 32767.0)
+				pcm_data.encode_s16(i * 2, sample_16)
+
 		"vomit_burst", "stench_burst":
 			duration = 0.40
 			samples_count = int(sample_rate * duration)

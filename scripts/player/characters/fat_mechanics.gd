@@ -42,6 +42,7 @@ func setup(p: Player) -> void:
 	_setup_visual_nodes()
 	_setup_seismic_vfx()
 	_setup_slingshot_vfx()
+	_setup_trampoline_area()
 
 func _ready() -> void:
 	super._ready()
@@ -55,6 +56,29 @@ func _ready() -> void:
 	_setup_visual_nodes()
 	_setup_seismic_vfx()
 	_setup_slingshot_vfx()
+	_setup_trampoline_area()
+
+func _setup_trampoline_area() -> void:
+	var parent_3d: Node3D = player if player else (get_parent() as Node3D)
+	if not parent_3d or _trampoline_area:
+		return
+
+	_trampoline_area = Area3D.new()
+	_trampoline_area.name = "BellyTrampolineArea"
+	_trampoline_area.collision_layer = 8
+	_trampoline_area.collision_mask = 7
+
+	var shape := CollisionShape3D.new()
+	var cylinder := CylinderShape3D.new()
+	cylinder.radius = 1.45
+	cylinder.height = 0.9
+	shape.shape = cylinder
+	shape.position = Vector3(0, 0.45, 0)
+	_trampoline_area.add_child(shape)
+
+	_trampoline_area.body_entered.connect(_on_trampoline_body_entered)
+	_trampoline_area.monitoring = false
+	parent_3d.add_child(_trampoline_area)
 
 func _setup_visual_nodes() -> void:
 	var parent_3d: Node3D = player if player else (get_parent() as Node3D)
@@ -464,9 +488,123 @@ func handle_ability_input(event: InputEvent) -> void:
 			rpc_slingshot_launch.rpc(target_node.get_path(), launch_vel)
 			return
 
+	var is_trampoline_pressed: bool = (event is InputEventKey and event.pressed and not event.echo and (event.keycode == KEY_B or event.keycode == KEY_C))
+	if is_trampoline_pressed:
+		rpc_toggle_belly_trampoline.rpc(not is_belly_trampoline)
+		return
+
 	if event is InputEventKey and event.pressed and not event.echo:
 		if event.keycode == KEY_K or event.keycode == KEY_G:
 			add_stench(35.0)
+
+@rpc("any_peer", "call_local", "reliable")
+func rpc_toggle_belly_trampoline(active: bool) -> void:
+	is_belly_trampoline = active
+
+	if not player:
+		return
+
+	if is_belly_trampoline:
+		if player.mesh_instance:
+			var tw := player.create_tween().set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
+			tw.tween_property(player.mesh_instance, "rotation_degrees:x", -90.0, 0.25)
+			tw.parallel().tween_property(player.mesh_instance, "position:y", 0.35, 0.25)
+			tw.parallel().tween_property(player.mesh_instance, "scale", Vector3(1.35, 1.35, 0.75), 0.25)
+
+		if player.collision_shape and player.collision_shape.shape is CapsuleShape3D:
+			var cap := player.collision_shape.shape as CapsuleShape3D
+			cap.height = 0.8
+			cap.radius = 0.95
+			player.collision_shape.position.y = 0.4
+
+		if _trampoline_area:
+			_trampoline_area.monitoring = true
+
+		if AudioManager:
+			AudioManager.play_sfx_3d("slingshot_launch", player.global_position)
+		print("🛏 BELLY TRAMPOLINE: Fat laid down on back! Belly is now an active trampoline bouncer!")
+
+	else:
+		if player.mesh_instance:
+			var tw := player.create_tween().set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
+			tw.tween_property(player.mesh_instance, "rotation_degrees:x", 0.0, 0.2)
+			tw.parallel().tween_property(player.mesh_instance, "position:y", 0.0, 0.2)
+			tw.parallel().tween_property(player.mesh_instance, "scale", Vector3.ONE, 0.2)
+
+		if player.collision_shape and player.collision_shape.shape is CapsuleShape3D:
+			var cap := player.collision_shape.shape as CapsuleShape3D
+			cap.height = 1.8
+			cap.radius = 0.65
+			player.collision_shape.position.y = 0.9
+
+		if _trampoline_area:
+			_trampoline_area.monitoring = false
+
+		print("🛏 BELLY TRAMPOLINE: Fat stood back up.")
+
+func _on_trampoline_body_entered(body: Node) -> void:
+	if not is_belly_trampoline or not body or body == player:
+		return
+
+	var bounce_pos := body.global_position if body is Node3D else player.global_position
+
+	if body is Player:
+		var target_p := body as Player
+		if not target_p.is_dead:
+			target_p.velocity.y = 24.0
+			target_p.velocity.x *= 1.3
+			target_p.velocity.z *= 1.3
+			if target_p.camera_3d:
+				target_p.set_target_fov(95.0)
+
+			_trigger_bounce_vfx_and_sfx(bounce_pos)
+			_trigger_belly_wobble_animation()
+			print("🛏 BELLY BOUNCE: Launched player %s into the air!" % target_p.name)
+
+	elif body is RigidBody3D:
+		var rb := body as RigidBody3D
+		if rb.freeze:
+			rb.freeze = false
+			rb.sleeping = false
+
+		var bounce_impulse := Vector3(randf_range(-150, 150), rb.mass * 18.0, randf_range(-150, 150))
+		rb.apply_central_impulse(bounce_impulse)
+		rb.apply_torque_impulse(Vector3(randf_range(-200, 200), randf_range(-200, 200), randf_range(-200, 200)))
+
+		_trigger_bounce_vfx_and_sfx(bounce_pos)
+		_trigger_belly_wobble_animation()
+		print("🛏 BELLY BOUNCE: Bounced RigidBody %s back into the air!" % rb.name)
+
+	elif body is DummyNPC:
+		var dummy := body as DummyNPC
+		dummy.velocity = Vector3(randf_range(-6, 6), 22.0, randf_range(-6, 6))
+		dummy.take_damage(15.0, dummy.global_position)
+
+		_trigger_bounce_vfx_and_sfx(bounce_pos)
+		_trigger_belly_wobble_animation()
+		print("🛏 BELLY BOUNCE: Launched DummyNPC %s into the air!" % dummy.name)
+
+func _trigger_bounce_vfx_and_sfx(pos: Vector3) -> void:
+	if AudioManager:
+		AudioManager.play_sfx_3d("trampoline_bounce", pos)
+
+	if _seismic_shockwave_particles:
+		_seismic_shockwave_particles.global_position = pos
+		_seismic_shockwave_particles.restart()
+		_seismic_shockwave_particles.emitting = true
+
+func _trigger_belly_wobble_animation() -> void:
+	if not player or not player.mesh_instance:
+		return
+
+	var wobble_squash := Vector3(1.55, 1.55, 0.45)
+	var wobble_stretch := Vector3(1.20, 1.20, 0.90)
+	var normal_belly := Vector3(1.35, 1.35, 0.75)
+
+	var tw := player.create_tween().set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
+	tw.tween_property(player.mesh_instance, "scale", wobble_squash, 0.08)
+	tw.tween_property(player.mesh_instance, "scale", wobble_stretch, 0.12)
+	tw.tween_property(player.mesh_instance, "scale", normal_belly, 0.15)
 
 func _find_thin_target() -> Node3D:
 	if not player:
