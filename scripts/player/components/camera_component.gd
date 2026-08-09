@@ -5,7 +5,8 @@ extends Node
 ## - Handles Roblox-style 1st person / 3rd person smooth camera zoom (Scroll Wheel)
 ## - Mouse look rotation (Yaw on Player, Pitch clamped -89..89 on Head)
 ## - Sprint FOV transitions & nausea camera tilt
-## - Flips Camera3D Z-roll 180° cleanly during ceiling crawl with inverted mouse controls
+## - Supports 180° ceiling crawling camera flip on Head node:
+##   Ceiling appears as floor for Thin with natural mouse controls!
 
 const MOUSE_SENSITIVITY_DEFAULT := 0.0025
 const ZOOM_STEP := 0.5
@@ -65,12 +66,10 @@ func update_camera(delta: float, is_sprinting: bool, is_ceiling_crawling: bool =
 	if head:
 		var target_head_y: float = 0.6 if is_ceiling_crawling else (player.stand_head_y if player else 1.8)
 		head.position.y = lerpf(head.position.y, target_head_y, delta * 10.0)
-		head.rotation.z = 0.0 # Keep Head Z rotation strictly 0 to prevent Euler pitch-yaw cross mixing!
+		var target_z_deg: float = 180.0 if is_ceiling_crawling else 0.0
+		head.rotation_degrees.z = lerpf(head.rotation_degrees.z, target_z_deg, delta * 12.0)
 
 	if camera_3d:
-		var target_fov := (SPRINT_FOV if is_sprinting else NORMAL_FOV) + (6.0 if is_ceiling_crawling else 0.0)
+		var target_fov := SPRINT_FOV if is_sprinting else NORMAL_FOV
 		camera_3d.fov = lerpf(camera_3d.fov, target_fov, delta * 8.0)
-		
-		# Rotate leaf Camera3D Z-roll 180° during ceiling crawl
-		var target_roll := 180.0 if is_ceiling_crawling else 0.0
-		camera_3d.rotation_degrees.z = lerpf(camera_3d.rotation_degrees.z, target_roll, delta * 12.0)
+		camera_3d.rotation_degrees.z = lerpf(camera_3d.rotation_degrees.z, 0.0, delta * 8.0)

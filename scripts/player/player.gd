@@ -484,7 +484,7 @@ func _physics_process(delta: float) -> void:
 	var horiz_speed := Vector2(velocity.x, velocity.z).length()
 
 	if active_mechanics and "is_magnetized_to_ceiling" in active_mechanics and bool(active_mechanics.is_magnetized_to_ceiling):
-		if horiz_speed > 0.4:
+		if horiz_speed > 1.8:
 			target_anim = "walk"
 		else:
 			target_anim = "idle"
