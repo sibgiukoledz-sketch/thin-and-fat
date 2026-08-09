@@ -583,11 +583,11 @@ func _on_trampoline_body_entered(body: Node) -> void:
 	if body is Player:
 		var target_p := body as Player
 		if not target_p.is_dead:
-			target_p.velocity.y = 24.0
-			target_p.velocity.x *= 1.3
-			target_p.velocity.z *= 1.3
+			target_p.velocity.y = 15.0
+			target_p.velocity.x *= 1.15
+			target_p.velocity.z *= 1.15
 			if target_p.camera_3d:
-				target_p.set_target_fov(95.0)
+				target_p.set_target_fov(92.0)
 
 			_trigger_bounce_vfx_and_sfx(bounce_pos)
 			_trigger_belly_wobble_animation()
@@ -599,9 +599,9 @@ func _on_trampoline_body_entered(body: Node) -> void:
 			rb.freeze = false
 			rb.sleeping = false
 
-		var bounce_impulse := Vector3(randf_range(-150, 150), rb.mass * 18.0, randf_range(-150, 150))
+		var bounce_impulse := Vector3(randf_range(-80, 80), rb.mass * 11.0, randf_range(-80, 80))
 		rb.apply_central_impulse(bounce_impulse)
-		rb.apply_torque_impulse(Vector3(randf_range(-200, 200), randf_range(-200, 200), randf_range(-200, 200)))
+		rb.apply_torque_impulse(Vector3(randf_range(-100, 100), randf_range(-100, 100), randf_range(-100, 100)))
 
 		_trigger_bounce_vfx_and_sfx(bounce_pos)
 		_trigger_belly_wobble_animation()
@@ -609,7 +609,7 @@ func _on_trampoline_body_entered(body: Node) -> void:
 
 	elif body is DummyNPC:
 		var dummy := body as DummyNPC
-		dummy.velocity = Vector3(randf_range(-6, 6), 22.0, randf_range(-6, 6))
+		dummy.velocity = Vector3(randf_range(-4, 4), 14.5, randf_range(-4, 4))
 		dummy.take_damage(15.0, dummy.global_position)
 
 		_trigger_bounce_vfx_and_sfx(bounce_pos)
