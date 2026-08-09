@@ -34,17 +34,20 @@ func _on_side_impact(body: Node, side: int) -> void:
 	var is_heavy_slam: bool = false
 	var downward_speed: float = 0.0
 
-	if body.has_method("is_multiplayer_authority"):
+	if body and body is CharacterBody3D and body.has_method("is_multiplayer_authority"):
 		var p: CharacterBody3D = body as CharacterBody3D
-		if String(p.get("selected_character_id")).to_lower() == "fat":
-			# Only launch if Fat JUMPED / FELL from a height (velocity.y < -1.8 m/s) or carried heavy item
-			if p.velocity.y < -1.8 or p.is_carrying_heavy_object:
-				is_heavy_slam = true
-				downward_speed = absf(p.velocity.y)
-			else:
-				# Normal stepping/walking: tilt seesaw gently WITHOUT launching!
-				_gently_tilt_seesaw(side)
-				return
+		if p:
+			var char_id := String(p.get("selected_character_id"))
+			var is_carrying: bool = bool(p.get("is_carrying_heavy_object"))
+			if char_id.to_lower() == "fat":
+				# Only launch if Fat JUMPED / FELL from a height (velocity.y < -1.8 m/s) or carried heavy item
+				if p.velocity.y < -1.8 or is_carrying:
+					is_heavy_slam = true
+					downward_speed = absf(p.velocity.y)
+				else:
+					# Normal stepping/walking: tilt seesaw gently WITHOUT launching!
+					_gently_tilt_seesaw(side)
+					return
 	elif body is HeavyBoulder or body is RigidBody3D:
 		var rb: RigidBody3D = body as RigidBody3D
 		if rb.mass >= 25.0 or rb.linear_velocity.y < -0.3 or rb.linear_velocity.length_squared() > 1.5:
@@ -122,16 +125,17 @@ func rpc_trigger_catapult_slam(slam_side: int, launch_force: float) -> void:
 
 	# 4. Launch Target Entities Skyward
 	for victim in launch_targets:
-		if victim.has_method("is_multiplayer_authority"):
+		if victim and victim is CharacterBody3D and victim.has_method("is_multiplayer_authority"):
 			var p: CharacterBody3D = victim as CharacterBody3D
-			p.set("is_fall_damage_immune", true)
-			p.velocity.y = launch_force
-			p.velocity.x += launch_dir_x * 4.0
-			p.velocity.z += randf_range(-1.0, 1.0)
-			if p.has_method("set_target_fov"):
-				p.set_target_fov(92.0)
-			catapult_launched.emit(p, launch_force)
-			print("🚀 CATAPULT SEESAW: Player %s launched skyward at %.1f m/s!" % [p.name, launch_force])
+			if p:
+				p.set("is_fall_damage_immune", true)
+				p.velocity.y = launch_force
+				p.velocity.x += launch_dir_x * 4.0
+				p.velocity.z += randf_range(-1.0, 1.0)
+				if p.has_method("set_target_fov"):
+					p.call("set_target_fov", 92.0)
+				catapult_launched.emit(p, launch_force)
+				print("🚀 CATAPULT SEESAW: Player %s launched skyward at %.1f m/s!" % [p.name, launch_force])
 
 		elif victim is DummyNPC:
 			var npc: DummyNPC = victim as DummyNPC
