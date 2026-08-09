@@ -76,12 +76,12 @@ func _setup_trampoline_area() -> void:
 
 	var shape := CollisionShape3D.new()
 	var box := BoxShape3D.new()
-	box.size = Vector3(1.8, 0.7, 1.8) # Wide box trigger covering Fat's giant belly!
+	box.size = Vector3(2.4, 0.9, 2.6) # Wide box trigger covering Fat's giant belly!
 	shape.shape = box
 	shape.position = Vector3.ZERO
 
 	_trampoline_area.add_child(shape)
-	_trampoline_area.position = Vector3(0, 0.55, -0.65)
+	_trampoline_area.position = Vector3(0, 0.60, 0.75)
 	_trampoline_area.body_entered.connect(_on_trampoline_body_entered)
 	_trampoline_area.monitoring = false
 	player.add_child(_trampoline_area)
@@ -527,15 +527,15 @@ func rpc_toggle_belly_trampoline(active: bool) -> void:
 			tw_head.tween_property(player.head, "position:y", 0.45, 0.25)
 
 		if player.collision_shape:
-			# Box shape covering Fat's body lying flat on back (from head z=-1.6 to feet z=+0.5)
+			# Box shape covering Fat's body lying flat on back (from head to feet)
 			var box := BoxShape3D.new()
-			box.size = Vector3(2.2, 0.50, 2.4)
+			box.size = Vector3(2.4, 0.60, 2.6)
 			player.collision_shape.shape = box
-			player.collision_shape.position = Vector3(0.0, 0.25, -0.55)
+			player.collision_shape.position = Vector3(0.0, 0.30, 0.75)
 
 		if _trampoline_area:
-			# Trampoline trigger shape positioned directly over Fat's giant belly (z = -0.65)
-			_trampoline_area.position = Vector3(0.0, 0.55, -0.65)
+			# Trampoline trigger shape positioned directly over Fat's giant belly and chest
+			_trampoline_area.position = Vector3(0.0, 0.60, 0.75)
 			_trampoline_area.monitoring = true
 
 		if AudioManager:
@@ -741,9 +741,9 @@ func update_mechanics(delta: float) -> void:
 	if is_belly_trampoline and player and player.collision_shape:
 		if not (player.collision_shape.shape is BoxShape3D):
 			var box := BoxShape3D.new()
-			box.size = Vector3(2.2, 0.50, 2.4)
+			box.size = Vector3(2.4, 0.60, 2.6)
 			player.collision_shape.shape = box
-			player.collision_shape.position = Vector3(0.0, 0.25, -0.55)
+			player.collision_shape.position = Vector3(0.0, 0.30, 0.75)
 
 	if player.is_multiplayer_authority():
 		if _slingshot_cooldown > 0.0:
