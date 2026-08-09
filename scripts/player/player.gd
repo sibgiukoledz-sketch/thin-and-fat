@@ -49,7 +49,7 @@ const SPRINT_FOV := 85.0
 @export var mouse_sensitivity: float = 0.0025
 
 # Physics state
-var gravity: float = 18.0
+var gravity: float = 26.0
 var is_dead: bool = false
 var is_carrying_heavy_object: bool = false
 var is_paper_flattened: bool = false
@@ -123,7 +123,8 @@ func _ready() -> void:
 	_setup_voice_indicator()
 
 	if ProjectSettings.has_setting("physics/3d/default_gravity"):
-		gravity = ProjectSettings.get_setting("physics/3d/default_gravity")
+		var default_g: float = ProjectSettings.get_setting("physics/3d/default_gravity")
+		gravity = maxf(default_g * 2.6, 26.0)
 
 	if collision_shape and collision_shape.shape:
 		collision_shape.shape = collision_shape.shape.duplicate()
@@ -265,7 +266,8 @@ func get_movement_input() -> Vector3:
 
 func apply_gravity(delta: float) -> void:
 	if not is_on_floor():
-		velocity.y -= gravity * delta
+		var fall_mult := 1.45 if velocity.y < 0.0 else 1.0
+		velocity.y -= gravity * fall_mult * delta
 
 func apply_movement(input_dir: Vector3, target_spd: float, delta: float, accel_factor: float = 1.0) -> void:
 	var accel := 14.0 * accel_factor if input_dir.length_squared() > 0.01 else 10.0

@@ -539,9 +539,9 @@ func rpc_toggle_belly_trampoline(active: bool) -> void:
 
 		if player.collision_shape:
 			var box := BoxShape3D.new()
-			box.size = Vector3(1.6, 0.44, 1.6)
+			box.size = Vector3(1.6, 0.44, 2.2)
 			player.collision_shape.shape = box
-			player.collision_shape.position = Vector3(0, 0.22, 0)
+			player.collision_shape.position = Vector3(0, 0.22, -0.1)
 
 		if _trampoline_area:
 			_trampoline_area.monitoring = true
