@@ -155,14 +155,14 @@ func _handle_player_input() -> void:
 				toggle_lever()
 
 func _on_body_entered(body: Node) -> void:
-	if body.has_method("is_multiplayer_authority"):
+	if body and body is CharacterBody3D and body.has_method("is_multiplayer_authority"):
 		if not _players_in_range.has(body):
 			_players_in_range.append(body)
 		if body.is_multiplayer_authority():
 			_show_prompt(body)
 
 func _on_body_exited(body: Node) -> void:
-	if body.has_method("is_multiplayer_authority"):
+	if body and body is CharacterBody3D and body.has_method("is_multiplayer_authority"):
 		_players_in_range.erase(body)
 		if body.is_multiplayer_authority():
 			_hide_prompt(body)
