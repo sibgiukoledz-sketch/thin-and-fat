@@ -48,12 +48,16 @@ func _setup_audio_player() -> void:
 		spatial_audio_player.stream = gen
 
 func _on_body_entered(body: Node) -> void:
-	if body.has_method("is_multiplayer_authority") and body.is_multiplayer_authority():
+	if not multiplayer or not multiplayer.has_multiplayer_peer():
+		return
+	if body and body.has_method("is_multiplayer_authority") and body.is_multiplayer_authority():
 		_player_in_range = true
 		_update_ui_display()
 
 func _on_body_exited(body: Node) -> void:
-	if body.has_method("is_multiplayer_authority") and body.is_multiplayer_authority():
+	if not multiplayer or not multiplayer.has_multiplayer_peer():
+		return
+	if body and body.has_method("is_multiplayer_authority") and body.is_multiplayer_authority():
 		_player_in_range = false
 		_update_ui_display()
 

@@ -98,7 +98,7 @@ func play_footstep_sound(character_id: String, is_sprinting: bool = false) -> vo
 	if AudioManager:
 		AudioManager.play_sfx_3d(sfx_name, _player.global_position, 35.0, vol_db)
 
-func play_landing_sound(character_id: String, fall_impact: float) -> void:
+func play_landing_sound(_character_id: String, fall_impact: float) -> void:
 	if not _player:
 		return
 
