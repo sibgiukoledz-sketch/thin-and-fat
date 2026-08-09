@@ -173,32 +173,33 @@ func rpc_pickup_boulder(player_path: NodePath) -> void:
 	player_node.is_carrying_heavy_object = true
 	freeze = true
 
-	# Keep collision shape ENABLED for environment/walls/doorways, but exclude collision with Fat himself!
+	# Disable boulder collision shape while carried so physics solver does NOT push player
 	if collision_shape:
-		collision_shape.disabled = false
+		collision_shape.disabled = true
 	if interaction_area:
 		interaction_area.monitoring = false
 
-	# Add physics collision exception with carrier player so boulder does not collide with Fat's capsule
-	add_collision_exception_with(player_node)
-
-	# Set collision mask to environment/structures (layer 1) only while carried
-	collision_layer = 4
-	collision_mask = 1
+	# Expand Fat's player collision shape to 1.65m radius cylinder (3.3m width) while carrying boulder
+	# This physically prevents Fat from passing through narrow doors, gates, or passages!
+	if player_node.collision_shape:
+		var wide_shape := CylinderShape3D.new()
+		wide_shape.radius = 1.65
+		wide_shape.height = 1.8
+		player_node.collision_shape.shape = wide_shape
 
 	reparent(player_node)
-	# Position boulder in front of Fat's chest/arms at y=1.9m so bottom (y=0.1m) is ABOVE ground -> ZERO levitation!
-	# 3.6m width & depth prevents Fat from walking through narrow doors/passages while carrying boulder!
-	position = Vector3(0.0, 1.90, -1.25)
+	# Position root at y = -0.55m so child mesh (+1.8m offset) sits at y = 1.25m (chest/arms height)
+	# Bottom of boulder sits at y = +0.10m above ground -> ZERO LEVITATION!
+	position = Vector3(0.0, -0.55, -1.35)
 	rotation = Vector3.ZERO
 
 	if prompt_label:
-		prompt_label.position = Vector3(0, 2.1, 0)
+		prompt_label.position = Vector3(0, 3.8, 0)
 
 	boulder_picked_up.emit(player_node)
 	if AudioManager:
 		AudioManager.play_sfx_3d("heavy_lift", global_position)
-	print("🪨 BOULDER PICKED UP by %s" % player_node.name)
+	print("🪨 BOULDER PICKED UP by %s (Player collision radius expanded to 1.65m)" % player_node.name)
 
 @rpc("any_peer", "call_local", "reliable")
 func rpc_throw_boulder(player_path: NodePath, throw_dir: Vector3) -> void:
@@ -209,7 +210,12 @@ func rpc_throw_boulder(player_path: NodePath, throw_dir: Vector3) -> void:
 	_is_carried = false
 	if player_node:
 		player_node.is_carrying_heavy_object = false
-		remove_collision_exception_with(player_node)
+		# Reset player collision shape back to standard capsule
+		if player_node.collision_shape:
+			var normal_shape := CapsuleShape3D.new()
+			normal_shape.radius = 0.65
+			normal_shape.height = 1.8
+			player_node.collision_shape.shape = normal_shape
 	_carrier_player = null
 
 	var current_global_pos := global_position

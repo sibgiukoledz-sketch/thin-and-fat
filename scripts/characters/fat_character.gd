@@ -28,9 +28,9 @@ func set_carrying_pose(is_carrying: bool) -> void:
 func _apply_arm_pose() -> void:
 	if arm_l and arm_r:
 		if is_carrying_pose:
-			# Hug forward around giant boulder
-			arm_l.rotation_degrees = Vector3(-40.0, -35.0, -45.0)
-			arm_r.rotation_degrees = Vector3(-40.0, 35.0, 45.0)
+			# Reach arms forward to cup both sides of giant boulder
+			arm_l.rotation_degrees = Vector3(-35.0, 45.0, -60.0)
+			arm_r.rotation_degrees = Vector3(-35.0, -45.0, 60.0)
 		else:
 			# Default arm rotations
 			arm_l.rotation_degrees = Vector3(0.0, 0.0, -90.0)
@@ -46,6 +46,10 @@ func play_anim(anim_name: String) -> void:
 			animation_player.play(new_anim)
 
 func _process(_delta: float) -> void:
+	if is_carrying_pose:
+		_apply_arm_pose()
+
+func _physics_process(_delta: float) -> void:
 	if is_carrying_pose:
 		_apply_arm_pose()
 
