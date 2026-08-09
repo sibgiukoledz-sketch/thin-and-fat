@@ -24,7 +24,9 @@ extends CanvasLayer
 @onready var btn_resume: Button = $PauseOverlay/CenterContainer/CardPanel/Margin/VBox/BtnResume
 @onready var btn_switch_char: Button = $PauseOverlay/CenterContainer/CardPanel/Margin/VBox/BtnSwitchChar
 @onready var btn_respawn: Button = $PauseOverlay/CenterContainer/CardPanel/Margin/VBox/BtnRespawn
+@onready var btn_settings: Button = $PauseOverlay/CenterContainer/CardPanel/Margin/VBox/BtnSettings
 @onready var btn_quit: Button = $PauseOverlay/CenterContainer/CardPanel/Margin/VBox/BtnQuit
+@onready var audio_settings_dialog: AudioSettingsDialog = $AudioSettingsDialog
 
 # Bottom-Right Slingshot Ability Circular Widget
 @onready var slingshot_widget: Control = $SlingshotAbilityWidget
@@ -49,6 +51,11 @@ func _ready() -> void:
 			hide_pause_menu()
 			if player and player.has_method("rpc_respawn"):
 				player.rpc_respawn.rpc()
+		)
+	if btn_settings:
+		btn_settings.pressed.connect(func() -> void:
+			if audio_settings_dialog:
+				audio_settings_dialog.show_dialog()
 		)
 	if btn_quit:
 		btn_quit.pressed.connect(func() -> void:

@@ -69,11 +69,35 @@ func _setup_voice_buses() -> void:
 		AudioServer.set_bus_name(vox_idx, VOICE_VOX_BUS)
 		AudioServer.set_bus_send(vox_idx, "SFX" if AudioServer.get_bus_index("SFX") != -1 else "Master")
 
+var _mic_player: AudioStreamPlayer = null
+var _last_mic_level: float = 0.0
+var mic_test_active: bool = false
+
 func _setup_capture() -> void:
-	# Enable Microphone Audio Input in Godot Engine 4
 	var devices := AudioServer.get_input_device_list()
-	if devices.size() > 0:
+	if devices.size() > 0 and (AudioServer.input_device == "" or AudioServer.input_device == "Default"):
 		AudioServer.input_device = devices[0]
+
+	if not _mic_player:
+		_mic_player = AudioStreamPlayer.new()
+		_mic_player.name = "MicrophoneInputPlayer"
+		_mic_player.stream = AudioStreamMicrophone.new()
+		_mic_player.bus = RECORD_BUS_NAME
+		_mic_player.autoplay = true
+		add_child(_mic_player)
+		_mic_player.play()
+
+func set_input_device(device_name: String) -> void:
+	AudioServer.input_device = device_name
+	if _mic_player:
+		_mic_player.stop()
+		_mic_player.play()
+
+func set_output_device(device_name: String) -> void:
+	AudioServer.output_device = device_name
+
+func get_mic_input_level() -> float:
+	return _last_mic_level
 
 func _process(delta: float) -> void:
 	_update_speaking_timers(delta)
@@ -88,33 +112,49 @@ func _update_speaking_timers(delta: float) -> void:
 
 func _handle_input_and_capture() -> void:
 	var should_talk: bool = false
-	if push_to_talk:
+	if mic_test_active:
+		should_talk = true
+	elif push_to_talk:
 		should_talk = Input.is_action_pressed(ptt_action)
 	else:
 		should_talk = true
 
-	# Check active multiplayer status
-	if not multiplayer or not multiplayer.has_multiplayer_peer() or multiplayer.multiplayer_peer.get_connection_status() != MultiplayerPeer.CONNECTION_CONNECTED:
+	# Check active multiplayer status if not in local mic test
+	if not mic_test_active and (not multiplayer or not multiplayer.has_multiplayer_peer() or multiplayer.multiplayer_peer.get_connection_status() != MultiplayerPeer.CONNECTION_CONNECTED):
 		should_talk = false
 
 	if should_talk != _is_speaking:
 		_is_speaking = should_talk
 		voice_state_changed.emit(_is_speaking)
-		if multiplayer and multiplayer.has_multiplayer_peer():
+		if not mic_test_active and multiplayer and multiplayer.has_multiplayer_peer():
 			rpc_set_peer_speaking.rpc(multiplayer.get_unique_id(), _is_speaking)
 
-	if not _is_speaking or not _capture_effect:
-		if _capture_effect and _capture_effect.get_frames_available() > 0:
-			_capture_effect.get_buffer(_capture_effect.get_frames_available())
+	if not _capture_effect:
 		return
 
 	# Capture frames available
 	var frames_avail: int = _capture_effect.get_frames_available()
-	if frames_avail >= 256:
+	if frames_avail > 0:
 		var pcm_vector: PackedVector2Array = _capture_effect.get_buffer(frames_avail)
-		var compressed_bytes: PackedByteArray = _compress_pcm_frames(pcm_vector)
-		if compressed_bytes.size() > 0 and multiplayer and multiplayer.has_multiplayer_peer():
-			rpc_receive_voice_chunk.rpc(multiplayer.get_unique_id(), compressed_bytes)
+
+		# Calculate real-time mic volume level
+		var max_amp: float = 0.0
+		for f in pcm_vector:
+			var amp: float = maxf(absf(f.x), absf(f.y))
+			if amp > max_amp:
+				max_amp = amp
+		_last_mic_level = lerpf(_last_mic_level, clampf(max_amp * 4.5, 0.0, 1.0), 0.35)
+
+		if not _is_speaking:
+			return
+
+		if mic_test_active:
+			return
+
+		if frames_avail >= 256:
+			var compressed_bytes: PackedByteArray = _compress_pcm_frames(pcm_vector)
+			if compressed_bytes.size() > 0 and multiplayer and multiplayer.has_multiplayer_peer():
+				rpc_receive_voice_chunk.rpc(multiplayer.get_unique_id(), compressed_bytes)
 
 func _compress_pcm_frames(frames: PackedVector2Array) -> PackedByteArray:
 	# Downsample & Quantize 32-bit Vector2 PCM frames into low-bandwidth 8-bit PCM byte array

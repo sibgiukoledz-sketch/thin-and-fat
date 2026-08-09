@@ -1,6 +1,7 @@
 [gd_scene load_steps=10 format=3 uid="uid://c8mainmenufps01"]
 
 [ext_resource type="Script" path="res://scripts/ui/main_menu.gd" id="1_menu"]
+[ext_resource type="PackedScene" path="res://scenes/ui/audio_settings_dialog.tscn" id="2_audio_dialog"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dark_bg"]
 bg_color = Color(0.06, 0.08, 0.12, 1)
@@ -232,6 +233,16 @@ theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 text = "🦛 ВЫБРАН: ЖИРДЯЙ (СМЕНИТЬ)"
 
+[node name="AudioSettingsButton" type="Button" parent="CenterContainer/MainCard/Margin/VBox/ContentColumns/LeftMenuButtons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.95, 1, 1)
+theme_override_font_sizes/font_size = 14
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+text = "⚙️ НАСТРОЙКИ ЗВУКА И МИКРОФОНА"
+
 [node name="QuitButton" type="Button" parent="CenterContainer/MainCard/Margin/VBox/ContentColumns/LeftMenuButtons"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 44)
@@ -297,3 +308,7 @@ theme_override_colors/font_color = Color(0.5, 0.85, 0.6, 0.95)
 theme_override_font_sizes/font_size = 13
 text = "💡 Инструкция Radmin VPN:\n1. Хост нажмите 'СОЗДАТЬ СЕРВЕР'\n2. Друг скопируйте Radmin IP хоста и нажмите 'ПОДКЛЮЧИТЬСЯ'\n3. Наслаждайтесь совместной игрой!"
 autowrap_mode = 2
+
+[node name="AudioSettingsDialog" parent="." instance=ExtResource("2_audio_dialog")]
+unique_name_in_owner = true
+visible = false

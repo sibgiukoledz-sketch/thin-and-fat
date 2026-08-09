@@ -9,6 +9,7 @@
 [ext_resource type="Script" path="res://scripts/player/states/player_crouch.gd" id="7_crouch"]
 [ext_resource type="Script" path="res://scripts/player/states/player_air.gd" id="8_air"]
 [ext_resource type="Shader" path="res://shaders/nausea_shader.gdshader" id="9_shader"]
+[ext_resource type="PackedScene" path="res://scenes/ui/audio_settings_dialog.tscn" id="10_audio_dialog"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_player"]
 radius = 0.4
@@ -376,6 +377,15 @@ theme_override_styles/normal = SubResource("StyleBoxFlat_pause_btn")
 theme_override_styles/hover = SubResource("StyleBoxFlat_pause_btn_hover")
 text = "🚩 ВОЗРОДИТЬСЯ НА СПАВНЕ"
 
+[node name="BtnSettings" type="Button" parent="HUD/PauseOverlay/CenterContainer/CardPanel/Margin/VBox"]
+custom_minimum_size = Vector2(0, 46)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.95, 1, 1)
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = SubResource("StyleBoxFlat_pause_btn")
+theme_override_styles/hover = SubResource("StyleBoxFlat_pause_btn_hover")
+text = "⚙️ НАСТРОЙКИ ЗВУКА И МИКРОФОНА"
+
 [node name="BtnQuit" type="Button" parent="HUD/PauseOverlay/CenterContainer/CardPanel/Margin/VBox"]
 custom_minimum_size = Vector2(0, 46)
 layout_mode = 2
@@ -392,6 +402,10 @@ theme_override_font_sizes/font_size = 14
 text = "WASD: Ходьба | SHIFT: Спринт | SPACE: Прыжок | E: Способность | V: 1/3 Лицо | C: Смена персонажа | ESC: Пауза"
 horizontal_alignment = 1
 autowrap_mode = 2
+
+[node name="AudioSettingsDialog" parent="HUD" instance=ExtResource("10_audio_dialog")]
+unique_name_in_owner = true
+visible = false
 
 [node name="MarginContainer" type="MarginContainer" parent="HUD"]
 anchors_preset = 0

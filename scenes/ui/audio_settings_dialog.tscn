@@ -1,0 +1,183 @@
+[gd_scene load_steps=2 format=3 uid="uid://c8audiosettings001"]
+
+[ext_resource type="Script" path="res://scripts/ui/audio_settings_dialog.gd" id="1_audioscript"]
+
+[node name="AudioSettingsDialog" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_audioscript")
+
+[node name="Backdrop" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.65)
+
+[node name="CenterContainer" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="CardPanel" type="PanelContainer" parent="CenterContainer"]
+custom_minimum_size = Vector2(620, 0)
+layout_mode = 2
+
+[node name="Margin" type="MarginContainer" parent="CenterContainer/CardPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 24
+
+[node name="VBox" type="VBoxContainer" parent="CenterContainer/CardPanel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="TitleLabel" type="Label" parent="CenterContainer/CardPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "⚙️ НАСТРОЙКИ ЗВУКА И МИКРОФОНА"
+horizontal_alignment = 1
+
+[node name="HSeparator1" type="HSeparator" parent="CenterContainer/CardPanel/Margin/VBox"]
+layout_mode = 2
+
+[node name="VolMasterBox" type="HBoxContainer" parent="CenterContainer/CardPanel/Margin/VBox"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="CenterContainer/CardPanel/Margin/VBox/VolMasterBox"]
+custom_minimum_size = Vector2(180, 0)
+layout_mode = 2
+text = "🔊 Общая громкость:"
+
+[node name="MasterSlider" type="HSlider" parent="CenterContainer/CardPanel/Margin/VBox/VolMasterBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+value = 100.0
+
+[node name="MasterValLabel" type="Label" parent="CenterContainer/CardPanel/Margin/VBox/VolMasterBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(50, 0)
+layout_mode = 2
+text = "100%"
+
+[node name="VolSFXBox" type="HBoxContainer" parent="CenterContainer/CardPanel/Margin/VBox"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="CenterContainer/CardPanel/Margin/VBox/VolSFXBox"]
+custom_minimum_size = Vector2(180, 0)
+layout_mode = 2
+text = "🎮 Звуковые эффекты:"
+
+[node name="SFXSlider" type="HSlider" parent="CenterContainer/CardPanel/Margin/VBox/VolSFXBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+value = 100.0
+
+[node name="SFXValLabel" type="Label" parent="CenterContainer/CardPanel/Margin/VBox/VolSFXBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(50, 0)
+layout_mode = 2
+text = "100%"
+
+[node name="VolVoiceBox" type="HBoxContainer" parent="CenterContainer/CardPanel/Margin/VBox"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="CenterContainer/CardPanel/Margin/VBox/VolVoiceBox"]
+custom_minimum_size = Vector2(180, 0)
+layout_mode = 2
+text = "💬 Голосовой чат:"
+
+[node name="VoiceSlider" type="HSlider" parent="CenterContainer/CardPanel/Margin/VBox/VolVoiceBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+value = 100.0
+
+[node name="VoiceValLabel" type="Label" parent="CenterContainer/CardPanel/Margin/VBox/VolVoiceBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(50, 0)
+layout_mode = 2
+text = "100%"
+
+[node name="HSeparator2" type="HSeparator" parent="CenterContainer/CardPanel/Margin/VBox"]
+layout_mode = 2
+
+[node name="OutDevLabel" type="Label" parent="CenterContainer/CardPanel/Margin/VBox"]
+layout_mode = 2
+text = "🎧 Динамики / Наушники (Выход):"
+
+[node name="OutputDeviceOpt" type="OptionButton" parent="CenterContainer/CardPanel/Margin/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="InDevLabel" type="Label" parent="CenterContainer/CardPanel/Margin/VBox"]
+layout_mode = 2
+text = "🎙️ Микрофон (Вход):"
+
+[node name="InputDeviceOpt" type="OptionButton" parent="CenterContainer/CardPanel/Margin/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="HSeparator3" type="HSeparator" parent="CenterContainer/CardPanel/Margin/VBox"]
+layout_mode = 2
+
+[node name="MicTestBox" type="HBoxContainer" parent="CenterContainer/CardPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="MicTestButton" type="Button" parent="CenterContainer/CardPanel/Margin/VBox/MicTestBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(210, 38)
+layout_mode = 2
+text = "🎙️ ПРОВЕРИТЬ МИКРОФОН"
+
+[node name="MicLevelBar" type="ProgressBar" parent="CenterContainer/CardPanel/Margin/VBox/MicTestBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 24)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+show_percentage = false
+
+[node name="MicStatusLabel" type="Label" parent="CenterContainer/CardPanel/Margin/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "🎙️ Нажмите 'Проверить микрофон' для теста уровня"
+
+[node name="PTTBox" type="HBoxContainer" parent="CenterContainer/CardPanel/Margin/VBox"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="CenterContainer/CardPanel/Margin/VBox/PTTBox"]
+custom_minimum_size = Vector2(180, 0)
+layout_mode = 2
+text = "🎙️ Режим активации:"
+
+[node name="PTTModeOpt" type="OptionButton" parent="CenterContainer/CardPanel/Margin/VBox/PTTBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="HSeparator4" type="HSeparator" parent="CenterContainer/CardPanel/Margin/VBox"]
+layout_mode = 2
+
+[node name="CloseButton" type="Button" parent="CenterContainer/CardPanel/Margin/VBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 42)
+layout_mode = 2
+text = "❌ ЗАКРЫТЬ И СОХРАНИТЬ"

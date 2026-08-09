@@ -7,6 +7,8 @@ extends Control
 @onready var char_select_btn: Button = %CharSelectButton
 @onready var quit_btn: Button = %QuitButton
 @onready var copy_ip_btn: Button = %CopyIPButton
+@onready var audio_settings_btn: Button = %AudioSettingsButton
+@onready var audio_settings_dialog: AudioSettingsDialog = %AudioSettingsDialog
 
 @onready var radmin_label: Label = %RadminLabel
 @onready var char_name_label: Label = %CharNameLabel
@@ -31,6 +33,12 @@ func _ready() -> void:
 		char_select_btn.pressed.connect(func():
 			if AudioManager: AudioManager.play_sfx_2d("ui_click")
 			_on_toggle_character()
+		)
+	if audio_settings_btn:
+		audio_settings_btn.pressed.connect(func():
+			if AudioManager: AudioManager.play_sfx_2d("ui_click")
+			if audio_settings_dialog:
+				audio_settings_dialog.show_dialog()
 		)
 	if quit_btn:
 		quit_btn.pressed.connect(func():
