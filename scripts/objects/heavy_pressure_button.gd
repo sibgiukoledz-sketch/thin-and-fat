@@ -86,14 +86,14 @@ func _calculate_weight_and_state() -> void:
 		if body == self or body is StaticBody3D:
 			continue
 
-		if body.has_method("is_multiplayer_authority"):
+		if body and body is CharacterBody3D and body.has_method("is_multiplayer_authority"):
 			var p: CharacterBody3D = body as CharacterBody3D
-			if not p.get("is_dead"):
+			if p and not bool(p.get("is_dead")):
 				var p_weight: float = 80.0 # Default Thin weight
 				if String(p.get("selected_character_id")).to_lower() == "fat":
 					p_weight = 160.0 # Fat weight
 				
-				if p.is_carrying_heavy_object:
+				if bool(p.get("is_carrying_heavy_object")):
 					p_weight += 450.0 # Carrying boulder adds mass!
 				
 				total_weight += p_weight
@@ -221,11 +221,14 @@ func _animate_plunger(delta: float) -> void:
 	if piston_se: piston_se.position.y = piston_y
 
 func _on_body_entered(body: Node) -> void:
-	if body.has_method("is_multiplayer_authority"):
+	if body and body is CharacterBody3D and body.has_method("is_multiplayer_authority"):
 		var p: CharacterBody3D = body as CharacterBody3D
-		if String(p.get("selected_character_id")).to_lower() == "thin" and not p.get("is_carrying_heavy_object"):
-			# Feedback to Thin player that they are too light!
-			print("ℹ️ Thin player is too light (80 kg)! Need Fat (160 kg) or Heavy Boulder (450 kg).")
+		if p:
+			var char_id := String(p.get("selected_character_id"))
+			var is_carrying: bool = bool(p.get("is_carrying_heavy_object"))
+			if char_id.to_lower() == "thin" and not is_carrying:
+				# Feedback to Thin player that they are too light!
+				print("ℹ️ Thin player is too light (80 kg)! Need Fat (160 kg) or Heavy Boulder (450 kg).")
 
 func _on_body_exited(_body: Node) -> void:
 	pass
