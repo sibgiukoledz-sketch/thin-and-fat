@@ -479,20 +479,24 @@ func _physics_process(delta: float) -> void:
 	_handle_stamina_regen(delta)
 
 	# Dynamic animation state updates
+	var state_lower := synced_state_name.to_lower()
 	var target_anim := "idle"
-	var horiz_speed := Vector2(velocity.x, velocity.z).length()
 
 	if active_mechanics and "is_magnetized_to_ceiling" in active_mechanics and bool(active_mechanics.is_magnetized_to_ceiling):
-		if horiz_speed > 0.6:
+		if state_lower == "walk" or state_lower == "sprint" or (is_multiplayer_authority() and Vector2(velocity.x, velocity.z).length() > 0.6):
 			target_anim = "walk"
 		else:
 			target_anim = "idle"
 	elif not is_on_floor():
 		target_anim = "jump"
-	elif is_crouching:
+	elif is_crouching or state_lower == "crouch":
 		target_anim = "crouch"
-	elif horiz_speed > 0.6:
-		if synced_state_name.to_lower() == "sprint" or is_sprint_requested():
+	elif state_lower == "sprint":
+		target_anim = "sprint"
+	elif state_lower == "walk":
+		target_anim = "walk"
+	elif is_multiplayer_authority() and Vector2(velocity.x, velocity.z).length() > 0.6:
+		if is_sprint_requested():
 			target_anim = "sprint"
 		else:
 			target_anim = "walk"
