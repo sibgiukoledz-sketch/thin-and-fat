@@ -1,0 +1,98 @@
+[gd_scene format=3 uid="uid://be2uywgxnlab5"]
+
+[ext_resource type="Script" path="res://scripts/objects/voice_dictaphone.gd" id="1_dictscript"]
+
+[sub_resource type="CylinderShape3D" id="CylinderShape3D_area"]
+height = 2.2
+radius = 2.6
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_stand"]
+albedo_color = Color(0.15, 0.18, 0.24, 1)
+metallic = 0.8
+roughness = 0.35
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_stand"]
+material = SubResource("StandardMaterial3D_stand")
+top_radius = 0.4
+bottom_radius = 0.5
+height = 0.9
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_body"]
+albedo_color = Color(0.08, 0.12, 0.18, 1)
+metallic = 0.9
+roughness = 0.25
+
+[sub_resource type="BoxMesh" id="BoxMesh_body"]
+material = SubResource("StandardMaterial3D_body")
+size = Vector3(0.55, 0.14, 0.38)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_spool"]
+albedo_color = Color(0.9, 0.75, 0.2, 1)
+metallic = 0.6
+roughness = 0.3
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_spool"]
+material = SubResource("StandardMaterial3D_spool")
+top_radius = 0.08
+bottom_radius = 0.08
+height = 0.03
+
+[node name="VoiceDictaphone" type="Area3D"]
+script = ExtResource("1_dictscript")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.1, 0)
+shape = SubResource("CylinderShape3D_area")
+
+[node name="Pedestal" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.45, 0)
+mesh = SubResource("CylinderMesh_stand")
+
+[node name="DictaphoneBody" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.97, 0)
+mesh = SubResource("BoxMesh_body")
+
+[node name="SpoolLeft" type="MeshInstance3D" parent="DictaphoneBody"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.14, 0.08, 0)
+mesh = SubResource("CylinderMesh_spool")
+
+[node name="SpoolRight" type="MeshInstance3D" parent="DictaphoneBody"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.14, 0.08, 0)
+mesh = SubResource("CylinderMesh_spool")
+
+[node name="RecLight" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.18, 1.2, 0)
+visible = false
+light_color = Color(1, 0.15, 0.15, 1)
+light_energy = 3.5
+omni_range = 3.0
+
+[node name="PlayLight" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.18, 1.2, 0)
+visible = false
+light_color = Color(0.2, 1, 0.4, 1)
+light_energy = 3.5
+omni_range = 3.0
+
+[node name="SpatialAudioPlayer3D" type="AudioStreamPlayer3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.0, 0)
+
+[node name="StatusLabel3D" type="Label3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.55, 0)
+billboard = 1
+double_sided = false
+no_depth_test = true
+render_priority = 3
+text = "📼 ТЕСТОВЫЙ ДИКТАФОН"
+font_size = 30
+outline_size = 8
+
+[node name="PromptLabel3D" type="Label3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.3, 0)
+billboard = 1
+double_sided = false
+no_depth_test = true
+render_priority = 3
+text = "👉 Нажмите [E] чтобы записать голос"
+font_size = 24
+outline_size = 6

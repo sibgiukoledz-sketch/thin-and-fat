@@ -28,6 +28,7 @@
 [ext_resource type="Texture2D" uid="uid://dev8auypr0qs5" path="res://addons/lowpolytrees/tex4.png" id="18_navra"]
 [ext_resource type="Texture2D" uid="uid://bq1g7jyh3ol0b" path="res://addons/lowpolytrees/tex2.png" id="19_luhhm"]
 [ext_resource type="PackedScene" uid="uid://c8hintsign001" path="res://scenes/objects/floating_hint_sign.tscn" id="28_0nbtd"]
+[ext_resource type="PackedScene" path="res://scenes/objects/voice_dictaphone.tscn" id="29_dictaphone"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_fh13f"]
 shader = ExtResource("2_pm21f")
@@ -672,3 +673,6 @@ billboard = 1
 modulate = Color(1, 0.8, 0.2, 1)
 text = "⚙️ КОНТРОЛЬНАЯ ТОЧКА №3 (СКОРО...)"
 outline_size = 10
+
+[node name="VoiceDictaphone" parent="." instance=ExtResource("29_dictaphone")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 3.5)
