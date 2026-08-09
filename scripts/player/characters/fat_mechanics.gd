@@ -66,8 +66,19 @@ func _ready() -> void:
 	_setup_trampoline_area()
 
 func _setup_trampoline_area() -> void:
-	var parent_3d: Node3D = player if player else (get_parent() as Node3D)
-	if not parent_3d or _trampoline_area:
+	if _trampoline_area:
+		return
+
+	var target_parent: Node3D = null
+	if player and player.mesh_instance:
+		target_parent = player.mesh_instance.find_child("GiantBelly", true, false) as Node3D
+		if not target_parent:
+			target_parent = player.mesh_instance
+
+	if not target_parent:
+		target_parent = player if player else (get_parent() as Node3D)
+
+	if not target_parent:
 		return
 
 	_trampoline_area = Area3D.new()
@@ -77,15 +88,20 @@ func _setup_trampoline_area() -> void:
 
 	var shape := CollisionShape3D.new()
 	var cylinder := CylinderShape3D.new()
-	cylinder.radius = 1.45
-	cylinder.height = 0.9
+	cylinder.radius = 0.92
+	cylinder.height = 0.32
 	shape.shape = cylinder
-	shape.position = Vector3(0, 0.45, 0)
-	_trampoline_area.add_child(shape)
 
+	# Position cylinder directly on front surface of GiantBelly dome
+	if target_parent.name == "GiantBelly":
+		shape.position = Vector3(0, 0, -0.60)
+	else:
+		shape.position = Vector3(0, 0.85, -0.60)
+
+	_trampoline_area.add_child(shape)
 	_trampoline_area.body_entered.connect(_on_trampoline_body_entered)
 	_trampoline_area.monitoring = false
-	parent_3d.add_child(_trampoline_area)
+	target_parent.add_child(_trampoline_area)
 
 func _setup_visual_nodes() -> void:
 	var parent_3d: Node3D = player if player else (get_parent() as Node3D)
