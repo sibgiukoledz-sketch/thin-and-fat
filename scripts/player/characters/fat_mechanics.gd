@@ -738,6 +738,13 @@ func update_mechanics(delta: float) -> void:
 	if player and player.character_model and player.character_model.has_method("set_carrying_pose"):
 		player.character_model.call("set_carrying_pose", player.is_carrying_heavy_object)
 
+	if is_belly_trampoline and player and player.collision_shape:
+		if not (player.collision_shape.shape is BoxShape3D):
+			var box := BoxShape3D.new()
+			box.size = Vector3(2.2, 0.50, 2.4)
+			player.collision_shape.shape = box
+			player.collision_shape.position = Vector3(0.0, 0.25, -0.55)
+
 	if player.is_multiplayer_authority():
 		if _slingshot_cooldown > 0.0:
 			_slingshot_cooldown = maxf(_slingshot_cooldown - delta, 0.0)
