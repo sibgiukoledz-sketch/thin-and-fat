@@ -65,10 +65,6 @@ func _ready() -> void:
 	_setup_slingshot_vfx()
 	_setup_trampoline_area()
 
-func update_mechanics(_delta: float) -> void:
-	if player and player.character_model and player.character_model.has_method("set_carrying_pose"):
-		player.character_model.call("set_carrying_pose", player.is_carrying_heavy_object)
-
 func _setup_trampoline_area() -> void:
 	if _trampoline_area or not player:
 		return
@@ -736,6 +732,9 @@ func add_stench(amount: float) -> void:
 func update_mechanics(delta: float) -> void:
 	if not _ensure_player_ref() or player.is_dead:
 		return
+
+	if player and player.character_model and player.character_model.has_method("set_carrying_pose"):
+		player.character_model.call("set_carrying_pose", player.is_carrying_heavy_object)
 
 	if player.is_multiplayer_authority():
 		if _slingshot_cooldown > 0.0:
