@@ -62,13 +62,29 @@ func _setup_voice_buses() -> void:
 		_capture_effect.buffer_length = 0.5
 		AudioServer.add_bus_effect(rec_idx, _capture_effect)
 
-	# 2. Voice Playback Bus
+	# 2. Voice Playback Bus (Connected to SFX / Master with AAA 3D spatial reverb & compressor)
 	var vox_idx := AudioServer.get_bus_index(VOICE_VOX_BUS)
 	if vox_idx == -1:
 		vox_idx = AudioServer.bus_count
 		AudioServer.add_bus(vox_idx)
 		AudioServer.set_bus_name(vox_idx, VOICE_VOX_BUS)
 		AudioServer.set_bus_send(vox_idx, "SFX" if AudioServer.get_bus_index("SFX") != -1 else "Master")
+
+		# Add subtle room reverb for realistic 3D spatial acoustics
+		var rev := AudioEffectReverb.new()
+		rev.room_size = 0.20
+		rev.damping = 0.60
+		rev.wet = 0.15
+		rev.dry = 0.85
+		AudioServer.add_bus_effect(vox_idx, rev)
+
+		# Add dynamic range compressor for balanced voice levels
+		var comp := AudioEffectCompressor.new()
+		comp.threshold = -14.0
+		comp.ratio = 3.0
+		comp.gain = 2.0
+		comp.release_ms = 100.0
+		AudioServer.add_bus_effect(vox_idx, comp)
 
 func _setup_capture() -> void:
 	var devices := AudioServer.get_input_device_list()
@@ -194,9 +210,11 @@ func _get_or_create_peer_player(peer_id: int) -> AudioStreamGeneratorPlayback:
 	var p3d := AudioStreamPlayer3D.new()
 	p3d.name = "VoicePlayer3D_%d" % peer_id
 	p3d.bus = VOICE_VOX_BUS
-	p3d.max_distance = 40.0
-	p3d.unit_size = 6.0
-	p3d.attenuation_model = AudioStreamPlayer3D.ATTENUATION_INVERSE_DISTANCE
+	p3d.max_distance = 45.0
+	p3d.unit_size = 3.0
+	p3d.attenuation_model = AudioStreamPlayer3D.ATTENUATION_INVERSE_SQUARE_DISTANCE
+	p3d.panning_strength = 1.0
+	p3d.doppler_tracking = AudioStreamPlayer3D.DOPPLER_TRACKING_PHYSICS_STEP
 
 	var generator := AudioStreamGenerator.new()
 	generator.mix_rate = AudioServer.get_mix_rate()

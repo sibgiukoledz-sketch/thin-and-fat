@@ -35,10 +35,12 @@ func _ready() -> void:
 
 func _setup_audio_player() -> void:
 	if spatial_audio_player:
-		spatial_audio_player.bus = "SFX" if AudioServer.get_bus_index("SFX") != -1 else "Master"
-		spatial_audio_player.max_distance = 35.0
-		spatial_audio_player.unit_size = 5.0
-		spatial_audio_player.attenuation_model = AudioStreamPlayer3D.ATTENUATION_INVERSE_DISTANCE
+		spatial_audio_player.bus = "VoicePlaybackBus" if AudioServer.get_bus_index("VoicePlaybackBus") != -1 else "SFX"
+		spatial_audio_player.max_distance = 45.0
+		spatial_audio_player.unit_size = 3.0
+		spatial_audio_player.attenuation_model = AudioStreamPlayer3D.ATTENUATION_INVERSE_SQUARE_DISTANCE
+		spatial_audio_player.panning_strength = 1.0
+		spatial_audio_player.doppler_tracking = AudioStreamPlayer3D.DOPPLER_TRACKING_PHYSICS_STEP
 
 		var gen := AudioStreamGenerator.new()
 		gen.mix_rate = AudioServer.get_mix_rate()
