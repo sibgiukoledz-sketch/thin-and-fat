@@ -492,7 +492,7 @@ func handle_ability_input(event: InputEvent) -> void:
 			rpc_slingshot_launch.rpc(target_node.get_path(), launch_vel)
 			return
 
-	var is_trampoline_pressed: bool = (event is InputEventKey and event.pressed and not event.echo and (event.keycode == KEY_B or event.keycode == KEY_C))
+	var is_trampoline_pressed: bool = (event is InputEventKey and event.pressed and not event.echo and (event.keycode == KEY_B or event.keycode == KEY_X))
 	if is_trampoline_pressed:
 		rpc_toggle_belly_trampoline.rpc(not is_belly_trampoline)
 		return
@@ -511,22 +511,26 @@ func rpc_toggle_belly_trampoline(active: bool) -> void:
 	if is_belly_trampoline:
 		if player.mesh_instance:
 			var tw := player.create_tween().set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
-			tw.tween_property(player.mesh_instance, "rotation_degrees:x", -90.0, 0.25)
-			tw.parallel().tween_property(player.mesh_instance, "position:y", 0.35, 0.25)
-			tw.parallel().tween_property(player.mesh_instance, "scale", Vector3(1.35, 1.35, 0.75), 0.25)
+			tw.tween_property(player.mesh_instance, "rotation_degrees:x", 90.0, 0.25)
+			tw.parallel().tween_property(player.mesh_instance, "position:y", 0.22, 0.25)
+			tw.parallel().tween_property(player.mesh_instance, "scale", Vector3(1.4, 1.4, 0.75), 0.25)
+
+		if player.head:
+			var tw_head := player.create_tween().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+			tw_head.tween_property(player.head, "position:y", 0.45, 0.25)
 
 		if player.collision_shape and player.collision_shape.shape is CapsuleShape3D:
 			var cap := player.collision_shape.shape as CapsuleShape3D
-			cap.height = 0.8
+			cap.height = 0.5
 			cap.radius = 0.95
-			player.collision_shape.position.y = 0.4
+			player.collision_shape.position.y = 0.25
 
 		if _trampoline_area:
 			_trampoline_area.monitoring = true
 
 		if AudioManager:
 			AudioManager.play_sfx_3d("slingshot_launch", player.global_position)
-		print("🛏 BELLY TRAMPOLINE: Fat laid down on back! Belly is now an active trampoline bouncer!")
+		print("🛏 BELLY TRAMPOLINE: Fat laid down on back! Belly is facing up to sky!")
 
 	else:
 		if player.mesh_instance:
@@ -534,6 +538,11 @@ func rpc_toggle_belly_trampoline(active: bool) -> void:
 			tw.tween_property(player.mesh_instance, "rotation_degrees:x", 0.0, 0.2)
 			tw.parallel().tween_property(player.mesh_instance, "position:y", 0.0, 0.2)
 			tw.parallel().tween_property(player.mesh_instance, "scale", Vector3.ONE, 0.2)
+
+		if player.head:
+			var target_head_y: float = player.stand_head_y if "stand_head_y" in player else 1.4
+			var tw_head := player.create_tween().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+			tw_head.tween_property(player.head, "position:y", target_head_y, 0.2)
 
 		if player.collision_shape and player.collision_shape.shape is CapsuleShape3D:
 			var cap := player.collision_shape.shape as CapsuleShape3D
