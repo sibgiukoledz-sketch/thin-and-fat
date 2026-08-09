@@ -87,16 +87,15 @@ func _setup_trampoline_area() -> void:
 	_trampoline_area.collision_mask = 7
 
 	var shape := CollisionShape3D.new()
-	var cylinder := CylinderShape3D.new()
-	cylinder.radius = 0.92
-	cylinder.height = 0.32
-	shape.shape = cylinder
+	var sphere := SphereShape3D.new()
+	sphere.radius = 0.95
+	shape.shape = sphere
 
-	# Position cylinder directly on front surface of GiantBelly dome
+	# Position sphere directly around the round GiantBelly dome
 	if target_parent.name == "GiantBelly":
-		shape.position = Vector3(0, 0, -0.60)
+		shape.position = Vector3(0, 0, -0.15)
 	else:
-		shape.position = Vector3(0, 0.85, -0.60)
+		shape.position = Vector3(0, 0.85, -0.15)
 
 	_trampoline_area.add_child(shape)
 	_trampoline_area.body_entered.connect(_on_trampoline_body_entered)
