@@ -522,11 +522,11 @@ func rpc_toggle_belly_trampoline(active: bool) -> void:
 			var tw_head := player.create_tween().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 			tw_head.tween_property(player.head, "position:y", 0.45, 0.25)
 
-		if player.collision_shape and player.collision_shape.shape is CapsuleShape3D:
-			var cap := player.collision_shape.shape as CapsuleShape3D
-			cap.height = 0.5
-			cap.radius = 0.95
-			player.collision_shape.position.y = 0.25
+		if player.collision_shape:
+			var box := BoxShape3D.new()
+			box.size = Vector3(1.6, 0.44, 1.6)
+			player.collision_shape.shape = box
+			player.collision_shape.position = Vector3(0, 0.22, 0)
 
 		if _trampoline_area:
 			_trampoline_area.monitoring = true
@@ -547,11 +547,12 @@ func rpc_toggle_belly_trampoline(active: bool) -> void:
 			var tw_head := player.create_tween().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 			tw_head.tween_property(player.head, "position:y", target_head_y, 0.2)
 
-		if player.collision_shape and player.collision_shape.shape is CapsuleShape3D:
-			var cap := player.collision_shape.shape as CapsuleShape3D
-			cap.height = 1.8
+		if player.collision_shape:
+			var cap := CapsuleShape3D.new()
 			cap.radius = 0.65
-			player.collision_shape.position.y = 0.9
+			cap.height = 1.8
+			player.collision_shape.shape = cap
+			player.collision_shape.position = Vector3(0, 0.9, 0)
 
 		if _trampoline_area:
 			_trampoline_area.monitoring = false

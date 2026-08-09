@@ -472,7 +472,7 @@ func _physics_process(delta: float) -> void:
 			hud.set_nausea_intensity(nausea_intensity)
 
 func _update_carried_boulder_collision_shape() -> void:
-	if not collision_shape:
+	if not collision_shape or is_movement_blocked():
 		return
 	var is_fat := (selected_character_id.to_lower() == "fat")
 	var cap_shape := CapsuleShape3D.new()
