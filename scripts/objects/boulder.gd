@@ -173,15 +173,23 @@ func rpc_pickup_boulder(player_path: NodePath) -> void:
 	player_node.is_carrying_heavy_object = true
 	freeze = true
 
-	# Disable boulder collision shape while carried so Fat does NOT levitate or collide with boulder!
+	# Keep collision shape ENABLED for environment/walls/doorways, but exclude collision with Fat himself!
 	if collision_shape:
-		collision_shape.disabled = true
+		collision_shape.disabled = false
 	if interaction_area:
 		interaction_area.monitoring = false
 
+	# Add physics collision exception with carrier player so boulder does not collide with Fat's capsule
+	add_collision_exception_with(player_node)
+
+	# Set collision mask to environment/structures (layer 1) only while carried
+	collision_layer = 4
+	collision_mask = 1
+
 	reparent(player_node)
-	# Position boulder in front of Fat's chest & arms (not floating high in the sky!)
-	position = Vector3(0.0, 1.25, -1.55)
+	# Position boulder in front of Fat's chest/arms at y=1.9m so bottom (y=0.1m) is ABOVE ground -> ZERO levitation!
+	# 3.6m width & depth prevents Fat from walking through narrow doors/passages while carrying boulder!
+	position = Vector3(0.0, 1.90, -1.25)
 	rotation = Vector3.ZERO
 
 	if prompt_label:
@@ -201,6 +209,7 @@ func rpc_throw_boulder(player_path: NodePath, throw_dir: Vector3) -> void:
 	_is_carried = false
 	if player_node:
 		player_node.is_carrying_heavy_object = false
+		remove_collision_exception_with(player_node)
 	_carrier_player = null
 
 	var current_global_pos := global_position
@@ -208,7 +217,9 @@ func rpc_throw_boulder(player_path: NodePath, throw_dir: Vector3) -> void:
 	reparent(main_world)
 	global_position = current_global_pos
 
-	# Re-enable collision shape for dynamic physics simulation & impact
+	# Re-enable full collision layers & mask for dynamic physics impact
+	collision_layer = 4
+	collision_mask = 7
 	if collision_shape:
 		collision_shape.disabled = false
 	if interaction_area:

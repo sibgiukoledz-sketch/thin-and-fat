@@ -5,7 +5,7 @@ extends Node3D
 ## - 3D Rigged Skeleton3D model with AnimationPlayer
 ## - Smooth 3D Skeletal Animation Engine (Idle, Walk, Sprint, Jump, Crouch, Eat)
 ## - PhysicalBone3D Ragdoll simulation & ground-aligned feet
-## - Dynamic arm pose for carrying heavy boulders (hug forward with both arms!)
+## - Dynamic arm pose for carrying heavy boulders (overrides AnimationPlayer tracks!)
 
 @onready var skeleton_3d: Skeleton3D = $Skeleton3D
 @onready var animation_player: AnimationPlayer = get_node_or_null("AnimationPlayer") as AnimationPlayer
@@ -17,6 +17,7 @@ var is_carrying_pose: bool = false
 var current_anim: String = "idle"
 
 func _ready() -> void:
+	process_priority = 100 # Priority 100 ensures _process runs AFTER AnimationPlayer!
 	rotation_degrees.y = 0.0
 	play_anim("idle")
 
@@ -28,8 +29,8 @@ func _apply_arm_pose() -> void:
 	if arm_l and arm_r:
 		if is_carrying_pose:
 			# Hug forward around giant boulder
-			arm_l.rotation_degrees = Vector3(-45.0, -35.0, -50.0)
-			arm_r.rotation_degrees = Vector3(-45.0, 35.0, 50.0)
+			arm_l.rotation_degrees = Vector3(-40.0, -35.0, -45.0)
+			arm_r.rotation_degrees = Vector3(-40.0, 35.0, 45.0)
 		else:
 			# Default arm rotations
 			arm_l.rotation_degrees = Vector3(0.0, 0.0, -90.0)
