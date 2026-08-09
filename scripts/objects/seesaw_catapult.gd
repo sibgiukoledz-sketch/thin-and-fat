@@ -124,6 +124,7 @@ func rpc_trigger_catapult_slam(slam_side: int, launch_force: float) -> void:
 	for victim in launch_targets:
 		if victim is Player:
 			var p: Player = victim as Player
+			p.is_fall_damage_immune = true
 			p.velocity.y = launch_force
 			p.velocity.x += launch_dir_x * 4.0
 			p.velocity.z += randf_range(-1.0, 1.0)

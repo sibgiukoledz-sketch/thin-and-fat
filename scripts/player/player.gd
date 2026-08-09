@@ -51,6 +51,7 @@ const SPRINT_FOV := 85.0
 # Physics state
 var gravity: float = 26.0
 var is_dead: bool = false
+var is_fall_damage_immune: bool = false
 var is_carrying_heavy_object: bool = false
 var is_paper_flattened: bool = false
 var paper_flatten_timer: float = 0.0
@@ -414,9 +415,15 @@ func _physics_process(delta: float) -> void:
 		player_landed.emit(fall_impact)
 		if AudioManager and fall_impact > 1.5:
 			AudioManager.play_sfx_3d("land", global_position)
-		if fall_impact > 12.0:
-			var fall_dmg: float = (fall_impact - 12.0) * 4.0
-			take_damage(fall_dmg)
+
+		if not is_fall_damage_immune:
+			# High fall threshold: 23.0 m/s (~10 meters drop) with gentle scaling
+			if fall_impact > 23.0:
+				var dmg_mult: float = 0.5 if selected_character_id.to_lower() == "fat" else 1.0
+				var fall_dmg: float = (fall_impact - 23.0) * 1.8 * dmg_mult
+				take_damage(fall_dmg)
+		else:
+			is_fall_damage_immune = false
 
 	_was_in_air = not is_on_floor()
 	if not is_on_floor():

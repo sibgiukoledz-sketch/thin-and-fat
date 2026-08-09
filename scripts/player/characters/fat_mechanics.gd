@@ -583,6 +583,7 @@ func _on_trampoline_body_entered(body: Node) -> void:
 	if body is Player:
 		var target_p := body as Player
 		if not target_p.is_dead:
+			target_p.is_fall_damage_immune = true
 			target_p.velocity.y = 15.0
 			target_p.velocity.x *= 1.15
 			target_p.velocity.z *= 1.15
