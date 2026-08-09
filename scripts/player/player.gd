@@ -258,8 +258,6 @@ func set_character(char_id: String) -> void:
 	character_switched.emit(selected_character_id)
 
 func is_movement_blocked() -> bool:
-	if is_paper_flattened:
-		return true
 	if active_mechanics and active_mechanics.is_movement_blocked():
 		return true
 	return false
@@ -283,12 +281,13 @@ func apply_movement(input_dir: Vector3, target_spd: float, delta: float, accel_f
 		move_and_slide()
 		return
 
+	var effective_speed := 3.4 if is_paper_flattened else target_spd
 	var accel := 14.0 * accel_factor if input_dir.length_squared() > 0.01 else 10.0
-	velocity.x = lerpf(velocity.x, input_dir.x * target_spd, accel * delta)
-	velocity.z = lerpf(velocity.z, input_dir.z * target_spd, accel * delta)
+	velocity.x = lerpf(velocity.x, input_dir.x * effective_speed, accel * delta)
+	velocity.z = lerpf(velocity.z, input_dir.z * effective_speed, accel * delta)
 	move_and_slide()
 
-	var max_spd := target_spd * 1.3
+	var max_spd := effective_speed * 1.3
 	var horiz_v := Vector2(velocity.x, velocity.z)
 	if horiz_v.length() > max_spd:
 		var clamped := horiz_v.normalized() * max_spd
@@ -315,6 +314,8 @@ func apply_jump_impulse() -> void:
 		AudioManager.play_sfx_3d("jump_" + selected_character_id.to_lower(), global_position)
 
 func is_jump_requested() -> bool:
+	if is_paper_flattened:
+		return false
 	if is_movement_blocked():
 		if is_multiplayer_authority() and Input.is_action_just_pressed("jump"):
 			if active_mechanics and active_mechanics.has_method("rpc_toggle_belly_trampoline"):
@@ -565,11 +566,6 @@ func apply_paper_flatten(duration: float = 10.0) -> void:
 func rpc_apply_paper_flatten(duration: float = 10.0) -> void:
 	is_paper_flattened = true
 	paper_flatten_timer = duration
-
-	velocity.x = 0.0
-	velocity.z = 0.0
-	if state_machine:
-		state_machine.transition_to("Idle")
 
 	if collision_shape and collision_shape.shape is CapsuleShape3D:
 		var flat_cap := collision_shape.shape as CapsuleShape3D
