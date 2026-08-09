@@ -173,9 +173,19 @@ func rpc_pickup_boulder(player_path: NodePath) -> void:
 	player_node.is_carrying_heavy_object = true
 	freeze = true
 
+	# Disable boulder collision shape while carried so Fat does NOT levitate or collide with boulder!
+	if collision_shape:
+		collision_shape.disabled = true
+	if interaction_area:
+		interaction_area.monitoring = false
+
 	reparent(player_node)
-	position = Vector3(0, 2.4, -0.6)
+	# Position boulder in front of Fat's chest & arms (not floating high in the sky!)
+	position = Vector3(0.0, 1.25, -1.55)
 	rotation = Vector3.ZERO
+
+	if prompt_label:
+		prompt_label.position = Vector3(0, 2.1, 0)
 
 	boulder_picked_up.emit(player_node)
 	if AudioManager:
@@ -197,6 +207,12 @@ func rpc_throw_boulder(player_path: NodePath, throw_dir: Vector3) -> void:
 	var main_world := get_tree().current_scene
 	reparent(main_world)
 	global_position = current_global_pos
+
+	# Re-enable collision shape for dynamic physics simulation & impact
+	if collision_shape:
+		collision_shape.disabled = false
+	if interaction_area:
+		interaction_area.monitoring = true
 
 	freeze = false
 	var impulse_vector := (throw_dir.normalized() + Vector3(0, 0.45, 0)).normalized() * throw_force * mass
