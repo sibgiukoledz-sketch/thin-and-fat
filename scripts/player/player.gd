@@ -735,6 +735,17 @@ func respawn() -> void:
 	if is_multiplayer_authority() and hud:
 		hud.update_display()
 
+@rpc("any_peer", "call_local", "reliable")
+func rpc_apply_bounce(bounce_velocity_y: float) -> void:
+	is_fall_damage_immune = true
+	velocity.y = bounce_velocity_y
+	velocity.x *= 1.25
+	velocity.z *= 1.25
+	if state_machine:
+		state_machine.transition_to("Air")
+	if AudioManager:
+		AudioManager.play_sfx_3d("slingshot_launch", global_position, 40.0, 3.0)
+
 @rpc("any_peer", "call_local", "unreliable")
 func rpc_take_damage(amount: float, hit_pos: Vector3 = Vector3.ZERO) -> void:
 	_apply_damage_internal(amount, hit_pos)

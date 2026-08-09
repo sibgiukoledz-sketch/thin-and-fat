@@ -75,13 +75,13 @@ func _setup_trampoline_area() -> void:
 	_trampoline_area.collision_mask = 7
 
 	var shape := CollisionShape3D.new()
-	var sphere := SphereShape3D.new()
-	sphere.radius = 0.95
-	shape.shape = sphere
+	var box := BoxShape3D.new()
+	box.size = Vector3(1.8, 0.7, 1.8) # Wide box trigger covering Fat's giant belly!
+	shape.shape = box
 	shape.position = Vector3.ZERO
 
 	_trampoline_area.add_child(shape)
-	_trampoline_area.position = Vector3(0, 0.55, 0)
+	_trampoline_area.position = Vector3(0, 0.55, -0.65)
 	_trampoline_area.body_entered.connect(_on_trampoline_body_entered)
 	_trampoline_area.monitoring = false
 	player.add_child(_trampoline_area)
@@ -527,13 +527,15 @@ func rpc_toggle_belly_trampoline(active: bool) -> void:
 			tw_head.tween_property(player.head, "position:y", 0.45, 0.25)
 
 		if player.collision_shape:
+			# Box shape covering Fat's body lying flat on back (from head z=-1.6 to feet z=+0.5)
 			var box := BoxShape3D.new()
-			box.size = Vector3(1.6, 0.44, 2.2)
+			box.size = Vector3(2.2, 0.50, 2.4)
 			player.collision_shape.shape = box
-			player.collision_shape.position = Vector3(0, 0.22, -0.1)
+			player.collision_shape.position = Vector3(0.0, 0.25, -0.55)
 
 		if _trampoline_area:
-			_trampoline_area.position = Vector3(0, 0.55, 0)
+			# Trampoline trigger shape positioned directly over Fat's giant belly (z = -0.65)
+			_trampoline_area.position = Vector3(0.0, 0.55, -0.65)
 			_trampoline_area.monitoring = true
 
 		if AudioManager:
@@ -574,17 +576,17 @@ func _on_trampoline_body_entered(body: Node) -> void:
 	if body.has_method("is_multiplayer_authority"):
 		var target_p := body as CharacterBody3D
 		if target_p and not bool(target_p.get("is_dead")):
-			target_p.is_fall_damage_immune = true
-			target_p.velocity.y = 15.0
-			target_p.velocity.x *= 1.15
-			target_p.velocity.z *= 1.15
-			var tp_cam: Object = target_p.get("camera_3d")
-			if tp_cam and tp_cam.has_method("set_target_fov"):
-				target_p.set_target_fov(92.0)
+			if target_p.has_method("rpc_apply_bounce"):
+				target_p.rpc_apply_bounce.rpc(18.5)
+			else:
+				target_p.is_fall_damage_immune = true
+				target_p.velocity.y = 18.5
+				target_p.velocity.x *= 1.25
+				target_p.velocity.z *= 1.25
 
 			_trigger_bounce_vfx_and_sfx(bounce_pos)
 			_trigger_belly_wobble_animation()
-			print("🛏 BELLY BOUNCE: Launched player %s into the air!" % target_p.name)
+			print("🛏 BELLY BOUNCE: Launched player %s into the air via RPC!" % target_p.name)
 
 	elif body is RigidBody3D:
 		var rb := body as RigidBody3D
