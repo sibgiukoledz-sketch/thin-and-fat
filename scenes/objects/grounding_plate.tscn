@@ -1,0 +1,52 @@
+[gd_scene load_steps=9 format=3 uid="uid://c_grounding_plate01"]
+
+[ext_resource type="Script" path="res://scripts/objects/grounding_plate.gd" id="1_gplate"]
+[ext_resource type="Resource" uid="uid://c_mat_metal01" path="res://resources/materials/metal.tres" id="2_mat_metal"]
+[ext_resource type="Script" path="res://scripts/world/surface_material_3d.gd" id="3_surf_mat"]
+[ext_resource type="Texture2D" path="res://assets/textures/materials/metal_albedo.png" id="4_tex_alb"]
+[ext_resource type="Texture2D" path="res://assets/textures/materials/metal_normal.png" id="5_tex_norm"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_gplate"]
+size = Vector3(2.5, 0.2, 2.5)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_copper_pbr"]
+albedo_color = Color(0.9, 0.55, 0.25, 1.0)
+albedo_texture = ExtResource("4_tex_alb")
+metallic = 0.95
+roughness = 0.25
+normal_enabled = true
+normal_texture = ExtResource("5_tex_norm")
+uv1_scale = Vector3(1.5, 1.5, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_gplate"]
+material = SubResource("StandardMaterial3D_copper_pbr")
+size = Vector3(2.5, 0.08, 2.5)
+
+[node name="GroundingPlate" type="Node3D"]
+script = ExtResource("1_gplate")
+
+[node name="StaticBody3D" type="StaticBody3D" parent="."]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D"]
+position = Vector3(0, -0.04, 0)
+shape = SubResource("BoxShape3D_gplate")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="StaticBody3D"]
+position = Vector3(0, 0.04, 0)
+mesh = SubResource("BoxMesh_gplate")
+
+[node name="SurfaceMaterial3D" type="Node" parent="StaticBody3D"]
+script = ExtResource("3_surf_mat")
+surface_material = ExtResource("2_mat_metal")
+
+[node name="Area3D" type="Area3D" parent="."]
+collision_layer = 0
+collision_mask = 2
+
+[node name="AreaCollisionShape3D" type="CollisionShape3D" parent="Area3D"]
+position = Vector3(0, 0.3, 0)
+shape = SubResource("BoxShape3D_gplate")
+
+[node name="SurfaceMaterial3D" type="Node" parent="."]
+script = ExtResource("3_surf_mat")
+surface_material = ExtResource("2_mat_metal")

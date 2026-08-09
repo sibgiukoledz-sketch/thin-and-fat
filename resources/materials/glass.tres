@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="SurfaceMaterial" load_steps=2 format=3 uid="uid://c_mat_glass01"]
+
+[ext_resource type="Script" path="res://resources/materials/surface_material.gd" id="1_mat"]
+
+[resource]
+script = ExtResource("1_mat")
+material_id = "glass"
+display_name = "Стекло"
+step_sound_event = "step_glass"
+impact_sound_event = "glass_crack"
+is_metallic = false
+is_static_charger = false
+static_charge_rate = 0.0
+is_grounded = false
+friction = 0.5
+bounciness = 0.0
+color_tint = Color(0.8, 0.95, 1.0, 0.8)

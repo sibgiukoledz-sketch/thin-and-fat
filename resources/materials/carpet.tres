@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="SurfaceMaterial" load_steps=2 format=3 uid="uid://c_mat_carpet01"]
+
+[ext_resource type="Script" path="res://resources/materials/surface_material.gd" id="1_mat"]
+
+[resource]
+script = ExtResource("1_mat")
+material_id = "carpet"
+display_name = "Шерстяной Ковёр"
+step_sound_event = "step_carpet"
+impact_sound_event = "step_carpet"
+is_metallic = false
+is_static_charger = true
+static_charge_rate = 45.0
+is_grounded = false
+friction = 1.2
+bounciness = 0.0
+color_tint = Color(0.8, 0.25, 0.25, 1.0)

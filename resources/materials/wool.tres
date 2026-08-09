@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="SurfaceMaterial" load_steps=2 format=3 uid="uid://c_mat_wool01"]
+
+[ext_resource type="Script" path="res://resources/materials/surface_material.gd" id="1_mat"]
+
+[resource]
+script = ExtResource("1_mat")
+material_id = "wool"
+display_name = "Шерстяная Штора"
+step_sound_event = "step_wool"
+impact_sound_event = "step_wool"
+is_metallic = false
+is_static_charger = true
+static_charge_rate = 65.0
+is_grounded = false
+friction = 0.9
+bounciness = 0.0
+color_tint = Color(0.95, 0.85, 0.4, 1.0)

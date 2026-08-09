@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="SurfaceMaterial" load_steps=2 format=3 uid="uid://c_mat_stone01"]
+
+[ext_resource type="Script" path="res://resources/materials/surface_material.gd" id="1_mat"]
+
+[resource]
+script = ExtResource("1_mat")
+material_id = "stone"
+display_name = "Камень / Бетон"
+step_sound_event = "step_stone"
+impact_sound_event = "land"
+is_metallic = false
+is_static_charger = false
+static_charge_rate = 0.0
+is_grounded = false
+friction = 1.0
+bounciness = 0.0
+color_tint = Color(0.6, 0.6, 0.6, 1.0)

@@ -88,6 +88,7 @@ var visual_loader: CharacterVisualLoader = null
 var combat_component: PlayerCombatComponent = null
 var active_mechanics: BaseCharacterMechanics = null
 var vomit_component: VomitComponent = null
+var surface_detector: SurfaceDetectorComponent = null
 
 # Health & Status tracking
 var nausea_intensity: float = 0.0
@@ -177,6 +178,12 @@ func _setup_sub_components() -> void:
 		vomit_component = VomitComponent.new()
 		vomit_component.name = "VomitComponent"
 		add_child(vomit_component)
+
+	if not surface_detector:
+		surface_detector = SurfaceDetectorComponent.new()
+		surface_detector.name = "SurfaceDetectorComponent"
+		add_child(surface_detector)
+		surface_detector.setup(self)
 
 func _setup_voice_indicator() -> void:
 	if not voice_indicator_label:
@@ -270,6 +277,8 @@ func get_movement_input() -> Vector3:
 	return dir
 
 func apply_gravity(delta: float) -> void:
+	if active_mechanics and "is_magnetized_to_ceiling" in active_mechanics and bool(active_mechanics.is_magnetized_to_ceiling):
+		return
 	if not is_on_floor():
 		var fall_mult := 1.45 if velocity.y < 0.0 else 1.0
 		velocity.y -= gravity * fall_mult * delta
@@ -376,7 +385,10 @@ func _unhandled_input(event: InputEvent) -> void:
 				combat_component.perform_melee_attack(self, camera_3d, selected_character_id)
 
 	if camera_component:
-		camera_component.handle_input(event, mouse_sensitivity, nausea_intensity)
+		var is_ceiling_crawling := false
+		if active_mechanics and "is_magnetized_to_ceiling" in active_mechanics:
+			is_ceiling_crawling = bool(active_mechanics.is_magnetized_to_ceiling)
+		camera_component.handle_input(event, mouse_sensitivity, nausea_intensity, is_ceiling_crawling)
 
 	if active_mechanics:
 		active_mechanics.handle_ability_input(event)
@@ -404,7 +416,10 @@ func _process(delta: float) -> void:
 
 	if camera_component:
 		var is_sprinting := (synced_state_name.to_lower() == "sprint" or is_sprint_requested())
-		camera_component.update_camera(delta, is_sprinting)
+		var is_ceiling_crawling := false
+		if active_mechanics and "is_magnetized_to_ceiling" in active_mechanics:
+			is_ceiling_crawling = bool(active_mechanics.is_magnetized_to_ceiling)
+		camera_component.update_camera(delta, is_sprinting, is_ceiling_crawling)
 
 func _physics_process(delta: float) -> void:
 	if not is_multiplayer_authority():
@@ -426,7 +441,9 @@ func _physics_process(delta: float) -> void:
 	if is_on_floor() and _was_in_air:
 		var fall_impact: float = absf(_last_air_velocity_y)
 		player_landed.emit(fall_impact)
-		if AudioManager and fall_impact > 1.5:
+		if surface_detector:
+			surface_detector.play_landing_sound(selected_character_id, fall_impact)
+		elif AudioManager and fall_impact > 1.5:
 			AudioManager.play_sfx_3d("land", global_position)
 
 		if not is_fall_damage_immune:
@@ -450,14 +467,21 @@ func _physics_process(delta: float) -> void:
 			_step_timer += delta
 			if _step_timer >= step_interval:
 				_step_timer = 0.0
-				if AudioManager:
+				if surface_detector:
+					surface_detector.play_footstep_sound(selected_character_id, synced_state_name.to_lower() == "sprint")
+				elif AudioManager:
 					AudioManager.play_sfx_3d("step_" + selected_character_id.to_lower(), global_position)
 
 	_handle_stamina_regen(delta)
 
 	# Dynamic animation state updates
 	var target_anim := "idle"
-	if not is_on_floor():
+	if active_mechanics and "is_magnetized_to_ceiling" in active_mechanics and bool(active_mechanics.is_magnetized_to_ceiling):
+		if velocity.length() > 0.3:
+			target_anim = "walk"
+		else:
+			target_anim = "idle"
+	elif not is_on_floor():
 		target_anim = "jump"
 	elif is_crouching:
 		target_anim = "crouch"

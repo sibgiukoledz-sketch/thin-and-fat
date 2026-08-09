@@ -1,0 +1,102 @@
+[gd_scene load_steps=15 format=3 uid="uid://c_magnetism_test_room01"]
+
+[ext_resource type="Script" path="res://scripts/objects/magnetism_test_room.gd" id="1_test_room"]
+[ext_resource type="PackedScene" uid="uid://c7testroom01" path="res://scenes/objects/test_room.tscn" id="2_base_room"]
+[ext_resource type="PackedScene" uid="uid://c_carpet_zone01" path="res://scenes/objects/carpet_zone.tscn" id="3_carpet"]
+[ext_resource type="PackedScene" uid="uid://c_wool_curtain01" path="res://scenes/objects/wool_curtain.tscn" id="4_wool"]
+[ext_resource type="PackedScene" uid="uid://c_metal_ceiling01" path="res://scenes/objects/metal_ceiling.tscn" id="5_mceil"]
+[ext_resource type="PackedScene" uid="uid://yrnkiot641b5" path="res://scenes/objects/heavy_lever.tscn" id="6_lever"]
+[ext_resource type="PackedScene" uid="uid://c_grounding_plate01" path="res://scenes/objects/grounding_plate.tscn" id="7_gplate"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_start_plat"]
+size = Vector3(5.5, 0.4, 10.0)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_floor_plat"]
+albedo_color = Color(0.2, 0.22, 0.28, 1.0)
+roughness = 0.4
+
+[sub_resource type="BoxMesh" id="BoxMesh_start_plat"]
+material = SubResource("StandardMaterial3D_floor_plat")
+size = Vector3(5.5, 0.4, 10.0)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_hazard_lava"]
+albedo_color = Color(0.9, 0.15, 0.05, 1.0)
+emission_enabled = true
+emission = Color(1.0, 0.25, 0.0, 1.0)
+emission_energy_multiplier = 2.5
+
+[sub_resource type="BoxMesh" id="BoxMesh_hazard_lava"]
+material = SubResource("StandardMaterial3D_hazard_lava")
+size = Vector3(4.8, 0.2, 10.0)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_end_plat"]
+size = Vector3(5.5, 0.4, 10.0)
+
+[sub_resource type="BoxMesh" id="BoxMesh_end_plat"]
+material = SubResource("StandardMaterial3D_floor_plat")
+size = Vector3(5.5, 0.4, 10.0)
+
+[node name="MagnetismTestRoom" type="Node3D"]
+script = ExtResource("1_test_room")
+
+[node name="BaseRoom" parent="." instance=ExtResource("2_base_room")]
+room_title = "КАМЕРА №7: НАЭЛЕКТРИЗОВЫВАНИЕ И МАГНИТ"
+
+[node name="StartPlatform" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.0, 0.15, 0.0)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="StartPlatform"]
+shape = SubResource("BoxShape3D_start_plat")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="StartPlatform"]
+mesh = SubResource("BoxMesh_start_plat")
+
+[node name="CarpetZone" parent="." instance=ExtResource("3_carpet")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.0, 0.36, -1.0)
+
+[node name="WoolCurtain" parent="." instance=ExtResource("4_wool")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.4, 0.35, 2.0)
+
+[node name="ChasmHazard" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0, -0.3, 0.0)
+mesh = SubResource("BoxMesh_hazard_lava")
+
+[node name="MetalCeiling" parent="." instance=ExtResource("5_mceil")]
+transform = Transform3D(1.1, 0, 0, 0, 1, 0, 0, 0, 2.2, 0.0, 4.4, 0.0)
+
+[node name="EndPlatform" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.0, 0.15, 0.0)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="EndPlatform"]
+shape = SubResource("BoxShape3D_end_plat")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="EndPlatform"]
+mesh = SubResource("BoxMesh_end_plat")
+
+[node name="HeavyLever" parent="." instance=ExtResource("6_lever")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.8, 0.35, -3.2)
+allowed_character = "fat"
+target_node_path = NodePath("..")
+target_method_on_enable = "discharge_thin_players"
+target_method_on_disable = "discharge_thin_players"
+
+[node name="GroundingPlate" parent="." instance=ExtResource("7_gplate")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.0, 0.36, 2.5)
+
+[node name="HintStart" type="Label3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.0, 2.8, -5.6)
+double_sided = false
+text = "⚡ 1. Побегай по Ковру или Шторе, чтобы Наэлектризоваться!
+🧲 2. Прыгай к Металлическому Потолку над ямой и ползи!"
+font_size = 24
+outline_size = 6
+modulate = Color(1.0, 0.9, 0.3, 1.0)
+
+[node name="HintEnd" type="Label3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.0, 2.8, -5.6)
+double_sided = false
+text = "🔌 3. Толстяк нажимает [E] на Рубильнике,
+чтобы разрядить Худого в нужный момент!"
+font_size = 24
+outline_size = 6
+modulate = Color(0.3, 0.9, 1.0, 1.0)

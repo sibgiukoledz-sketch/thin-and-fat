@@ -184,3 +184,11 @@ draw_pass_1 = SubResource("SphereMesh_spark")
 [node name="AudioStreamPlayer3D" type="AudioStreamPlayer3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.95, 0)
 max_distance = 25.0
+
+[node name="TitleLabel3D" type="Label3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.8, 0)
+billboard = 1
+text = "🕹️ РУБИЛЬНИК [E]"
+font_size = 32
+outline_size = 8
+modulate = Color(1.0, 0.8, 0.2, 1.0)

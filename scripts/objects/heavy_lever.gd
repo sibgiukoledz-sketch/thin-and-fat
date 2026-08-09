@@ -12,6 +12,7 @@ signal lever_turned_off()
 
 @export var is_on: bool = false ## Initial state of the lever
 @export var is_one_time: bool = false ## Lock in ON state once pulled?
+@export_enum("all", "fat", "thin") var allowed_character: String = "all" ## Allowed character to interact (all, fat, thin)
 @export var target_node_path: NodePath ## NodePath to target object (e.g. ../WindTunnelFan)
 @export var target_object: Node3D ## Direct reference to target object
 @export var target_method_on_enable: String = "activate" ## Method called when lever is flipped ON
@@ -56,6 +57,14 @@ func _ready() -> void:
 	if interaction_area:
 		interaction_area.body_entered.connect(_on_body_entered)
 		interaction_area.body_exited.connect(_on_body_exited)
+
+func can_player_interact(p: Node) -> bool:
+	if not p or not ("selected_character_id" in p):
+		return true
+	if allowed_character == "all" or allowed_character == "":
+		return true
+	var char_id: String = p.selected_character_id.to_lower()
+	return char_id == allowed_character.to_lower()
 
 func _physics_process(delta: float) -> void:
 	_animate_lever(delta)
@@ -151,8 +160,9 @@ func _update_led_materials() -> void:
 func _handle_player_input() -> void:
 	for p in _players_in_range:
 		if p and p.is_multiplayer_authority() and not p.is_dead:
-			if Input.is_action_just_pressed("interact"):
-				toggle_lever()
+			if can_player_interact(p):
+				if Input.is_action_just_pressed("interact"):
+					toggle_lever()
 
 func _on_body_entered(body: Node) -> void:
 	if body and body is CharacterBody3D and body.has_method("is_multiplayer_authority"):
@@ -168,12 +178,15 @@ func _on_body_exited(body: Node) -> void:
 			_hide_prompt(body)
 
 func _show_prompt(p: Node) -> void:
-	# Show interactive HUD prompt to player
 	if p.has_node("HUD"):
 		var hud: Node = p.get_node("HUD")
 		if hud.has_method("show_interaction_prompt"):
-			var state_text: String = "выключить" if is_on else "включить"
-			hud.show_interaction_prompt("[E] Потянуть рычаг (%s)" % state_text)
+			if not can_player_interact(p):
+				var req_name := "Толстяка" if allowed_character == "fat" else "Худого"
+				hud.show_interaction_prompt("🔒 Только для %s!" % req_name)
+			else:
+				var state_text: String = "выключить" if is_on else "включить"
+				hud.show_interaction_prompt("[E] Потянуть рычаг (%s)" % state_text)
 
 func _hide_prompt(p: Node) -> void:
 	if p.has_node("HUD"):

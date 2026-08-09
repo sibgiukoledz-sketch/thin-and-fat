@@ -136,6 +136,19 @@ func update_display() -> void:
 				var stench_val: float = player.active_mechanics.stench_level
 				stench_bar.value = stench_val
 				stench_label.text = "ВОНЬ: %d%%" % int(stench_val)
+		elif player.selected_character_id.to_lower() == "thin":
+			stench_bar.visible = true
+			stench_label.visible = true
+			if player.active_mechanics and "static_charge" in player.active_mechanics:
+				var charge_val: float = player.active_mechanics.static_charge
+				var is_attached: bool = bool(player.active_mechanics.is_magnetized_to_ceiling)
+				stench_bar.value = charge_val
+				if is_attached:
+					stench_label.text = "🧲 ПРИЛИП К МЕТАЛЛУ (ПРЫЖОК ДЛЯ ОТЛИПАНИЯ)"
+				elif charge_val >= 20.0:
+					stench_label.text = "⚡ НАЭЛЕКТРИЗОВАН (%d%%) - ИЩИ МЕТАЛЛ!" % int(charge_val)
+				else:
+					stench_label.text = "⚡ ЗАРЯД: %d%% (ПОТРИСЬ О КОВЁР/ШТОРУ)" % int(charge_val)
 		else:
 			stench_bar.visible = false
 			stench_label.visible = false

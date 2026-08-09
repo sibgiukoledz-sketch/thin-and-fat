@@ -362,6 +362,105 @@ func _synthesize_sound_event(key: String) -> AudioStreamWAV:
 				var sample_16 := int(clampf(chime, -1.0, 1.0) * 32767.0)
 				pcm_data.encode_s16(i * 2, sample_16)
 
+		"step_carpet", "step_wool":
+			duration = 0.16
+			samples_count = int(sample_rate * duration)
+			pcm_data.resize(samples_count * 2)
+			for i in range(samples_count):
+				var t := float(i) / float(sample_rate)
+				var env := exp(-28.0 * t)
+				var noise := (randf() * 2.0 - 1.0) * env * 0.45
+				var thud := sin(2.0 * PI * 90.0 * t) * env * 0.25
+				var sample_16 := int(clampf(noise + thud, -1.0, 1.0) * 32767.0)
+				pcm_data.encode_s16(i * 2, sample_16)
+
+		"step_metal":
+			duration = 0.20
+			samples_count = int(sample_rate * duration)
+			pcm_data.resize(samples_count * 2)
+			for i in range(samples_count):
+				var t := float(i) / float(sample_rate)
+				var env := exp(-18.0 * t)
+				var ring := sin(2.0 * PI * 840.0 * t) * env * 0.45 + sin(2.0 * PI * 1480.0 * t) * env * 0.2
+				var click := (randf() * 2.0 - 1.0) * exp(-60.0 * t) * 0.5
+				var sample_16 := int(clampf(ring + click, -1.0, 1.0) * 32767.0)
+				pcm_data.encode_s16(i * 2, sample_16)
+
+		"step_wood":
+			duration = 0.18
+			samples_count = int(sample_rate * duration)
+			pcm_data.resize(samples_count * 2)
+			for i in range(samples_count):
+				var t := float(i) / float(sample_rate)
+				var env := exp(-22.0 * t)
+				var body := sin(2.0 * PI * 220.0 * t) * env * 0.6
+				var noise := (randf() * 2.0 - 1.0) * env * 0.2
+				var sample_16 := int(clampf(body + noise, -1.0, 1.0) * 32767.0)
+				pcm_data.encode_s16(i * 2, sample_16)
+
+		"step_stone":
+			duration = 0.15
+			samples_count = int(sample_rate * duration)
+			pcm_data.resize(samples_count * 2)
+			for i in range(samples_count):
+				var t := float(i) / float(sample_rate)
+				var env := exp(-30.0 * t)
+				var crunch := (randf() * 2.0 - 1.0) * env * 0.65
+				var thud := sin(2.0 * PI * 140.0 * t) * env * 0.3
+				var sample_16 := int(clampf(crunch + thud, -1.0, 1.0) * 32767.0)
+				pcm_data.encode_s16(i * 2, sample_16)
+
+		"step_glass":
+			duration = 0.14
+			samples_count = int(sample_rate * duration)
+			pcm_data.resize(samples_count * 2)
+			for i in range(samples_count):
+				var t := float(i) / float(sample_rate)
+				var env := exp(-32.0 * t)
+				var chime := sin(2.0 * PI * 2400.0 * t) * env * 0.5
+				var click := (randf() * 2.0 - 1.0) * env * 0.4
+				var sample_16 := int(clampf(chime + click, -1.0, 1.0) * 32767.0)
+				pcm_data.encode_s16(i * 2, sample_16)
+
+		"static_spark", "electric_charge":
+			duration = 0.22
+			samples_count = int(sample_rate * duration)
+			pcm_data.resize(samples_count * 2)
+			for i in range(samples_count):
+				var t := float(i) / float(sample_rate)
+				var env := exp(-12.0 * t)
+				var spark := (randf() * 2.0 - 1.0) * env * 0.75
+				var zap_freq := lerpf(1800.0, 600.0, t / duration)
+				var tone := sin(2.0 * PI * zap_freq * t) * env * 0.3
+				var sample_16 := int(clampf(spark + tone, -1.0, 1.0) * 32767.0)
+				pcm_data.encode_s16(i * 2, sample_16)
+
+		"discharge_zap":
+			duration = 0.45
+			samples_count = int(sample_rate * duration)
+			pcm_data.resize(samples_count * 2)
+			for i in range(samples_count):
+				var t := float(i) / float(sample_rate)
+				var env := exp(-8.0 * t)
+				var f := lerpf(1200.0, 120.0, t / duration)
+				var blast := sin(2.0 * PI * f * t) * env * 0.85
+				var noise := (randf() * 2.0 - 1.0) * env * 0.5
+				var sample_16 := int(clampf(blast + noise, -1.0, 1.0) * 32767.0)
+				pcm_data.encode_s16(i * 2, sample_16)
+
+		"magnetic_attach", "magnetic_detach":
+			duration = 0.25
+			samples_count = int(sample_rate * duration)
+			pcm_data.resize(samples_count * 2)
+			for i in range(samples_count):
+				var t := float(i) / float(sample_rate)
+				var env := exp(-20.0 * t)
+				var f := lerpf(400.0, 1200.0 if key == "magnetic_attach" else 200.0, t / duration)
+				var tone := sin(2.0 * PI * f * t) * env * 0.7
+				var click := (randf() * 2.0 - 1.0) * env * 0.4
+				var sample_16 := int(clampf(tone + click, -1.0, 1.0) * 32767.0)
+				pcm_data.encode_s16(i * 2, sample_16)
+
 		"lever_flip", "button_press", "button_release":
 			duration = 0.15
 			samples_count = int(sample_rate * duration)
