@@ -24,3 +24,6 @@ func update_mechanics(_delta: float) -> void:
 
 func physics_update_mechanics(_delta: float) -> void:
 	pass
+
+func is_movement_blocked() -> bool:
+	return false

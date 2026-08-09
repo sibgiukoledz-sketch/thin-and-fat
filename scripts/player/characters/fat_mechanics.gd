@@ -36,6 +36,9 @@ var _slingshot_cooldown: float = 0.0
 var is_belly_trampoline: bool = false
 var _trampoline_area: Area3D = null
 
+func is_movement_blocked() -> bool:
+	return is_belly_trampoline
+
 
 func setup(p: Player) -> void:
 	player = p

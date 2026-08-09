@@ -249,7 +249,16 @@ func set_character(char_id: String) -> void:
 
 	character_switched.emit(selected_character_id)
 
+func is_movement_blocked() -> bool:
+	if is_paper_flattened:
+		return true
+	if active_mechanics and active_mechanics.is_movement_blocked():
+		return true
+	return false
+
 func get_movement_input() -> Vector3:
+	if is_movement_blocked():
+		return Vector3.ZERO
 	var raw_input := Input.get_vector("move_left", "move_right", "move_forward", "move_backward")
 	var dir := (transform.basis * Vector3(raw_input.x, 0, raw_input.y)).normalized()
 	return dir
@@ -291,9 +300,16 @@ func apply_jump_impulse() -> void:
 		AudioManager.play_sfx_3d("jump_" + selected_character_id.to_lower(), global_position)
 
 func is_jump_requested() -> bool:
+	if is_movement_blocked():
+		if is_multiplayer_authority() and Input.is_action_just_pressed("jump"):
+			if active_mechanics and active_mechanics.has_method("rpc_toggle_belly_trampoline"):
+				active_mechanics.rpc_toggle_belly_trampoline.rpc(false)
+		return false
 	return Input.is_action_just_pressed("jump")
 
 func is_crouch_requested() -> bool:
+	if is_movement_blocked():
+		return false
 	return Input.is_action_pressed("crouch")
 
 func can_uncrouch() -> bool:
@@ -475,6 +491,8 @@ func _update_carried_boulder_collision_shape() -> void:
 	collision_shape.shape = cap_shape
 
 func is_sprint_requested() -> bool:
+	if is_movement_blocked():
+		return false
 	return Input.is_action_pressed("sprint") and not is_stamina_exhausted
 
 func drain_stamina(amount: float) -> void:
