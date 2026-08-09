@@ -439,11 +439,15 @@ func _pop_seismic_nodes_recursive(node: Node, center: Vector3, radius: float, im
 				print("🥞 GRAVITATIONAL LAUNCH: Launched & scattered RigidBody %s into the air!" % rb.name)
 
 			# Case B: Teammates / Other Players -> LAUNCH INTO THE STRATOSPHERE!
-			elif node.has_method("is_multiplayer_authority") and node != player:
+			elif node and node.has_method("is_multiplayer_authority") and node != player:
 				var target_player: CharacterBody3D = node as CharacterBody3D
-				if not target_player.is_dead:
-					if target_player.selected_character_id.to_lower() == "thin" and (impact_speed >= 8.5 or is_pancake) and dist <= 3.5:
-						target_player.apply_paper_flatten(15.0)
+				if not target_player:
+					pass
+				elif not bool(target_player.get("is_dead")):
+					var char_id := String(target_player.get("selected_character_id"))
+					if char_id.to_lower() == "thin" and (impact_speed >= 8.5 or is_pancake) and dist <= 3.5:
+						if target_player.has_method("apply_paper_flatten"):
+							target_player.call("apply_paper_flatten", 15.0)
 						print("📄 FAT HIGH FALL SLAMMED ON THIN: Flattened %s into paper!" % target_player.name)
 					else:
 						var mult: float = 1.8 if is_pancake else 1.0
@@ -456,8 +460,9 @@ func _pop_seismic_nodes_recursive(node: Node, center: Vector3, radius: float, im
 							target_player.velocity.x += dir_xz.x * 7.5 * falloff * mult
 							target_player.velocity.z += dir_xz.z * 7.5 * falloff * mult
 
-					if target_player.camera_3d:
-						target_player.camera_3d.rotation.z = deg_to_rad(randf_range(-20.0, 20.0))
+					var cam_node: Object = target_player.get("camera_3d")
+					if cam_node and cam_node is Node3D:
+						(cam_node as Node3D).rotation.z = deg_to_rad(randf_range(-20.0, 20.0))
 
 			# Case C: Dummy NPC
 			elif node is DummyNPC:
@@ -568,12 +573,13 @@ func _on_trampoline_body_entered(body: Node) -> void:
 
 	if body.has_method("is_multiplayer_authority"):
 		var target_p := body as CharacterBody3D
-		if not target_p.is_dead:
+		if target_p and not bool(target_p.get("is_dead")):
 			target_p.is_fall_damage_immune = true
 			target_p.velocity.y = 15.0
 			target_p.velocity.x *= 1.15
 			target_p.velocity.z *= 1.15
-			if target_p.camera_3d:
+			var tp_cam: Object = target_p.get("camera_3d")
+			if tp_cam and tp_cam.has_method("set_target_fov"):
 				target_p.set_target_fov(92.0)
 
 			_trigger_bounce_vfx_and_sfx(bounce_pos)
@@ -648,11 +654,17 @@ func _find_thin_target() -> Node3D:
 	return _find_thin_target_recursive(root, player.global_position, 3.8)
 
 func _is_valid_thin_target(node: Node3D) -> bool:
+	if not node:
+		return false
 	if node.has_method("is_multiplayer_authority") and node != player:
 		var p: CharacterBody3D = node as CharacterBody3D
-		return String(p.get("selected_character_id")).to_lower() == "thin" and not p.get("is_dead")
+		if not p:
+			return false
+		return String(p.get("selected_character_id")).to_lower() == "thin" and not bool(p.get("is_dead"))
 	elif node is DummyNPC:
 		var dummy: DummyNPC = node as DummyNPC
+		if not dummy:
+			return false
 		return not dummy.is_dead
 	return false
 
@@ -681,8 +693,10 @@ func rpc_slingshot_launch(target_path: NodePath, launch_velocity: Vector3) -> vo
 	# Apply Slingshot Launch to Player or DummyNPC
 	if target_node.has_method("is_multiplayer_authority"):
 		var p: CharacterBody3D = target_node as CharacterBody3D
+		if not p:
+			return
 		p.velocity = launch_velocity
-		if p.camera_3d:
+		if p.get("camera_3d"):
 			p.set_target_fov(95.0)
 	elif target_node is DummyNPC:
 		var dummy: DummyNPC = target_node as DummyNPC
