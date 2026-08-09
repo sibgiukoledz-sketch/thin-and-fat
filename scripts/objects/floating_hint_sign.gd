@@ -61,6 +61,11 @@ enum ViewMode {
 @export var fade_start_distance: float = 14.0
 @export var fade_end_distance: float = 20.0
 
+@export_range(0.0, 1.0, 0.05) var panel_opacity: float = 0.96:
+	set(val):
+		panel_opacity = val
+		_update_panel_opacity()
+
 @export_group("Frame Toggle")
 @export var show_border: bool = false:
 	set(val):
@@ -81,6 +86,11 @@ func _ready() -> void:
 	_default_icon_tex = _generate_default_info_icon()
 	_update_content()
 	_update_border_visibility()
+	_update_panel_opacity()
+
+func _update_panel_opacity() -> void:
+	if bg_mesh and bg_mesh.material_override:
+		bg_mesh.material_override.albedo_color.a = panel_opacity
 
 func _update_content() -> void:
 	if label_3d:
@@ -136,7 +146,7 @@ func _modulate_alpha(alpha: float) -> void:
 	if icon_sprite_3d:
 		icon_sprite_3d.modulate.a = alpha
 	if bg_mesh and bg_mesh.material_override:
-		bg_mesh.material_override.albedo_color.a = 0.82 * alpha
+		bg_mesh.material_override.albedo_color.a = panel_opacity * alpha
 	if frame_mesh and frame_mesh.material_override:
 		frame_mesh.material_override.albedo_color.a = 0.18 * alpha
 
