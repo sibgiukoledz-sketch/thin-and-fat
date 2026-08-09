@@ -114,13 +114,25 @@ func discharge() -> void:
 		if AudioManager:
 			AudioManager.play_sfx_3d("discharge_zap", player.global_position, 40.0, 3.0)
 
+@rpc("any_peer", "call_local", "reliable")
+func rpc_set_magnetized_to_ceiling(state: bool) -> void:
+	is_magnetized_to_ceiling = state
+	magnetic_attachment_changed.emit(state)
+	_set_upside_down(state)
+
 func update_mechanics(delta: float) -> void:
-	if not player or not player.is_multiplayer_authority():
+	if not player:
 		return
 
-	_surface_detector.check_surfaces(delta)
+	# Visual model and spark updates for ALL clients (authority + non-authority peers)
 	_update_spark_visuals()
 	_set_upside_down(is_magnetized_to_ceiling)
+
+	if not player.is_multiplayer_authority():
+		return
+
+	if _surface_detector:
+		_surface_detector.check_surfaces(delta)
 
 func physics_update_mechanics(delta: float) -> void:
 	if not player or not player.is_multiplayer_authority():
@@ -130,9 +142,7 @@ func physics_update_mechanics(delta: float) -> void:
 		_check_and_apply_magnetic_attraction(delta)
 	else:
 		if is_magnetized_to_ceiling:
-			is_magnetized_to_ceiling = false
-			magnetic_attachment_changed.emit(false)
-			_set_upside_down(false)
+			rpc_set_magnetized_to_ceiling.rpc(false)
 
 func _check_and_apply_magnetic_attraction(delta: float) -> void:
 	var ceil_mat := _surface_detector.current_ceiling_material
@@ -152,9 +162,7 @@ func _check_and_apply_magnetic_attraction(delta: float) -> void:
 			# Snap to ceiling magnetic crawl state smoothly when close enough
 			if dist_to_ceiling <= 3.0:
 				if not is_magnetized_to_ceiling:
-					is_magnetized_to_ceiling = true
-					magnetic_attachment_changed.emit(true)
-					_set_upside_down(true)
+					rpc_set_magnetized_to_ceiling.rpc(true)
 					if AudioManager:
 						AudioManager.play_sfx_3d("magnetic_attach", player.global_position, 30.0)
 
@@ -164,9 +172,7 @@ func _check_and_apply_magnetic_attraction(delta: float) -> void:
 				player.velocity.y = 0.0
 	else:
 		if is_magnetized_to_ceiling:
-			is_magnetized_to_ceiling = false
-			magnetic_attachment_changed.emit(false)
-			_set_upside_down(false)
+			rpc_set_magnetized_to_ceiling.rpc(false)
 			if AudioManager:
 				AudioManager.play_sfx_3d("magnetic_detach", player.global_position, 25.0)
 
@@ -176,9 +182,7 @@ func handle_ability_input(event: InputEvent) -> void:
 
 	# Press jump while clung to metal ceiling to release/drop down
 	if is_magnetized_to_ceiling and event.is_action_pressed("jump"):
-		is_magnetized_to_ceiling = false
-		magnetic_attachment_changed.emit(false)
-		_set_upside_down(false)
+		rpc_set_magnetized_to_ceiling.rpc(false)
 		player.velocity.y = -5.0
 		if AudioManager:
 			AudioManager.play_sfx_3d("magnetic_detach", player.global_position, 25.0)
