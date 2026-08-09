@@ -18,10 +18,13 @@ const CHARGE_DECAY_RATE: float = 0.0 ## Charge stays persistent until grounded
 	set(val):
 		var prev_elec := is_electrified
 		static_charge = clampf(val, 0.0, MAX_STATIC_CHARGE)
-		is_electrified = (static_charge >= CHARGE_THRESHOLD)
-		if is_electrified != prev_elec:
-			electrification_changed.emit(is_electrified)
-			_update_spark_visuals()
+		var new_elec := (static_charge >= CHARGE_THRESHOLD)
+		if new_elec != prev_elec:
+			if player and player.is_multiplayer_authority():
+				rpc_set_electrified.rpc(new_elec)
+			else:
+				is_electrified = new_elec
+				_update_spark_visuals()
 		static_charge_changed.emit(static_charge, MAX_STATIC_CHARGE)
 
 var is_electrified: bool = false
@@ -190,14 +193,23 @@ func add_static_charge(amount: float) -> void:
 			AudioManager.play_sfx_3d("static_spark", player.global_position, 25.0, -4.0)
 
 @rpc("any_peer", "call_local", "reliable")
+func rpc_set_electrified(state: bool) -> void:
+	is_electrified = state
+	electrification_changed.emit(is_electrified)
+	_update_spark_visuals()
+
+@rpc("any_peer", "call_local", "reliable")
 func rpc_discharge() -> void:
 	discharge()
 
 func discharge() -> void:
 	var was_attached := is_magnetized_to_ceiling
 	static_charge = 0.0
+	is_electrified = false
 	is_magnetized_to_ceiling = false
+	electrification_changed.emit(false)
 	magnetic_attachment_changed.emit(false)
+	_update_spark_visuals()
 	_set_upside_down(false)
 
 	if player:

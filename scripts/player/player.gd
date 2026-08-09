@@ -480,8 +480,10 @@ func _physics_process(delta: float) -> void:
 
 	# Dynamic animation state updates
 	var target_anim := "idle"
+	var horiz_speed := Vector2(velocity.x, velocity.z).length()
+
 	if active_mechanics and "is_magnetized_to_ceiling" in active_mechanics and bool(active_mechanics.is_magnetized_to_ceiling):
-		if velocity.length() > 0.3:
+		if horiz_speed > 0.6:
 			target_anim = "walk"
 		else:
 			target_anim = "idle"
@@ -489,7 +491,7 @@ func _physics_process(delta: float) -> void:
 		target_anim = "jump"
 	elif is_crouching:
 		target_anim = "crouch"
-	elif velocity.length() > 0.3:
+	elif horiz_speed > 0.6:
 		if synced_state_name.to_lower() == "sprint" or is_sprint_requested():
 			target_anim = "sprint"
 		else:
