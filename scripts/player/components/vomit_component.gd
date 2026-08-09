@@ -195,9 +195,26 @@ func trigger_vomit() -> void:
 			if hit.get("collider") is Node:
 				hit_node_path = (hit["collider"] as Node).get_path()
 
-		player.rpc_spawn_vomit_puddle.rpc(hit_pos, hit_normal, hit_node_path)
+		rpc_spawn_vomit_puddle.rpc(hit_pos, hit_normal, hit_node_path)
 
 	print("🤮 AAA VOMIT BURST: Player vomited!")
+
+@rpc("any_peer", "call_local", "reliable")
+func rpc_spawn_vomit_puddle(hit_pos: Vector3, hit_normal: Vector3, parent_node_path: NodePath) -> void:
+	var puddle_scene := load("res://scenes/vomit_puddle.tscn") as PackedScene
+	if not puddle_scene:
+		return
+
+	var puddle := puddle_scene.instantiate() as VomitPuddle
+	if not puddle:
+		return
+
+	var main_world := get_tree().current_scene
+	if main_world:
+		main_world.add_child(puddle)
+
+	var parent_node := get_node_or_null(parent_node_path) as Node3D
+	puddle.align_to_surface(hit_pos, hit_normal, parent_node)
 
 func update_nausea_effects(delta: float) -> void:
 	if not player or not player.is_multiplayer_authority():

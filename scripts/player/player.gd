@@ -117,6 +117,7 @@ func _ready() -> void:
 	add_to_group("players")
 	collision_layer = 2
 	collision_mask = 7
+	platform_on_leave = PLATFORM_ON_LEAVE_DO_NOTHING
 
 	_setup_sub_components()
 	_setup_voice_indicator()
@@ -262,6 +263,27 @@ func apply_movement(input_dir: Vector3, target_spd: float, delta: float, accel_f
 	velocity.x = lerpf(velocity.x, input_dir.x * target_spd, accel * delta)
 	velocity.z = lerpf(velocity.z, input_dir.z * target_spd, accel * delta)
 	move_and_slide()
+
+	var max_spd := target_spd * 1.3
+	var horiz_v := Vector2(velocity.x, velocity.z)
+	if horiz_v.length() > max_spd:
+		var clamped := horiz_v.normalized() * max_spd
+		velocity.x = clamped.x
+		velocity.z = clamped.y
+
+	if selected_character_id.to_lower() == "fat":
+		for i in get_slide_collision_count():
+			var col := get_slide_collision(i)
+			var collider := col.get_collider()
+			if collider is RigidBody3D:
+				var rb := collider as RigidBody3D
+				if col.get_normal().y < 0.5:
+					var push_dir := -col.get_normal()
+					push_dir.y = 0.0
+					if push_dir.length_squared() > 0.001:
+						push_dir = push_dir.normalized()
+						var push_impulse := push_dir * (rb.mass * 12.0 * delta)
+						rb.apply_central_impulse(push_impulse)
 
 func apply_jump_impulse() -> void:
 	velocity.y = jump_velocity

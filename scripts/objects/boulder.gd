@@ -38,6 +38,8 @@ func _ready() -> void:
 	linear_damp = 0.4
 	angular_damp = 0.5
 	freeze = false
+	contact_monitor = true
+	max_contacts_reported = 8
 
 	if interaction_area:
 		interaction_area.body_entered.connect(_on_interaction_body_entered)
@@ -46,6 +48,36 @@ func _ready() -> void:
 	_setup_boulder_visuals()
 	_vfx_dict = BoulderVFXBuilder.build_impact_vfx(self)
 	_update_prompt()
+
+func _physics_process(delta: float) -> void:
+	if _is_carried:
+		return
+
+	var space_state := get_world_3d().direct_space_state
+	if not space_state:
+		return
+
+	var shape := SphereShape3D.new()
+	shape.radius = 3.2
+	var query := PhysicsShapeQueryParameters3D.new()
+	query.shape = shape
+	query.transform = global_transform
+	query.collision_mask = 2
+
+	var results := space_state.intersect_shape(query)
+	var thin_touching := false
+	for res in results:
+		var collider: Object = res.collider
+		if collider is Player:
+			var p: Player = collider as Player
+			if p.selected_character_id.to_lower() == "thin":
+				thin_touching = true
+				break
+
+	if thin_touching:
+		linear_velocity.x = lerpf(linear_velocity.x, 0.0, 25.0 * delta)
+		linear_velocity.z = lerpf(linear_velocity.z, 0.0, 25.0 * delta)
+		angular_velocity = angular_velocity.lerp(Vector3.ZERO, 30.0 * delta)
 
 func _setup_boulder_visuals() -> void:
 	if mesh_instance:
@@ -118,9 +150,10 @@ func try_interact_boulder(player: Player) -> void:
 		return
 
 	if player.selected_character_id.to_lower() != "fat":
-		_show_warning("❌ ТОЛЬКО ЖИРДЯЙ МОЖЕТ ПОДНЯТЬ 450 КГ!")
+		_show_warning("💥 ВАЛУН СЛИШКОМ ТЯЖЕЛЫЙ! ХУДОГО СПЛЮЩИЛО В БУМАГУ!")
 		if AudioManager:
 			AudioManager.play_sfx_3d("fail_buzz", global_position)
+		player.apply_paper_flatten(10.0)
 		return
 
 	if not _is_carried:
@@ -175,7 +208,16 @@ func rpc_throw_boulder(player_path: NodePath, throw_dir: Vector3) -> void:
 		AudioManager.play_sfx_3d("boulder_throw", global_position)
 	print("🪨 BOULDER THROWN WITH IMPULSE: %s" % str(impulse_vector))
 
-func _on_physics_body_entered(_body: Node) -> void:
+func _on_physics_body_entered(body: Node) -> void:
+	if body is Player:
+		var p: Player = body as Player
+		if p.selected_character_id.to_lower() == "thin":
+			var vel := linear_velocity.length()
+			if vel > 0.8:
+				p.apply_paper_flatten(10.0)
+				if AudioManager:
+					AudioManager.play_sfx_3d("boulder_impact", global_position)
+				print("💥 BOULDER ROLLED OVER THIN PLAYER AND FLATTENED HIM!")
 	var now: float = Time.get_ticks_msec() / 1000.0
 	if now - _last_impact_time < 0.20:
 		return

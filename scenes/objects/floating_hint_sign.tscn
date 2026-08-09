@@ -1,0 +1,48 @@
+[gd_scene load_steps=6 format=3 uid="uid://c8hintsign001"]
+
+[ext_resource type="Script" path="res://scripts/objects/floating_hint_sign.gd" id="1_hint_script"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_glass_bg"]
+transparency = 1
+cull_mode = 2
+shading_mode = 0
+albedo_color = Color(0.04, 0.07, 0.12, 0.82)
+
+[sub_resource type="QuadMesh" id="QuadMesh_bg"]
+material = SubResource("StandardMaterial3D_glass_bg")
+size = Vector2(2.6, 1.25)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_frame"]
+transparency = 1
+cull_mode = 2
+shading_mode = 0
+albedo_color = Color(1, 1, 1, 0.18)
+
+[sub_resource type="QuadMesh" id="QuadMesh_frame"]
+material = SubResource("StandardMaterial3D_frame")
+size = Vector2(2.66, 1.31)
+
+[node name="FloatingHintSign" type="Node3D"]
+script = ExtResource("1_hint_script")
+
+[node name="FrameMesh" type="MeshInstance3D" parent="."]
+visible = false
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.002)
+mesh = SubResource("QuadMesh_frame")
+
+[node name="BGMesh" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.001)
+mesh = SubResource("QuadMesh_bg")
+
+[node name="IconSprite3D" type="Sprite3D" parent="."]
+transform = Transform3D(0.65, 0, 0, 0, 0.65, 0, 0, 0, 1, -0.75, 0, 0.01)
+
+[node name="Label3D" type="Label3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.35, 0, 0.01)
+pixel_size = 0.004
+text = "💡 ПОДСКАЗКА:
+[E] - ВЗАИМОДЕЙСТВИЕ"
+font_size = 36
+outline_size = 12
+outline_color = Color(0, 0, 0, 0.8)
+modulate = Color(1, 0.96, 0.88, 1)
