@@ -78,7 +78,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.8, 0.35, -3.2)
 allowed_character = "fat"
 target_node_path = NodePath("..")
 target_method_on_enable = "discharge_thin_players"
-target_method_on_disable = "discharge_thin_players"
+target_method_on_disable = ""
 
 [node name="GroundingPlate" parent="." instance=ExtResource("7_gplate")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.0, 0.36, 2.5)
