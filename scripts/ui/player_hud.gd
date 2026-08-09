@@ -61,6 +61,8 @@ func _ready() -> void:
 		btn_quit.pressed.connect(func() -> void:
 			hide_pause_menu()
 			Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+			if NetworkManager:
+				NetworkManager.disconnect_game()
 			get_tree().change_scene_to_file("res://scenes/main_menu.tscn")
 		)
 

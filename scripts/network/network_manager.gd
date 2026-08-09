@@ -197,11 +197,13 @@ func rpc_sync_connected_players(players_dict: Dictionary) -> void:
 	connected_players = players_dict
 	player_list_changed.emit(connected_players)
 
+signal peer_left_session(peer_id: int)
+
 func _on_peer_disconnected(id: int) -> void:
-	print("Peer disconnected with ID: ", id)
+	print("⚠️ Peer %d disconnected from game session!" % id)
 	if connected_players.has(id):
 		connected_players.erase(id)
-		if multiplayer.is_server():
+		if multiplayer and multiplayer.is_server():
 			rpc_sync_connected_players.rpc(connected_players)
 		else:
 			player_list_changed.emit(connected_players)
@@ -215,6 +217,14 @@ func _on_peer_disconnected(id: int) -> void:
 		var player_node := players_container.get_node(str(id))
 		player_node.queue_free()
 
+	peer_left_session.emit(id)
+
+	# If in active World match, end session and return remaining player to Main Menu cleanly
+	var current_scene := get_tree().current_scene
+	if current_scene and current_scene.name == "World":
+		print("⚠️ Partner player left active match! Terminating session and returning to Main Menu...")
+		call_deferred("_return_to_main_menu_on_disconnect")
+
 func _on_connected_to_server() -> void:
 	var my_id := multiplayer.get_unique_id()
 	connection_status_changed.emit("Вы в комнате (Client ID: %d)" % my_id)
@@ -225,8 +235,13 @@ func _on_connection_failed() -> void:
 	multiplayer.multiplayer_peer = null
 
 func _on_server_disconnected() -> void:
+	print("⚠️ Server / Host disconnected!")
 	connection_status_changed.emit("Сервер отключился!")
+	call_deferred("_return_to_main_menu_on_disconnect")
+
+func _return_to_main_menu_on_disconnect() -> void:
 	disconnect_game()
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	get_tree().change_scene_to_file("res://scenes/main_menu.tscn")
 
 func _register_player(id: int, player_name: String) -> void:
