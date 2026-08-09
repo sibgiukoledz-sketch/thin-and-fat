@@ -27,6 +27,8 @@ func _ready() -> void:
 	if lobby_btn:
 		lobby_btn.pressed.connect(func():
 			if AudioManager: AudioManager.play_sfx_2d("ui_click")
+			if NetworkManager:
+				NetworkManager.disconnect_game()
 			get_tree().change_scene_to_file("res://scenes/lobby_menu.tscn")
 		)
 	if char_select_btn:
