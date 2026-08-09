@@ -76,9 +76,9 @@ mesh = SubResource("BoxMesh_end_plat")
 [node name="HeavyLever" parent="." instance=ExtResource("6_lever")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.8, 0.35, -3.2)
 allowed_character = "fat"
-target_node_path = NodePath("..")
-target_method_on_enable = "discharge_thin_players"
-target_method_on_disable = ""
+target_node_path = NodePath("../MetalCeiling")
+target_method_on_enable = "disable_magnetism"
+target_method_on_disable = "enable_magnetism"
 
 [node name="GroundingPlate" parent="." instance=ExtResource("7_gplate")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.0, 0.36, 2.5)

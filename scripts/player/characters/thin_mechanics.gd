@@ -4,7 +4,7 @@ extends BaseCharacterMechanics
 ## Dedicated Controller for "Thin / Худой" character mechanics:
 ## 1. Static Electrification (Наэлектризовывание): Rubbing against wool curtains or carpet floors charges Thin.
 ## 2. Magnetism (Механика Магнита и Скрепки): Electrified Thin is magnetically pulled toward metal ceilings and clings upside down (FEET ON CEILING, FACING FORWARD) to crawl over chasms.
-## 3. Discharging: Discharged when Fat flips a Breaker switch or when touching a Grounding plate.
+## 3. Discharging: Discharged when touching a Grounding plate (or custom discharge surface).
 
 signal static_charge_changed(current_charge: float, max_charge: float)
 signal electrification_changed(is_electrified: bool)
@@ -12,7 +12,7 @@ signal magnetic_attachment_changed(is_attached: bool)
 
 const MAX_STATIC_CHARGE: float = 100.0
 const CHARGE_THRESHOLD: float = 15.0
-const CHARGE_DECAY_RATE: float = 0.0 ## Charge stays persistent until discharged by lever or grounded plate
+const CHARGE_DECAY_RATE: float = 0.0 ## Charge stays persistent until grounded
 
 @export var static_charge: float = 0.0:
 	set(val):
@@ -55,6 +55,41 @@ func _setup_visual_and_audio_effects() -> void:
 		_electric_light.omni_range = 4.5
 		_electric_light.position = Vector3(0, 1.2, 0)
 		player.add_child(_electric_light)
+
+	# Detailed animated electric sparks particle system
+	_spark_particles = player.get_node_or_null("ElectricSparksParticles") as GPUParticles3D
+	if not _spark_particles:
+		_spark_particles = GPUParticles3D.new()
+		_spark_particles.name = "ElectricSparksParticles"
+		_spark_particles.amount = 48
+		_spark_particles.lifetime = 0.35
+		_spark_particles.explosiveness = 0.1
+		_spark_particles.randomness = 0.85
+		_spark_particles.emitting = false
+
+		var p_mat := ParticleProcessMaterial.new()
+		p_mat.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_BOX
+		p_mat.emission_box_extents = Vector3(0.35, 0.95, 0.35)
+		p_mat.direction = Vector3(0, 1, 0)
+		p_mat.spread = 180.0
+		p_mat.initial_velocity_min = 0.6
+		p_mat.initial_velocity_max = 2.4
+		p_mat.gravity = Vector3(0, 1.5, 0)
+		p_mat.color = Color(0.2, 0.9, 1.0, 1.0)
+
+		var quad := QuadMesh.new()
+		quad.size = Vector2(0.12, 0.12)
+		var spark_mat := StandardMaterial3D.new()
+		spark_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		spark_mat.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+		spark_mat.albedo_color = Color(0.35, 0.95, 1.0, 0.95)
+		spark_mat.billboard_mode = BaseMaterial3D.BILLBOARD_PARTICLES
+		quad.material = spark_mat
+		_spark_particles.draw_pass_1 = quad
+
+		_spark_particles.process_material = p_mat
+		_spark_particles.position = Vector3(0, 1.1, 0)
+		player.add_child(_spark_particles)
 
 func _setup_surface_detector() -> void:
 	if not player:
@@ -146,7 +181,7 @@ func physics_update_mechanics(delta: float) -> void:
 
 func _check_and_apply_magnetic_attraction(delta: float) -> void:
 	var ceil_mat := _surface_detector.current_ceiling_material
-	var is_magnetic_surface := (ceil_mat != null and (ceil_mat.is_magnetic or ceil_mat.is_metallic))
+	var is_magnetic_surface := (ceil_mat != null and ceil_mat.is_magnetic)
 
 	var overhead_ray := _surface_detector.get_node_or_null("OverheadMaterialRay") as RayCast3D
 	
@@ -209,5 +244,8 @@ func _set_upside_down(upside_down: bool) -> void:
 
 func _update_spark_visuals() -> void:
 	if _electric_light:
-		var target_energy := (static_charge / MAX_STATIC_CHARGE) * 2.5 if is_electrified else 0.0
-		_electric_light.light_energy = lerpf(_electric_light.light_energy, target_energy, 0.1)
+		var target_energy := (static_charge / MAX_STATIC_CHARGE) * 3.2 if is_electrified else 0.0
+		_electric_light.light_energy = lerpf(_electric_light.light_energy, target_energy, 0.15)
+
+	if _spark_particles:
+		_spark_particles.emitting = is_electrified
