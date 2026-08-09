@@ -150,8 +150,10 @@ func _update_active_room_ui() -> void:
 	if active_status_label:
 		if is_server:
 			active_status_label.text = "👑 ВЫ ХОСТ | IP: %s:%d" % [best_ip, NetworkManager.current_port if NetworkManager else 8910]
-		else:
+		elif is_in_game and multiplayer and multiplayer.has_multiplayer_peer():
 			active_status_label.text = "🎮 ПОДКЛЮЧЕНО К ХОСТУ (Client ID: %d)" % multiplayer.get_unique_id()
+		else:
+			active_status_label.text = "⏳ ОЖИДАНИЕ ПОДКЛЮЧЕНИЯ..."
 
 	if start_match_btn:
 		if is_server:
@@ -191,7 +193,7 @@ func _on_player_list_changed(players: Dictionary) -> void:
 
 func _on_character_choices_updated() -> void:
 	if NetworkManager:
-		var my_id := multiplayer.get_unique_id() if (multiplayer and multiplayer.multiplayer_peer) else 1
+		var my_id := multiplayer.get_unique_id() if (multiplayer and multiplayer.has_multiplayer_peer()) else 1
 		var my_char := NetworkManager.get_character_for_peer(my_id)
 		if btn_select_fat and btn_select_thin:
 			btn_select_fat.modulate = Color(1.4, 1.4, 1.4) if my_char == "fat" else Color(0.5, 0.5, 0.5)
@@ -224,10 +226,10 @@ func _update_player_cards() -> void:
 		c.queue_free()
 
 	var players: Dictionary = NetworkManager.connected_players
-	var my_id: int = multiplayer.get_unique_id() if (multiplayer and multiplayer.multiplayer_peer) else 1
+	var my_id: int = multiplayer.get_unique_id() if (multiplayer and multiplayer.has_multiplayer_peer()) else 1
 
 	if players.is_empty():
-		var is_server := multiplayer.is_server() if (multiplayer and multiplayer.multiplayer_peer) else true
+		var is_server := multiplayer.is_server() if (multiplayer and multiplayer.has_multiplayer_peer()) else true
 		var title := "👑 Хост [ВЫ]" if is_server else "🎮 Игрок [ВЫ] (ID: %d)" % my_id
 		var dummy_card := _create_player_card(title, NetworkManager.local_character_id, true)
 		player_cards_container.add_child(dummy_card)
