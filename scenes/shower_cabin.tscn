@@ -1,6 +1,14 @@
 [gd_scene load_steps=12 format=3 uid="uid://c8showercabin01"]
 
 [ext_resource type="Script" uid="uid://cqffmq4t2fuvg" path="res://scripts/objects/shower_cabin.gd" id="1_shower"]
+[ext_resource type="Shader" path="res://shaders/toon_outline.gdshader" id="2_outline"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_outline"]
+render_priority = 0
+shader = ExtResource("2_outline")
+shader_parameter/outline_width = 0.025
+shader_parameter/outline_color = Color(0.08, 0.08, 0.12, 1)
+shader_parameter/use_smooth_normals = true
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_trigger"]
 size = Vector3(2.4, 2.6, 2.4)
@@ -23,6 +31,7 @@ material = SubResource("StandardMaterial3D_tile")
 size = Vector3(2, 0.1, 2)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_metal"]
+next_pass = SubResource("ShaderMaterial_outline")
 albedo_color = Color(1, 0.85, 0.2, 1)
 metallic = 0.8
 roughness = 0.2

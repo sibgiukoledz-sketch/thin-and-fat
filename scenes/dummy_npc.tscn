@@ -1,12 +1,21 @@
 [gd_scene format=3 uid="uid://c8dummynpc01"]
 
 [ext_resource type="Script" uid="uid://d1tsm3kd5lt6u" path="res://scripts/npc/dummy_npc.gd" id="1_dummy"]
+[ext_resource type="Shader" path="res://shaders/toon_outline.gdshader" id="2_outline"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_outline"]
+render_priority = 0
+shader = ExtResource("2_outline")
+shader_parameter/outline_width = 0.025
+shader_parameter/outline_color = Color(0.08, 0.08, 0.12, 1)
+shader_parameter/use_smooth_normals = true
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_dummy"]
 radius = 0.45
 height = 1.8
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_bot_body"]
+next_pass = SubResource("ShaderMaterial_outline")
 albedo_color = Color(1, 0.78, 0.12, 1)
 roughness = 0.35
 rim_enabled = true
@@ -14,10 +23,12 @@ rim = 0.3
 rim_tint = 0.5
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_bot_dark"]
+next_pass = SubResource("ShaderMaterial_outline")
 albedo_color = Color(0.16, 0.17, 0.2, 1)
 roughness = 0.4
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_target_red"]
+next_pass = SubResource("ShaderMaterial_outline")
 albedo_color = Color(0.96, 0.22, 0.2, 1)
 roughness = 0.3
 
