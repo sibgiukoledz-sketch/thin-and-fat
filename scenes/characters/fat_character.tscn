@@ -3,51 +3,188 @@
 [ext_resource type="Script" uid="uid://be06tg2s01yrq" path="res://scripts/characters/fat_character.gd" id="1_fatchar"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_skin"]
-albedo_color = Color(0.52, 0.5, 0.48, 1)
-roughness = 0.55
+albedo_color = Color(1, 0.82, 0.72, 1)
+roughness = 0.35
+rim_enabled = true
+rim = 0.35
+rim_tint = 0.4
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_hoodie"]
+albedo_color = Color(0.96, 0.28, 0.22, 1)
+roughness = 0.4
+rim_enabled = true
+rim = 0.25
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_hoodie_white"]
+albedo_color = Color(0.96, 0.96, 0.96, 1)
+roughness = 0.35
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_denim"]
+albedo_color = Color(0.18, 0.42, 0.82, 1)
+roughness = 0.45
+rim_enabled = true
+rim = 0.2
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_belt"]
+albedo_color = Color(0.38, 0.22, 0.12, 1)
+roughness = 0.5
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_buckle"]
+albedo_color = Color(1, 0.82, 0.15, 1)
+metallic = 0.7
+roughness = 0.2
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_sneaker_red"]
+albedo_color = Color(0.92, 0.22, 0.22, 1)
+roughness = 0.35
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_sneaker_sole"]
+albedo_color = Color(0.96, 0.96, 0.96, 1)
+roughness = 0.25
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_cap"]
+albedo_color = Color(0.12, 0.72, 0.92, 1)
+roughness = 0.35
+rim_enabled = true
+rim = 0.25
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_cap_visor"]
+albedo_color = Color(0.08, 0.56, 0.76, 1)
+roughness = 0.35
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_eye_white"]
+albedo_color = Color(0.98, 0.98, 0.98, 1)
+roughness = 0.1
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_pupil"]
+albedo_color = Color(0.08, 0.08, 0.1, 1)
+roughness = 0.1
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_eye_highlight"]
+albedo_color = Color(1, 1, 1, 1)
+emission_enabled = true
+emission = Color(1, 1, 1, 1)
+emission_energy_multiplier = 0.6
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_blush"]
+transparency = 1
+albedo_color = Color(1, 0.42, 0.55, 0.65)
+roughness = 0.6
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_eyebrow"]
+albedo_color = Color(0.35, 0.2, 0.1, 1)
+roughness = 0.5
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_mouth"]
+albedo_color = Color(0.85, 0.22, 0.28, 1)
+roughness = 0.3
 
 [sub_resource type="SphereMesh" id="SphereMesh_belly"]
-material = SubResource("StandardMaterial3D_skin")
+material = SubResource("StandardMaterial3D_hoodie")
 radius = 0.75
 height = 1.35
 radial_segments = 32
 rings = 24
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_pants"]
-albedo_color = Color(0.18, 0.2, 0.26, 1)
-roughness = 0.65
+[sub_resource type="BoxMesh" id="BoxMesh_pocket"]
+material = SubResource("StandardMaterial3D_hoodie")
+size = Vector3(0.55, 0.25, 0.18)
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_string"]
+material = SubResource("StandardMaterial3D_hoodie_white")
+top_radius = 0.015
+bottom_radius = 0.015
+height = 0.22
 
 [sub_resource type="SphereMesh" id="SphereMesh_pants"]
-material = SubResource("StandardMaterial3D_pants")
+material = SubResource("StandardMaterial3D_denim")
 radius = 0.7
 height = 0.75
 
-[sub_resource type="BoxMesh" id="BoxMesh_foot"]
-material = SubResource("StandardMaterial3D_pants")
-size = Vector3(0.26, 0.14, 0.32)
+[sub_resource type="TorusMesh" id="TorusMesh_belt"]
+material = SubResource("StandardMaterial3D_belt")
+inner_radius = 0.67
+outer_radius = 0.73
 
-[sub_resource type="CylinderMesh" id="CylinderMesh_arm"]
-material = SubResource("StandardMaterial3D_skin")
+[sub_resource type="BoxMesh" id="BoxMesh_buckle"]
+material = SubResource("StandardMaterial3D_buckle")
+size = Vector3(0.14, 0.08, 0.04)
+
+[sub_resource type="BoxMesh" id="BoxMesh_foot_top"]
+material = SubResource("StandardMaterial3D_sneaker_red")
+size = Vector3(0.26, 0.12, 0.32)
+
+[sub_resource type="BoxMesh" id="BoxMesh_foot_sole"]
+material = SubResource("StandardMaterial3D_sneaker_sole")
+size = Vector3(0.28, 0.05, 0.34)
+
+[sub_resource type="SphereMesh" id="SphereMesh_foot_toe"]
+material = SubResource("StandardMaterial3D_sneaker_sole")
+radius = 0.13
+height = 0.14
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_sleeve"]
+material = SubResource("StandardMaterial3D_hoodie")
 top_radius = 0.24
+bottom_radius = 0.16
+height = 0.55
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_forearm"]
+material = SubResource("StandardMaterial3D_skin")
+top_radius = 0.15
 bottom_radius = 0.12
-height = 0.95
+height = 0.4
+
+[sub_resource type="SphereMesh" id="SphereMesh_hand"]
+material = SubResource("StandardMaterial3D_skin")
+radius = 0.14
+height = 0.2
 
 [sub_resource type="SphereMesh" id="SphereMesh_head"]
 material = SubResource("StandardMaterial3D_skin")
 radius = 0.28
 height = 0.56
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_face"]
-albedo_color = Color(0.08, 0.08, 0.08, 1)
-roughness = 0.8
+[sub_resource type="SphereMesh" id="SphereMesh_cap"]
+material = SubResource("StandardMaterial3D_cap")
+radius = 0.29
+height = 0.35
 
-[sub_resource type="SphereMesh" id="SphereMesh_eye"]
-material = SubResource("StandardMaterial3D_face")
-radius = 0.026
-height = 0.05
+[sub_resource type="BoxMesh" id="BoxMesh_cap_visor"]
+material = SubResource("StandardMaterial3D_cap_visor")
+size = Vector3(0.26, 0.03, 0.18)
+
+[sub_resource type="SphereMesh" id="SphereMesh_cap_btn"]
+material = SubResource("StandardMaterial3D_cap_visor")
+radius = 0.04
+height = 0.04
+
+[sub_resource type="SphereMesh" id="SphereMesh_sclera"]
+material = SubResource("StandardMaterial3D_eye_white")
+radius = 0.055
+height = 0.08
+
+[sub_resource type="SphereMesh" id="SphereMesh_pupil"]
+material = SubResource("StandardMaterial3D_pupil")
+radius = 0.032
+height = 0.045
+
+[sub_resource type="SphereMesh" id="SphereMesh_highlight"]
+material = SubResource("StandardMaterial3D_eye_highlight")
+radius = 0.012
+height = 0.015
+
+[sub_resource type="BoxMesh" id="BoxMesh_eyebrow"]
+material = SubResource("StandardMaterial3D_eyebrow")
+size = Vector3(0.08, 0.02, 0.02)
+
+[sub_resource type="SphereMesh" id="SphereMesh_blush"]
+material = SubResource("StandardMaterial3D_blush")
+radius = 0.045
+height = 0.025
 
 [sub_resource type="TorusMesh" id="TorusMesh_smile"]
-material = SubResource("StandardMaterial3D_face")
+material = SubResource("StandardMaterial3D_mouth")
 inner_radius = 0.045
 outer_radius = 0.065
 
@@ -345,43 +482,145 @@ script = ExtResource("1_fatchar")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.85, 0)
 mesh = SubResource("SphereMesh_belly")
 
+[node name="KangarooPocket" type="MeshInstance3D" parent="Skeleton3D/GiantBelly" unique_id=485421280]
+transform = Transform3D(1, 0, 0, 0, 0.965926, 0.258819, 0, -0.258819, 0.965926, 0, -0.1, -0.68)
+mesh = SubResource("BoxMesh_pocket")
+
+[node name="HoodString_L" type="MeshInstance3D" parent="Skeleton3D/GiantBelly" unique_id=485421281]
+transform = Transform3D(0.965926, 0.258819, 0, -0.258819, 0.965926, 0, 0, 0, 1, -0.12, 0.45, -0.55)
+mesh = SubResource("CylinderMesh_string")
+
+[node name="HoodString_R" type="MeshInstance3D" parent="Skeleton3D/GiantBelly" unique_id=485421282]
+transform = Transform3D(0.965926, -0.258819, 0, 0.258819, 0.965926, 0, 0, 0, 1, 0.12, 0.45, -0.55)
+mesh = SubResource("CylinderMesh_string")
+
 [node name="DarkPants" type="MeshInstance3D" parent="Skeleton3D" unique_id=871433704]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.38, 0)
 mesh = SubResource("SphereMesh_pants")
+
+[node name="Belt" type="MeshInstance3D" parent="Skeleton3D/DarkPants" unique_id=871433705]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 0.08, 0)
+mesh = SubResource("TorusMesh_belt")
+
+[node name="Buckle" type="MeshInstance3D" parent="Skeleton3D/DarkPants/Belt" unique_id=871433706]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.69, 0)
+mesh = SubResource("BoxMesh_buckle")
 
 [node name="Hip_L" type="Node3D" parent="Skeleton3D" unique_id=2128680769]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.28, 0.75, 0)
 
 [node name="Foot_L" type="MeshInstance3D" parent="Skeleton3D/Hip_L"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.68, -0.05)
-mesh = SubResource("BoxMesh_foot")
+mesh = SubResource("BoxMesh_foot_top")
+
+[node name="Sole_L" type="MeshInstance3D" parent="Skeleton3D/Hip_L/Foot_L" unique_id=2128680770]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.07, 0)
+mesh = SubResource("BoxMesh_foot_sole")
+
+[node name="Toe_L" type="MeshInstance3D" parent="Skeleton3D/Hip_L/Foot_L" unique_id=2128680771]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.02, -0.16)
+mesh = SubResource("SphereMesh_foot_toe")
 
 [node name="Hip_R" type="Node3D" parent="Skeleton3D" unique_id=1350003925]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.28, 0.75, 0)
 
 [node name="Foot_R" type="MeshInstance3D" parent="Skeleton3D/Hip_R"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.68, -0.05)
-mesh = SubResource("BoxMesh_foot")
+mesh = SubResource("BoxMesh_foot_top")
 
-[node name="Arm_L" type="MeshInstance3D" parent="Skeleton3D" unique_id=380552535]
+[node name="Sole_R" type="MeshInstance3D" parent="Skeleton3D/Hip_R/Foot_R" unique_id=1350003926]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.07, 0)
+mesh = SubResource("BoxMesh_foot_sole")
+
+[node name="Toe_R" type="MeshInstance3D" parent="Skeleton3D/Hip_R/Foot_R" unique_id=1350003927]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.02, -0.16)
+mesh = SubResource("SphereMesh_foot_toe")
+
+[node name="Arm_L" type="Node3D" parent="Skeleton3D" unique_id=380552535]
 transform = Transform3D(0, 1, 0, -1, 0, 0, 0, 0, 1, -0.95, 1.12, 0)
-mesh = SubResource("CylinderMesh_arm")
 
-[node name="Arm_R" type="MeshInstance3D" parent="Skeleton3D" unique_id=1284040021]
+[node name="Sleeve_L" type="MeshInstance3D" parent="Skeleton3D/Arm_L" unique_id=380552536]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0)
+mesh = SubResource("CylinderMesh_sleeve")
+
+[node name="Forearm_L" type="MeshInstance3D" parent="Skeleton3D/Arm_L" unique_id=380552537]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.22, 0)
+mesh = SubResource("CylinderMesh_forearm")
+
+[node name="Hand_L" type="MeshInstance3D" parent="Skeleton3D/Arm_L" unique_id=380552538]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.44, 0)
+mesh = SubResource("SphereMesh_hand")
+
+[node name="Arm_R" type="Node3D" parent="Skeleton3D" unique_id=1284040021]
 transform = Transform3D(0, -1, 0, 1, 0, 0, 0, 0, 1, 0.95, 1.12, 0)
-mesh = SubResource("CylinderMesh_arm")
+
+[node name="Sleeve_R" type="MeshInstance3D" parent="Skeleton3D/Arm_R" unique_id=1284040022]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0)
+mesh = SubResource("CylinderMesh_sleeve")
+
+[node name="Forearm_R" type="MeshInstance3D" parent="Skeleton3D/Arm_R" unique_id=1284040023]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.22, 0)
+mesh = SubResource("CylinderMesh_forearm")
+
+[node name="Hand_R" type="MeshInstance3D" parent="Skeleton3D/Arm_R" unique_id=1284040024]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.44, 0)
+mesh = SubResource("SphereMesh_hand")
 
 [node name="RoundHead" type="MeshInstance3D" parent="Skeleton3D" unique_id=1031068961]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.58, 0)
 mesh = SubResource("SphereMesh_head")
 
+[node name="Cap" type="MeshInstance3D" parent="Skeleton3D/RoundHead" unique_id=1031068962]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.14, 0.02)
+mesh = SubResource("SphereMesh_cap")
+
+[node name="CapVisor" type="MeshInstance3D" parent="Skeleton3D/RoundHead/Cap" unique_id=1031068963]
+transform = Transform3D(1, 0, 0, 0, 0.965926, -0.258819, 0, 0.258819, 0.965926, 0, 0.05, 0.28)
+mesh = SubResource("BoxMesh_cap_visor")
+
+[node name="CapButton" type="MeshInstance3D" parent="Skeleton3D/RoundHead/Cap" unique_id=1031068964]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.17, 0)
+mesh = SubResource("SphereMesh_cap_btn")
+
 [node name="Eye_L" type="MeshInstance3D" parent="Skeleton3D/RoundHead" unique_id=100610979]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.075, 0.04, -0.265)
-mesh = SubResource("SphereMesh_eye")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.09, 0.05, -0.25)
+mesh = SubResource("SphereMesh_sclera")
+
+[node name="Pupil_L" type="MeshInstance3D" parent="Skeleton3D/RoundHead/Eye_L" unique_id=100610980]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.028)
+mesh = SubResource("SphereMesh_pupil")
+
+[node name="Highlight_L" type="MeshInstance3D" parent="Skeleton3D/RoundHead/Eye_L/Pupil_L" unique_id=100610981]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.012, 0.014, -0.015)
+mesh = SubResource("SphereMesh_highlight")
 
 [node name="Eye_R" type="MeshInstance3D" parent="Skeleton3D/RoundHead" unique_id=1316575595]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.075, 0.04, -0.265)
-mesh = SubResource("SphereMesh_eye")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.09, 0.05, -0.25)
+mesh = SubResource("SphereMesh_sclera")
+
+[node name="Pupil_R" type="MeshInstance3D" parent="Skeleton3D/RoundHead/Eye_R" unique_id=1316575596]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.028)
+mesh = SubResource("SphereMesh_pupil")
+
+[node name="Highlight_R" type="MeshInstance3D" parent="Skeleton3D/RoundHead/Eye_R/Pupil_R" unique_id=1316575597]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.012, 0.014, -0.015)
+mesh = SubResource("SphereMesh_highlight")
+
+[node name="Eyebrow_L" type="MeshInstance3D" parent="Skeleton3D/RoundHead" unique_id=1031068965]
+transform = Transform3D(0.984808, -0.173648, 0, 0.173648, 0.984808, 0, 0, 0, 1, -0.09, 0.12, -0.25)
+mesh = SubResource("BoxMesh_eyebrow")
+
+[node name="Eyebrow_R" type="MeshInstance3D" parent="Skeleton3D/RoundHead" unique_id=1031068966]
+transform = Transform3D(0.984808, 0.173648, 0, -0.173648, 0.984808, 0, 0, 0, 1, 0.09, 0.12, -0.25)
+mesh = SubResource("BoxMesh_eyebrow")
+
+[node name="Blush_L" type="MeshInstance3D" parent="Skeleton3D/RoundHead" unique_id=1031068967]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.15, -0.02, -0.22)
+mesh = SubResource("SphereMesh_blush")
+
+[node name="Blush_R" type="MeshInstance3D" parent="Skeleton3D/RoundHead" unique_id=1031068968]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.15, -0.02, -0.22)
+mesh = SubResource("SphereMesh_blush")
 
 [node name="Smile" type="MeshInstance3D" parent="Skeleton3D/RoundHead" unique_id=1504676167]
 transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, -0.06, -0.268)

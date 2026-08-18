@@ -9,8 +9,8 @@ extends Node3D
 
 @onready var skeleton_3d: Skeleton3D = $Skeleton3D
 @onready var animation_player: AnimationPlayer = get_node_or_null("AnimationPlayer") as AnimationPlayer
-@onready var arm_l: MeshInstance3D = get_node_or_null("Skeleton3D/Arm_L") as MeshInstance3D
-@onready var arm_r: MeshInstance3D = get_node_or_null("Skeleton3D/Arm_R") as MeshInstance3D
+@onready var arm_l: Node3D = get_node_or_null("Skeleton3D/Arm_L") as Node3D
+@onready var arm_r: Node3D = get_node_or_null("Skeleton3D/Arm_R") as Node3D
 
 var is_ragdoll: bool = false
 var is_carrying_pose: bool = false
