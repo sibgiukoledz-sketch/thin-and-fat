@@ -1,6 +1,12 @@
-extends Control
+extends Node3D
 
-## Modern Main Menu script supporting instant Radmin VPN hosting, lobby joining, and character picking.
+## Modern 3D Main Menu Controller:
+## - Interactive 3D Diorama with live Fat & Thin character models and idle physics.
+## - Cinematic parallax camera following mouse movement with smooth damping.
+## - Character switcher with smooth 3D camera pan & spotlight transition.
+## - Button hover micro-animations (elastic scale, sound, glow).
+## - Radmin VPN / Local IP auto-detection and copy helper.
+## - Audio & Voice chat settings dialog integration.
 
 @onready var host_instant_btn: Button = %HostInstantButton
 @onready var lobby_btn: Button = %LobbyButton
@@ -13,8 +19,24 @@ extends Control
 @onready var radmin_label: Label = %RadminLabel
 @onready var char_name_label: Label = %CharNameLabel
 @onready var char_desc_label: Label = %CharDescLabel
+@onready var char_hp_bar: ProgressBar = %CharHpBar
+@onready var char_stamina_bar: ProgressBar = %CharStaminaBar
+
+# 3D Scene Elements
+@onready var camera_rig: Node3D = %CameraRig
+@onready var camera_3d: Camera3D = %MenuCamera3D
+@onready var fat_model: Node3D = %FatModel
+@onready var thin_model: Node3D = %ThinModel
+@onready var fat_spotlight: SpotLight3D = %FatSpotlight
+@onready var thin_spotlight: SpotLight3D = %ThinSpotlight
 
 var selected_character: String = "fat"
+var _mouse_target_rot: Vector2 = Vector2.ZERO
+var _current_cam_rot: Vector2 = Vector2.ZERO
+
+const CAM_FAT_POS: Vector3 = Vector3(-0.9, 1.4, 3.4)
+const CAM_THIN_POS: Vector3 = Vector3(0.9, 1.6, 3.4)
+const CAM_CENTER_POS: Vector3 = Vector3(0.0, 1.5, 3.8)
 
 func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
@@ -53,8 +75,39 @@ func _ready() -> void:
 			_on_copy_ip_pressed()
 		)
 
+	_setup_button_animations()
 	_update_network_info()
 	_update_character_ui("fat")
+
+func _process(delta: float) -> void:
+	# Subtle 3D mouse parallax
+	_current_cam_rot = _current_cam_rot.lerp(_mouse_target_rot, delta * 3.0)
+	if camera_rig:
+		camera_rig.rotation_degrees.y = _current_cam_rot.x * 6.0
+		camera_rig.rotation_degrees.x = -_current_cam_rot.y * 3.5
+
+func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventMouseMotion:
+		var vp_size := get_viewport().get_visible_rect().size
+		if vp_size.x > 0 and vp_size.y > 0:
+			var norm_x: float = (event.position.x / vp_size.x) - 0.5
+			var norm_y: float = (event.position.y / vp_size.y) - 0.5
+			_mouse_target_rot = Vector2(norm_x, norm_y)
+
+func _setup_button_animations() -> void:
+	var buttons := [host_instant_btn, lobby_btn, char_select_btn, audio_settings_btn, quit_btn, copy_ip_btn]
+	for btn in buttons:
+		if not btn: continue
+		btn.pivot_offset = btn.size * 0.5
+		btn.mouse_entered.connect(func():
+			if AudioManager: AudioManager.play_sfx_2d("ui_hover")
+			var tw := create_tween().set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+			tw.tween_property(btn, "scale", Vector2(1.04, 1.04), 0.16)
+		)
+		btn.mouse_exited.connect(func():
+			var tw := create_tween().set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+			tw.tween_property(btn, "scale", Vector2.ONE, 0.16)
+		)
 
 func _update_network_info() -> void:
 	if not NetworkManager or not radmin_label:
@@ -63,13 +116,11 @@ func _update_network_info() -> void:
 	var local_ip := NetworkManager.get_local_ip_address()
 
 	if radmin != "":
-		radmin_label.text = "🌐 RADMIN VPN ОБНАРУЖЕН: %s" % radmin
-		if copy_ip_btn:
-			copy_ip_btn.show()
+		radmin_label.text = "🌐 RADMIN VPN: %s" % radmin
+		if copy_ip_btn: copy_ip_btn.show()
 	else:
-		radmin_label.text = "🌐 IP: %s (Для игры с другом запустите Radmin VPN)" % local_ip
-		if copy_ip_btn:
-			copy_ip_btn.show()
+		radmin_label.text = "🌐 IP: %s (Запустите Radmin VPN для игры онлайн)" % local_ip
+		if copy_ip_btn: copy_ip_btn.show()
 
 func _on_copy_ip_pressed() -> void:
 	var ip := NetworkManager.get_local_ip_address() if NetworkManager else "127.0.0.1"
@@ -93,17 +144,38 @@ func _update_character_ui(id: String) -> void:
 	if NetworkManager:
 		NetworkManager.set_local_character(id)
 
+	var target_cam_pos := CAM_CENTER_POS
 	if id == "fat":
+		target_cam_pos = CAM_FAT_POS
 		if char_name_label:
-			char_name_label.text = "🦛 2. ЖИРДЯЙ (FAT)"
+			char_name_label.text = "🦛 ТОЛСТЯК (FAT)"
 		if char_desc_label:
-			char_desc_label.text = "160 HP | Силач: Толкает 450кг валуны | Токсичный пердёж | Маленький прыжок"
-		if char_select_btn:
-			char_select_btn.text = "🦛 ВЫБРАН: ЖИРДЯЙ (КЛИК ДЛЯ СМЕНЫ)"
+			char_desc_label.text = "• Здоровье: 160 HP\n• Силач: Поднимает и бросает 450 кг валуны на [E]\n• Токсичная вонь: Травит врагов и заряжает облако\n• Батут: Ложится на спину на [B] и подбрасывает напарника"
+		if char_hp_bar:
+			char_hp_bar.value = 160
+			char_hp_bar.max_value = 160
+		if char_stamina_bar:
+			char_stamina_bar.value = 80
+			char_stamina_bar.max_value = 100
+
+		if fat_spotlight: fat_spotlight.light_energy = 3.5
+		if thin_spotlight: thin_spotlight.light_energy = 0.6
 	else:
+		target_cam_pos = CAM_THIN_POS
 		if char_name_label:
-			char_name_label.text = "🦒 1. ХУДОЙ (THIN)"
+			char_name_label.text = "🦒 ХУДОЙ (THIN)"
 		if char_desc_label:
-			char_desc_label.text = "80 HP | Атлет: Высокий прыжок (8.5м/с) | Блинчик-плинтус под двери"
-		if char_select_btn:
-			char_select_btn.text = "🦒 ВЫБРАН: ХУДОЙ (КЛИК ДЛЯ СМЕНЫ)"
+			char_desc_label.text = "• Здоровье: 80 HP | Выносливость: 120 (Высокий спринт и прыжок)\n• Бумага: Сплющивается в лист на [C] / [E] и пролезает в любые щели\n• Потолочный альпинизм: Ползает по металлическим потолкам\n• Статический разряд: Накапливает ток на коврах и бьет током"
+		if char_hp_bar:
+			char_hp_bar.value = 80
+			char_hp_bar.max_value = 160
+		if char_stamina_bar:
+			char_stamina_bar.value = 120
+			char_stamina_bar.max_value = 120
+
+		if fat_spotlight: fat_spotlight.light_energy = 0.6
+		if thin_spotlight: thin_spotlight.light_energy = 3.5
+
+	if camera_3d:
+		var tw_cam := create_tween().set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		tw_cam.tween_property(camera_3d, "position", target_cam_pos, 0.45)

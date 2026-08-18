@@ -158,7 +158,7 @@ func start_game_match() -> void:
 
 @rpc("call_local", "reliable")
 func rpc_load_match() -> void:
-	get_tree().change_scene_to_file("res://scenes/world.tscn")
+	get_tree().change_scene_to_file("res://scenes/ui/loading_screen.tscn")
 
 func disconnect_game() -> void:
 	if peer:

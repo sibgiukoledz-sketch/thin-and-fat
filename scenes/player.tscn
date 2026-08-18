@@ -10,6 +10,7 @@
 [ext_resource type="Script" path="res://scripts/player/states/player_air.gd" id="8_air"]
 [ext_resource type="Shader" path="res://shaders/nausea_shader.gdshader" id="9_shader"]
 [ext_resource type="PackedScene" path="res://scenes/ui/audio_settings_dialog.tscn" id="10_audio_dialog"]
+[ext_resource type="PackedScene" path="res://scenes/ui/pause_menu.tscn" id="11_pause"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_player"]
 radius = 0.4
@@ -645,5 +646,9 @@ theme_override_constants/outline_size = 4
 theme_override_font_sizes/font_size = 12
 text = "ТОЛЧОК (РОГАТКА)"
 horizontal_alignment = 1
+
+[node name="PauseMenu" parent="HUD" instance=ExtResource("11_pause")]
+layout_mode = 3
+anchors_preset = 15
 
 

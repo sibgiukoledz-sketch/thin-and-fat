@@ -1,39 +1,64 @@
-[gd_scene load_steps=10 format=3 uid="uid://c8mainmenufps01"]
+[gd_scene load_steps=22 format=3 uid="uid://c8mainmenufps01"]
 
 [ext_resource type="Script" path="res://scripts/ui/main_menu.gd" id="1_menu"]
 [ext_resource type="PackedScene" path="res://scenes/ui/audio_settings_dialog.tscn" id="2_audio_dialog"]
+[ext_resource type="PackedScene" path="res://scenes/characters/fat_character.tscn" id="3_fat_char"]
+[ext_resource type="PackedScene" path="res://scenes/characters/thin_character.tscn" id="4_thin_char"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dark_bg"]
-bg_color = Color(0.06, 0.08, 0.12, 1)
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sky"]
+sky_top_color = Color(0.18, 0.45, 0.75, 1)
+sky_horizon_color = Color(0.65, 0.8, 0.95, 1)
+ground_bottom_color = Color(0.08, 0.12, 0.18, 1)
+ground_horizon_color = Color(0.65, 0.8, 0.95, 1)
+
+[sub_resource type="Sky" id="Sky_env"]
+sky_material = SubResource("ProceduralSkyMaterial_sky")
+
+[sub_resource type="Environment" id="Environment_main"]
+background_mode = 2
+sky = SubResource("Sky_env")
+ambient_light_source = 3
+ambient_light_color = Color(0.7, 0.8, 0.95, 1)
+ambient_light_energy = 0.85
+tonemap_mode = 2
+glow_enabled = true
+glow_bloom = 0.15
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_pedestal"]
+albedo_color = Color(0.16, 0.22, 0.32, 1)
+roughness = 0.4
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_pedestal"]
+material = SubResource("StandardMaterial3D_pedestal")
+top_radius = 3.2
+bottom_radius = 3.5
+height = 0.35
+radial_segments = 48
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_floor"]
+albedo_color = Color(0.06, 0.09, 0.14, 1)
+roughness = 0.6
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_floor"]
+material = SubResource("StandardMaterial3D_floor")
+size = Vector2(80, 80)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_card"]
-bg_color = Color(0.1, 0.14, 0.2, 0.95)
+bg_color = Color(0.07, 0.1, 0.16, 0.88)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
-border_color = Color(0.3, 0.65, 0.95, 0.6)
+border_color = Color(0.25, 0.65, 0.95, 0.5)
 corner_radius_top_left = 16
 corner_radius_top_right = 16
 corner_radius_bottom_right = 16
 corner_radius_bottom_left = 16
-shadow_color = Color(0.0, 0.0, 0.0, 0.5)
-shadow_size = 12
+shadow_color = Color(0, 0, 0, 0.5)
+shadow_size = 14
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_radmin_card"]
-bg_color = Color(0.12, 0.18, 0.26, 0.9)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.2, 0.8, 1, 0.6)
-corner_radius_top_left = 10
-corner_radius_top_right = 10
-corner_radius_bottom_right = 10
-corner_radius_bottom_left = 10
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_primary_btn"]
-bg_color = Color(0.15, 0.65, 0.35, 1)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_primary"]
+bg_color = Color(0.16, 0.68, 0.36, 1)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
@@ -43,11 +68,11 @@ corner_radius_top_left = 10
 corner_radius_top_right = 10
 corner_radius_bottom_right = 10
 corner_radius_bottom_left = 10
-shadow_color = Color(0.1, 0.4, 0.2, 0.4)
+shadow_color = Color(0.1, 0.45, 0.22, 0.3)
 shadow_size = 6
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_primary_btn_hover"]
-bg_color = Color(0.2, 0.8, 0.4, 1)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_primary_hover"]
+bg_color = Color(0.22, 0.82, 0.44, 1)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
@@ -58,257 +83,356 @@ corner_radius_top_right = 10
 corner_radius_bottom_right = 10
 corner_radius_bottom_left = 10
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn"]
-bg_color = Color(0.16, 0.24, 0.36, 0.95)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0.35, 0.65, 0.95, 0.5)
-corner_radius_top_left = 10
-corner_radius_top_right = 10
-corner_radius_bottom_right = 10
-corner_radius_bottom_left = 10
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_hover"]
-bg_color = Color(0.24, 0.42, 0.68, 1)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_secondary"]
+bg_color = Color(0.14, 0.2, 0.3, 0.9)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
-border_color = Color(0.5, 0.85, 1, 0.9)
+border_color = Color(0.3, 0.6, 0.85, 0.5)
 corner_radius_top_left = 10
 corner_radius_top_right = 10
 corner_radius_bottom_right = 10
 corner_radius_bottom_left = 10
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_quit_btn"]
-bg_color = Color(0.45, 0.15, 0.15, 0.9)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0.9, 0.35, 0.35, 0.6)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_secondary_hover"]
+bg_color = Color(0.2, 0.3, 0.45, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.45, 0.8, 1, 0.8)
 corner_radius_top_left = 10
 corner_radius_top_right = 10
 corner_radius_bottom_right = 10
 corner_radius_bottom_left = 10
 
-[node name="MainMenu" type="Control"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_danger"]
+bg_color = Color(0.65, 0.18, 0.18, 0.85)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.9, 0.35, 0.35, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_danger_hover"]
+bg_color = Color(0.8, 0.22, 0.22, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0.55, 0.55, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hp_fill"]
+bg_color = Color(0.2, 0.85, 0.4, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_stamina_fill"]
+bg_color = Color(0.18, 0.7, 0.95, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[node name="MainMenu" type="Node3D"]
+script = ExtResource("1_menu")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_main")
+
+[node name="SunLight" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.866025, -0.353553, 0.353553, 0, 0.707107, 0.707107, -0.5, -0.612372, 0.612372, 5, 8, 5)
+light_color = Color(1, 0.96, 0.9, 1)
+light_energy = 1.2
+shadow_enabled = true
+
+[node name="FloorPlane" type="MeshInstance3D" parent="."]
+mesh = SubResource("PlaneMesh_floor")
+
+[node name="DioramaStage" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+
+[node name="PedestalMesh" type="MeshInstance3D" parent="DioramaStage"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.175, 0)
+mesh = SubResource("CylinderMesh_pedestal")
+
+[node name="FatSpotlight" type="SpotLight3D" parent="DioramaStage"]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 0.258819, 0.965926, 0, -0.965926, 0.258819, -0.9, 4.5, 0.8)
+light_color = Color(1, 0.85, 0.65, 1)
+light_energy = 3.5
+spot_range = 8.0
+spot_angle = 32.0
+
+[node name="ThinSpotlight" type="SpotLight3D" parent="DioramaStage"]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 0.258819, 0.965926, 0, -0.965926, 0.258819, 0.9, 4.5, 0.8)
+light_color = Color(0.65, 0.88, 1, 1)
+light_energy = 1.0
+spot_range = 8.0
+spot_angle = 32.0
+
+[node name="Characters" type="Node3D" parent="DioramaStage"]
+
+[node name="FatModel" parent="DioramaStage/Characters" instance=ExtResource("3_fat_char")]
+unique_name_in_owner = true
+transform = Transform3D(0.965926, 0, -0.258819, 0, 1, 0, 0.258819, 0, 0.965926, -0.9, 0.35, 0)
+
+[node name="ThinModel" parent="DioramaStage/Characters" instance=ExtResource("4_thin_char")]
+unique_name_in_owner = true
+transform = Transform3D(0.965926, 0, 0.258819, 0, 1, 0, -0.258819, 0, 0.965926, 0.9, 0.35, 0)
+
+[node name="CameraRig" type="Node3D" parent="."]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)
+
+[node name="MenuCamera3D" type="Camera3D" parent="CameraRig"]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 0.984808, 0.173648, 0, -0.173648, 0.984808, -0.9, 0.0, 3.4)
+fov = 65.0
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="UIContainer" type="Control" parent="CanvasLayer"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-script = ExtResource("1_menu")
 
-[node name="Background" type="Panel" parent="."]
+[node name="LeftMargin" type="MarginContainer" parent="CanvasLayer/UIContainer"]
 layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
+anchors_preset = 9
 anchor_bottom = 1.0
-grow_horizontal = 2
+offset_right = 380.0
 grow_vertical = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_dark_bg")
+theme_override_constants/margin_left = 36
+theme_override_constants/margin_top = 36
+theme_override_constants/margin_bottom = 36
 
-[node name="CenterContainer" type="CenterContainer" parent="."]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-
-[node name="MainCard" type="PanelContainer" parent="CenterContainer"]
-custom_minimum_size = Vector2(850, 560)
+[node name="LeftCard" type="PanelContainer" parent="CanvasLayer/UIContainer/LeftMargin"]
+custom_minimum_size = Vector2(340, 0)
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_card")
 
-[node name="Margin" type="MarginContainer" parent="CenterContainer/MainCard"]
+[node name="Margin" type="MarginContainer" parent="CanvasLayer/UIContainer/LeftMargin/LeftCard"]
 layout_mode = 2
-theme_override_constants/margin_left = 36
-theme_override_constants/margin_top = 28
-theme_override_constants/margin_right = 36
-theme_override_constants/margin_bottom = 28
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 24
 
-[node name="VBox" type="VBoxContainer" parent="CenterContainer/MainCard/Margin"]
-layout_mode = 2
-theme_override_constants/separation = 16
-
-[node name="TitleBox" type="VBoxContainer" parent="CenterContainer/MainCard/Margin/VBox"]
-layout_mode = 2
-theme_override_constants/separation = 2
-
-[node name="MainTitle" type="Label" parent="CenterContainer/MainCard/Margin/VBox/TitleBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.35, 0.85, 1, 1)
-theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
-theme_override_constants/outline_size = 10
-theme_override_font_sizes/font_size = 38
-text = "🏃‍♂️ THIN & FAT 🦛"
-horizontal_alignment = 1
-
-[node name="Subtitle" type="Label" parent="CenterContainer/MainCard/Margin/VBox/TitleBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.7, 0.8, 0.95, 0.9)
-theme_override_font_sizes/font_size = 16
-text = "Co-Op Multiplayer Chamber — RADMIN VPN READY"
-horizontal_alignment = 1
-
-[node name="HSeparator" type="HSeparator" parent="CenterContainer/MainCard/Margin/VBox"]
-layout_mode = 2
-
-[node name="RadminBanner" type="PanelContainer" parent="CenterContainer/MainCard/Margin/VBox"]
-layout_mode = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_radmin_card")
-
-[node name="MarginContainer" type="MarginContainer" parent="CenterContainer/MainCard/Margin/VBox/RadminBanner"]
-layout_mode = 2
-theme_override_constants/margin_left = 14
-theme_override_constants/margin_top = 10
-theme_override_constants/margin_right = 14
-theme_override_constants/margin_bottom = 10
-
-[node name="HBox" type="HBoxContainer" parent="CenterContainer/MainCard/Margin/VBox/RadminBanner/MarginContainer"]
+[node name="VBox" type="VBoxContainer" parent="CanvasLayer/UIContainer/LeftMargin/LeftCard/Margin"]
 layout_mode = 2
 theme_override_constants/separation = 12
+alignment = 1
 
-[node name="RadminLabel" type="Label" parent="CenterContainer/MainCard/Margin/VBox/RadminBanner/MarginContainer/HBox"]
-unique_name_in_owner = true
+[node name="LogoLabel" type="Label" parent="CanvasLayer/UIContainer/LeftMargin/LeftCard/Margin/VBox"]
 layout_mode = 2
-size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0.4, 0.95, 0.7, 1)
-theme_override_font_sizes/font_size = 14
-text = "🌐 RADMIN VPN ОБНАРУЖЕН: Сканирование IP..."
-vertical_alignment = 1
+theme_override_colors/font_color = Color(1, 0.85, 0.2, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_font_sizes/font_size = 32
+text = "THIN & FAT"
+horizontal_alignment = 1
 
-[node name="CopyIPButton" type="Button" parent="CenterContainer/MainCard/Margin/VBox/RadminBanner/MarginContainer/HBox"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(160, 34)
+[node name="LogoSubtitle" type="Label" parent="CanvasLayer/UIContainer/LeftMargin/LeftCard/Margin/VBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_color = Color(0.7, 0.85, 1, 0.9)
 theme_override_font_sizes/font_size = 13
-theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
-theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
-text = "📋 КОПИРОВАТЬ IP"
+text = "CO-OP PHYSICS SANDBOX"
+horizontal_alignment = 1
 
-[node name="ContentColumns" type="HBoxContainer" parent="CenterContainer/MainCard/Margin/VBox"]
+[node name="HSeparator" type="HSeparator" parent="CanvasLayer/UIContainer/LeftMargin/LeftCard/Margin/VBox"]
 layout_mode = 2
-size_flags_vertical = 3
-theme_override_constants/separation = 24
 
-[node name="LeftMenuButtons" type="VBoxContainer" parent="CenterContainer/MainCard/Margin/VBox/ContentColumns"]
-custom_minimum_size = Vector2(360, 0)
-layout_mode = 2
-theme_override_constants/separation = 12
-
-[node name="HostInstantButton" type="Button" parent="CenterContainer/MainCard/Margin/VBox/ContentColumns/LeftMenuButtons"]
+[node name="HostInstantButton" type="Button" parent="CanvasLayer/UIContainer/LeftMargin/LeftCard/Margin/VBox"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 56)
+custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/font_size = 18
-theme_override_styles/normal = SubResource("StyleBoxFlat_primary_btn")
-theme_override_styles/hover = SubResource("StyleBoxFlat_primary_btn_hover")
-text = "🚀 СОЗДАТЬ СЕРВЕР (1-КЛИК)"
-
-[node name="LobbyButton" type="Button" parent="CenterContainer/MainCard/Margin/VBox/ContentColumns/LeftMenuButtons"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 50)
-layout_mode = 2
-theme_override_colors/font_color = Color(0.9, 0.95, 1, 1)
 theme_override_font_sizes/font_size = 16
-theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
-theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
-text = "🎮 ПОДКЛЮЧИТЬСЯ К ДРУГУ (JOIN)"
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_primary")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_primary_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_primary")
+text = "🎮  БЫСТРАЯ ИГРА (HOST)"
 
-[node name="CharSelectButton" type="Button" parent="CenterContainer/MainCard/Margin/VBox/ContentColumns/LeftMenuButtons"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 48)
-layout_mode = 2
-theme_override_colors/font_color = Color(0.9, 0.95, 1, 1)
-theme_override_font_sizes/font_size = 14
-theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
-theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
-text = "🦛 ВЫБРАН: ЖИРДЯЙ (СМЕНИТЬ)"
-
-[node name="AudioSettingsButton" type="Button" parent="CenterContainer/MainCard/Margin/VBox/ContentColumns/LeftMenuButtons"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 48)
-layout_mode = 2
-theme_override_colors/font_color = Color(0.9, 0.95, 1, 1)
-theme_override_font_sizes/font_size = 14
-theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
-theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
-text = "⚙️ НАСТРОЙКИ ЗВУКА И МИКРОФОНА"
-
-[node name="QuitButton" type="Button" parent="CenterContainer/MainCard/Margin/VBox/ContentColumns/LeftMenuButtons"]
+[node name="LobbyButton" type="Button" parent="CanvasLayer/UIContainer/LeftMargin/LeftCard/Margin/VBox"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.6, 0.6, 1)
-theme_override_font_sizes/font_size = 14
-theme_override_styles/normal = SubResource("StyleBoxFlat_quit_btn")
-text = "🚪 ВЫЙТИ ИЗ ИГРЫ"
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 15
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_secondary")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_secondary_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_secondary")
+text = "🌐  СЕТЕВОЕ ЛОББИ (JOIN)"
 
-[node name="RightInfoCard" type="VBoxContainer" parent="CenterContainer/MainCard/Margin/VBox/ContentColumns"]
+[node name="CharSelectButton" type="Button" parent="CanvasLayer/UIContainer/LeftMargin/LeftCard/Margin/VBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
-size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 15
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_secondary")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_secondary_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_secondary")
+text = "👥  СМЕНИТЬ ПЕРСОНАЖА"
+
+[node name="AudioSettingsButton" type="Button" parent="CanvasLayer/UIContainer/LeftMargin/LeftCard/Margin/VBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 15
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_secondary")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_secondary_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_secondary")
+text = "🔊  НАСТРОЙКИ АУДИО"
+
+[node name="QuitButton" type="Button" parent="CanvasLayer/UIContainer/LeftMargin/LeftCard/Margin/VBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 15
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_danger")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_danger_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_danger")
+text = "🚪  ВЫХОД"
+
+[node name="RightMargin" type="MarginContainer" parent="CanvasLayer/UIContainer"]
+layout_mode = 1
+anchors_preset = 11
+anchor_left = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -380.0
+grow_horizontal = 0
+grow_vertical = 2
+theme_override_constants/margin_top = 36
+theme_override_constants/margin_right = 36
+theme_override_constants/margin_bottom = 36
+
+[node name="RightCard" type="PanelContainer" parent="CanvasLayer/UIContainer/RightMargin"]
+custom_minimum_size = Vector2(340, 0)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_card")
+
+[node name="Margin" type="MarginContainer" parent="CanvasLayer/UIContainer/RightMargin/RightCard"]
+layout_mode = 2
+theme_override_constants/margin_left = 22
+theme_override_constants/margin_top = 22
+theme_override_constants/margin_right = 22
+theme_override_constants/margin_bottom = 22
+
+[node name="VBox" type="VBoxContainer" parent="CanvasLayer/UIContainer/RightMargin/RightCard/Margin"]
+layout_mode = 2
 theme_override_constants/separation = 12
+alignment = 1
 
-[node name="CardPanel" type="PanelContainer" parent="CenterContainer/MainCard/Margin/VBox/ContentColumns/RightInfoCard"]
-layout_mode = 2
-size_flags_vertical = 3
-theme_override_styles/panel = SubResource("StyleBoxFlat_radmin_card")
-
-[node name="Margin" type="MarginContainer" parent="CenterContainer/MainCard/Margin/VBox/ContentColumns/RightInfoCard/CardPanel"]
-layout_mode = 2
-theme_override_constants/margin_left = 16
-theme_override_constants/margin_top = 16
-theme_override_constants/margin_right = 16
-theme_override_constants/margin_bottom = 16
-
-[node name="VBox" type="VBoxContainer" parent="CenterContainer/MainCard/Margin/VBox/ContentColumns/RightInfoCard/CardPanel/Margin"]
-layout_mode = 2
-theme_override_constants/separation = 8
-
-[node name="CharTitle" type="Label" parent="CenterContainer/MainCard/Margin/VBox/ContentColumns/RightInfoCard/CardPanel/Margin/VBox"]
+[node name="CharNameLabel" type="Label" parent="CanvasLayer/UIContainer/RightMargin/RightCard/Margin/VBox"]
+unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.3, 0.9, 1, 1)
-theme_override_font_sizes/font_size = 18
-text = "ИНФОРМАЦИЯ О ПЕРСОНАЖЕ"
+theme_override_font_sizes/font_size = 22
+text = "🦛 ТОЛСТЯК (FAT)"
 horizontal_alignment = 1
 
-[node name="HSeparator" type="HSeparator" parent="CenterContainer/MainCard/Margin/VBox/ContentColumns/RightInfoCard/CardPanel/Margin/VBox"]
+[node name="HSeparator2" type="HSeparator" parent="CanvasLayer/UIContainer/RightMargin/RightCard/Margin/VBox"]
 layout_mode = 2
 
-[node name="CharNameLabel" type="Label" parent="CenterContainer/MainCard/Margin/VBox/ContentColumns/RightInfoCard/CardPanel/Margin/VBox"]
-unique_name_in_owner = true
+[node name="HpLabel" type="Label" parent="CanvasLayer/UIContainer/RightMargin/RightCard/Margin/VBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.8, 0.3, 1)
-theme_override_font_sizes/font_size = 20
-text = "🦛 2. ЖИРДЯЙ (FAT)"
-horizontal_alignment = 1
-
-[node name="CharDescLabel" type="Label" parent="CenterContainer/MainCard/Margin/VBox/ContentColumns/RightInfoCard/CardPanel/Margin/VBox"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_vertical = 3
-theme_override_colors/font_color = Color(0.85, 0.9, 0.95, 0.9)
-theme_override_font_sizes/font_size = 14
-text = "160 HP | Силач: Толкает тяжелые 450кг валуны | Носит валун над головой | Вонючий токсичный пердёж"
-horizontal_alignment = 1
-vertical_alignment = 1
-autowrap_mode = 2
-
-[node name="RadminInfoLabel" type="Label" parent="CenterContainer/MainCard/Margin/VBox/ContentColumns/RightInfoCard/CardPanel/Margin/VBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.5, 0.85, 0.6, 0.95)
+theme_override_colors/font_color = Color(0.85, 0.9, 0.95, 1)
 theme_override_font_sizes/font_size = 13
-text = "💡 Инструкция Radmin VPN:\n1. Хост нажмите 'СОЗДАТЬ СЕРВЕР'\n2. Друг скопируйте Radmin IP хоста и нажмите 'ПОДКЛЮЧИТЬСЯ'\n3. Наслаждайтесь совместной игрой!"
+text = "ЗДОРОВЬЕ:"
+
+[node name="CharHpBar" type="ProgressBar" parent="CanvasLayer/UIContainer/RightMargin/RightCard/Margin/VBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 14)
+layout_mode = 2
+theme_override_styles/fill = SubResource("StyleBoxFlat_hp_fill")
+max_value = 160.0
+value = 160.0
+show_percentage = false
+
+[node name="StaminaLabel" type="Label" parent="CanvasLayer/UIContainer/RightMargin/RightCard/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.9, 0.95, 1)
+theme_override_font_sizes/font_size = 13
+text = "ВЫНОСЛИВОСТЬ / СКОРОСТЬ:"
+
+[node name="CharStaminaBar" type="ProgressBar" parent="CanvasLayer/UIContainer/RightMargin/RightCard/Margin/VBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 14)
+layout_mode = 2
+theme_override_styles/fill = SubResource("StyleBoxFlat_stamina_fill")
+max_value = 120.0
+value = 80.0
+show_percentage = false
+
+[node name="CharDescLabel" type="Label" parent="CanvasLayer/UIContainer/RightMargin/RightCard/Margin/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.9, 1, 0.85)
+theme_override_font_sizes/font_size = 13
+text = "• Здоровье: 160 HP
+• Силач: Поднимает и бросает 450 кг валуны на [E]
+• Токсичная вонь: Травит врагов вокруг"
 autowrap_mode = 2
 
-[node name="AudioSettingsDialog" parent="." instance=ExtResource("2_audio_dialog")]
+[node name="BottomMargin" type="MarginContainer" parent="CanvasLayer/UIContainer"]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -64.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_constants/margin_left = 36
+theme_override_constants/margin_right = 36
+theme_override_constants/margin_bottom = 16
+
+[node name="HBox" type="HBoxContainer" parent="CanvasLayer/UIContainer/BottomMargin"]
+layout_mode = 2
+alignment = 1
+
+[node name="RadminLabel" type="Label" parent="CanvasLayer/UIContainer/BottomMargin/HBox"]
 unique_name_in_owner = true
-visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 0.9, 1, 1)
+theme_override_font_sizes/font_size = 14
+text = "🌐 RADMIN VPN: ПОИСК СЕТИ..."
+
+[node name="CopyIPButton" type="Button" parent="CanvasLayer/UIContainer/BottomMargin/HBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(160, 32)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 13
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_secondary")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_secondary_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_secondary")
+text = "📋 СКОПИРОВАТЬ IP"
+
+[node name="AudioSettingsDialog" parent="CanvasLayer" instance=ExtResource("2_audio_dialog")]
+unique_name_in_owner = true
+layout_mode = 3
+anchors_preset = 15
+grow_horizontal = 2
+grow_vertical = 2

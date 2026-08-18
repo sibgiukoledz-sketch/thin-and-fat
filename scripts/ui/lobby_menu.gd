@@ -57,6 +57,7 @@ func _ready() -> void:
 	if leave_room_btn: leave_room_btn.pressed.connect(_on_leave_room_pressed)
 
 	_update_character_ui(NetworkManager.local_character_id if NetworkManager else "fat")
+	_setup_button_animations()
 
 	# Always open SetupView (IP input form) unless actively connected in room with 2+ players
 	var is_active_room: bool = (multiplayer.multiplayer_peer != null and multiplayer.multiplayer_peer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTED and NetworkManager and NetworkManager.connected_players.size() >= 2)
@@ -364,3 +365,20 @@ func _create_waiting_card() -> PanelContainer:
 	vbox.add_child(lbl_info)
 
 	return panel
+
+func _setup_button_animations() -> void:
+	var buttons := [host_btn, join_btn, btn_copy_ip, btn_paste_ip, btn_localhost, setup_back_btn,
+					btn_select_fat, btn_select_thin, room_btn_fat, room_btn_thin, room_copy_ip_btn,
+					start_match_btn, leave_room_btn]
+	for btn in buttons:
+		if not btn: continue
+		btn.pivot_offset = btn.size * 0.5
+		btn.mouse_entered.connect(func():
+			if AudioManager: AudioManager.play_sfx_2d("ui_hover")
+			var tw := create_tween().set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+			tw.tween_property(btn, "scale", Vector2(1.04, 1.04), 0.16)
+		)
+		btn.mouse_exited.connect(func():
+			var tw := create_tween().set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+			tw.tween_property(btn, "scale", Vector2.ONE, 0.16)
+		)
