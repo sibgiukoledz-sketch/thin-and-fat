@@ -1,4 +1,4 @@
-[gd_scene load_steps=22 format=3 uid="uid://c8mainmenufps01"]
+[gd_scene load_steps=28 format=3 uid="uid://c8mainmenufps01"]
 
 [ext_resource type="Script" path="res://scripts/ui/main_menu.gd" id="1_menu"]
 [ext_resource type="PackedScene" path="res://scenes/ui/audio_settings_dialog.tscn" id="2_audio_dialog"]
@@ -6,10 +6,10 @@
 [ext_resource type="PackedScene" path="res://scenes/characters/thin_character.tscn" id="4_thin_char"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sky"]
-sky_top_color = Color(0.18, 0.45, 0.75, 1)
-sky_horizon_color = Color(0.65, 0.8, 0.95, 1)
-ground_bottom_color = Color(0.08, 0.12, 0.18, 1)
-ground_horizon_color = Color(0.65, 0.8, 0.95, 1)
+sky_top_color = Color(0.12, 0.25, 0.45, 1)
+sky_horizon_color = Color(0.45, 0.6, 0.75, 1)
+ground_bottom_color = Color(0.04, 0.06, 0.1, 1)
+ground_horizon_color = Color(0.45, 0.6, 0.75, 1)
 
 [sub_resource type="Sky" id="Sky_env"]
 sky_material = SubResource("ProceduralSkyMaterial_sky")
@@ -18,33 +18,66 @@ sky_material = SubResource("ProceduralSkyMaterial_sky")
 background_mode = 2
 sky = SubResource("Sky_env")
 ambient_light_source = 3
-ambient_light_color = Color(0.7, 0.8, 0.95, 1)
-ambient_light_energy = 0.85
+ambient_light_color = Color(0.65, 0.75, 0.9, 1)
+ambient_light_energy = 0.9
 tonemap_mode = 2
 glow_enabled = true
-glow_bloom = 0.15
+glow_bloom = 0.2
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_pedestal"]
-albedo_color = Color(0.16, 0.22, 0.32, 1)
-roughness = 0.4
+albedo_color = Color(0.18, 0.24, 0.32, 1)
+roughness = 0.35
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_pedestal"]
 material = SubResource("StandardMaterial3D_pedestal")
-top_radius = 3.2
-bottom_radius = 3.5
+top_radius = 3.6
+bottom_radius = 4.0
 height = 0.35
 radial_segments = 48
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_floor"]
-albedo_color = Color(0.06, 0.09, 0.14, 1)
-roughness = 0.6
+albedo_color = Color(0.06, 0.08, 0.12, 1)
+roughness = 0.65
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_floor"]
 material = SubResource("StandardMaterial3D_floor")
 size = Vector2(80, 80)
 
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_wall"]
+albedo_color = Color(0.12, 0.16, 0.22, 1)
+roughness = 0.7
+
+[sub_resource type="BoxMesh" id="BoxMesh_wall"]
+material = SubResource("StandardMaterial3D_wall")
+size = Vector3(16, 8, 0.5)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_table"]
+albedo_color = Color(0.35, 0.22, 0.14, 1)
+roughness = 0.5
+
+[sub_resource type="BoxMesh" id="BoxMesh_table"]
+material = SubResource("StandardMaterial3D_table")
+size = Vector3(1.8, 0.9, 0.9)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_boulder_prop"]
+albedo_color = Color(0.32, 0.34, 0.38, 1)
+roughness = 0.85
+
+[sub_resource type="SphereMesh" id="SphereMesh_boulder_prop"]
+material = SubResource("StandardMaterial3D_boulder_prop")
+radius = 0.65
+height = 1.3
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_crate"]
+albedo_color = Color(0.48, 0.36, 0.22, 1)
+roughness = 0.6
+
+[sub_resource type="BoxMesh" id="BoxMesh_crate"]
+material = SubResource("StandardMaterial3D_crate")
+size = Vector3(0.9, 0.9, 0.9)
+
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_card"]
-bg_color = Color(0.07, 0.1, 0.16, 0.88)
+bg_color = Color(0.06, 0.09, 0.14, 0.9)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
@@ -54,7 +87,7 @@ corner_radius_top_left = 16
 corner_radius_top_right = 16
 corner_radius_bottom_right = 16
 corner_radius_bottom_left = 16
-shadow_color = Color(0, 0, 0, 0.5)
+shadow_color = Color(0, 0, 0, 0.55)
 shadow_size = 14
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_primary"]
@@ -154,18 +187,28 @@ environment = SubResource("Environment_main")
 [node name="SunLight" type="DirectionalLight3D" parent="."]
 transform = Transform3D(0.866025, -0.353553, 0.353553, 0, 0.707107, 0.707107, -0.5, -0.612372, 0.612372, 5, 8, 5)
 light_color = Color(1, 0.96, 0.9, 1)
-light_energy = 1.2
+light_energy = 1.25
 shadow_enabled = true
 
 [node name="FloorPlane" type="MeshInstance3D" parent="."]
 mesh = SubResource("PlaneMesh_floor")
 
 [node name="DioramaStage" type="Node3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+
+[node name="BackWall" type="MeshInstance3D" parent="DioramaStage"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4, -3.2)
+mesh = SubResource("BoxMesh_wall")
 
 [node name="PedestalMesh" type="MeshInstance3D" parent="DioramaStage"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.175, 0)
 mesh = SubResource("CylinderMesh_pedestal")
+
+[node name="NeonSign" type="Label3D" parent="DioramaStage"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.6, -2.9)
+modulate = Color(1, 0.85, 0.25, 1)
+text = "★ THIN & FAT CO-OP ★"
+font_size = 46
+outline_size = 12
 
 [node name="FatSpotlight" type="SpotLight3D" parent="DioramaStage"]
 unique_name_in_owner = true
@@ -182,6 +225,20 @@ light_color = Color(0.65, 0.88, 1, 1)
 light_energy = 1.0
 spot_range = 8.0
 spot_angle = 32.0
+
+[node name="WorkshopProps" type="Node3D" parent="DioramaStage"]
+
+[node name="WorkTable" type="MeshInstance3D" parent="DioramaStage/WorkshopProps"]
+transform = Transform3D(0.965926, 0, -0.258819, 0, 1, 0, 0.258819, 0, 0.965926, 2.6, 0.45, -1.2)
+mesh = SubResource("BoxMesh_table")
+
+[node name="BoulderProp" type="MeshInstance3D" parent="DioramaStage/WorkshopProps"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.6, 0.65, -0.8)
+mesh = SubResource("SphereMesh_boulder_prop")
+
+[node name="CrateStack" type="MeshInstance3D" parent="DioramaStage/WorkshopProps"]
+transform = Transform3D(0.965926, 0, 0.258819, 0, 1, 0, -0.258819, 0, 0.965926, -2.5, 0.45, -2.0)
+mesh = SubResource("BoxMesh_crate")
 
 [node name="Characters" type="Node3D" parent="DioramaStage"]
 
@@ -341,7 +398,7 @@ theme_override_constants/margin_bottom = 22
 
 [node name="VBox" type="VBoxContainer" parent="CanvasLayer/UIContainer/RightMargin/RightCard/Margin"]
 layout_mode = 2
-theme_override_constants/separation = 12
+theme_override_constants/separation = 10
 alignment = 1
 
 [node name="CharNameLabel" type="Label" parent="CanvasLayer/UIContainer/RightMargin/RightCard/Margin/VBox"]
@@ -394,6 +451,53 @@ text = "• Здоровье: 160 HP
 • Силач: Поднимает и бросает 450 кг валуны на [E]
 • Токсичная вонь: Травит врагов вокруг"
 autowrap_mode = 2
+
+[node name="HSeparator3" type="HSeparator" parent="CanvasLayer/UIContainer/RightMargin/RightCard/Margin/VBox"]
+layout_mode = 2
+
+[node name="DanceLabel" type="Label" parent="CanvasLayer/UIContainer/RightMargin/RightCard/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.3, 1)
+theme_override_font_sizes/font_size = 14
+text = "💃 ТАНЦЫ И ЭМОЦИИ:"
+horizontal_alignment = 1
+
+[node name="DanceHBox" type="HBoxContainer" parent="CanvasLayer/UIContainer/RightMargin/RightCard/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="BtnDanceDisco" type="Button" parent="CanvasLayer/UIContainer/RightMargin/RightCard/Margin/VBox/DanceHBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 34)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 12
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_secondary")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_secondary_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_secondary")
+text = "🕺 ДИСКО"
+
+[node name="BtnDanceKazachok" type="Button" parent="CanvasLayer/UIContainer/RightMargin/RightCard/Margin/VBox/DanceHBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 34)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 12
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_secondary")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_secondary_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_secondary")
+text = "💃 КАЗАЧОК"
+
+[node name="BtnDanceWiggle" type="Button" parent="CanvasLayer/UIContainer/RightMargin/RightCard/Margin/VBox/DanceHBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 34)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 12
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_secondary")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_secondary_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_secondary")
+text = "🪱 ЖЕЛЕ"
 
 [node name="BottomMargin" type="MarginContainer" parent="CanvasLayer/UIContainer"]
 layout_mode = 1

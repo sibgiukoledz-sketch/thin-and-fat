@@ -1,9 +1,10 @@
 extends Node3D
 
 ## Modern 3D Main Menu Controller:
-## - Interactive 3D Diorama with live Fat & Thin character models and idle physics.
-## - Cinematic parallax camera following mouse movement with smooth damping.
+## - Interactive 3D Workshop Diorama with live Fat & Thin character models.
+## - Cinematic parallax camera following mouse movement.
 ## - Character switcher with smooth 3D camera pan & spotlight transition.
+## - Live Dance / Emote player on 3D models (Kazachok, Disco, Jelly Wiggle).
 ## - Button hover micro-animations (elastic scale, sound, glow).
 ## - Radmin VPN / Local IP auto-detection and copy helper.
 ## - Audio & Voice chat settings dialog integration.
@@ -22,6 +23,11 @@ extends Node3D
 @onready var char_hp_bar: ProgressBar = %CharHpBar
 @onready var char_stamina_bar: ProgressBar = %CharStaminaBar
 
+# Dance buttons
+@onready var btn_dance_kazachok: Button = %BtnDanceKazachok
+@onready var btn_dance_disco: Button = %BtnDanceDisco
+@onready var btn_dance_wiggle: Button = %BtnDanceWiggle
+
 # 3D Scene Elements
 @onready var camera_rig: Node3D = %CameraRig
 @onready var camera_3d: Camera3D = %MenuCamera3D
@@ -29,6 +35,7 @@ extends Node3D
 @onready var thin_model: Node3D = %ThinModel
 @onready var fat_spotlight: SpotLight3D = %FatSpotlight
 @onready var thin_spotlight: SpotLight3D = %ThinSpotlight
+@onready var fan_blades: Node3D = get_node_or_null("DioramaStage/WorkshopProps/WallFan/Blades") as Node3D
 
 var selected_character: String = "fat"
 var _mouse_target_rot: Vector2 = Vector2.ZERO
@@ -75,6 +82,11 @@ func _ready() -> void:
 			_on_copy_ip_pressed()
 		)
 
+	# Dance Emote preview buttons
+	if btn_dance_kazachok: btn_dance_kazachok.pressed.connect(func(): _play_preview_dance("dance_kazachok"))
+	if btn_dance_disco: btn_dance_disco.pressed.connect(func(): _play_preview_dance("dance_disco"))
+	if btn_dance_wiggle: btn_dance_wiggle.pressed.connect(func(): _play_preview_dance("dance_wiggle"))
+
 	_setup_button_animations()
 	_update_network_info()
 	_update_character_ui("fat")
@@ -86,6 +98,10 @@ func _process(delta: float) -> void:
 		camera_rig.rotation_degrees.y = _current_cam_rot.x * 6.0
 		camera_rig.rotation_degrees.x = -_current_cam_rot.y * 3.5
 
+	# Rotate fan blades in workshop
+	if fan_blades:
+		fan_blades.rotate_z(delta * 8.0)
+
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion:
 		var vp_size := get_viewport().get_visible_rect().size
@@ -95,7 +111,8 @@ func _unhandled_input(event: InputEvent) -> void:
 			_mouse_target_rot = Vector2(norm_x, norm_y)
 
 func _setup_button_animations() -> void:
-	var buttons := [host_instant_btn, lobby_btn, char_select_btn, audio_settings_btn, quit_btn, copy_ip_btn]
+	var buttons := [host_instant_btn, lobby_btn, char_select_btn, audio_settings_btn, quit_btn, copy_ip_btn,
+					btn_dance_kazachok, btn_dance_disco, btn_dance_wiggle]
 	for btn in buttons:
 		if not btn: continue
 		btn.pivot_offset = btn.size * 0.5
@@ -139,6 +156,12 @@ func _on_toggle_character() -> void:
 	else:
 		_update_character_ui("fat")
 
+func _play_preview_dance(dance_name: String) -> void:
+	if AudioManager: AudioManager.play_sfx_2d("ui_click")
+	var active_model := fat_model if selected_character == "fat" else thin_model
+	if active_model and active_model.has_method("play_anim"):
+		active_model.play_anim(dance_name)
+
 func _update_character_ui(id: String) -> void:
 	selected_character = id
 	if NetworkManager:
@@ -160,6 +183,9 @@ func _update_character_ui(id: String) -> void:
 
 		if fat_spotlight: fat_spotlight.light_energy = 3.5
 		if thin_spotlight: thin_spotlight.light_energy = 0.6
+
+		if fat_model and fat_model.has_method("play_anim"):
+			fat_model.play_anim("idle")
 	else:
 		target_cam_pos = CAM_THIN_POS
 		if char_name_label:
@@ -175,6 +201,9 @@ func _update_character_ui(id: String) -> void:
 
 		if fat_spotlight: fat_spotlight.light_energy = 0.6
 		if thin_spotlight: thin_spotlight.light_energy = 3.5
+
+		if thin_model and thin_model.has_method("play_anim"):
+			thin_model.play_anim("idle")
 
 	if camera_3d:
 		var tw_cam := create_tween().set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)

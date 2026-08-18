@@ -1,26 +1,31 @@
-[gd_scene load_steps=10 format=3 uid="uid://c8lobbymenufps01"]
+[gd_scene load_steps=18 format=3 uid="uid://c8lobbymenu01"]
 
 [ext_resource type="Script" path="res://scripts/ui/lobby_menu.gd" id="1_lobby"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dark_bg"]
-bg_color = Color(0.06, 0.08, 0.12, 1)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bg"]
+bg_color = Color(0.05, 0.07, 0.11, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_header_card"]
+bg_color = Color(0.08, 0.12, 0.18, 0.9)
+border_width_bottom = 2
+border_color = Color(0.25, 0.65, 0.95, 0.5)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_card"]
-bg_color = Color(0.1, 0.14, 0.2, 0.95)
+bg_color = Color(0.07, 0.1, 0.16, 0.92)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
-border_color = Color(0.3, 0.65, 0.95, 0.6)
-corner_radius_top_left = 16
-corner_radius_top_right = 16
-corner_radius_bottom_right = 16
-corner_radius_bottom_left = 16
-shadow_color = Color(0.0, 0.0, 0.0, 0.5)
+border_color = Color(0.25, 0.65, 0.95, 0.5)
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_right = 14
+corner_radius_bottom_left = 14
+shadow_color = Color(0, 0, 0, 0.5)
 shadow_size = 12
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_primary_btn"]
-bg_color = Color(0.15, 0.65, 0.35, 1)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_primary"]
+bg_color = Color(0.16, 0.68, 0.36, 1)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
@@ -30,11 +35,11 @@ corner_radius_top_left = 10
 corner_radius_top_right = 10
 corner_radius_bottom_right = 10
 corner_radius_bottom_left = 10
-shadow_color = Color(0.1, 0.4, 0.2, 0.4)
+shadow_color = Color(0.1, 0.45, 0.22, 0.3)
 shadow_size = 6
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_primary_btn_hover"]
-bg_color = Color(0.2, 0.8, 0.4, 1)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_primary_hover"]
+bg_color = Color(0.22, 0.82, 0.44, 1)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
@@ -45,53 +50,67 @@ corner_radius_top_right = 10
 corner_radius_bottom_right = 10
 corner_radius_bottom_left = 10
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn"]
-bg_color = Color(0.16, 0.24, 0.36, 0.95)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0.35, 0.65, 0.95, 0.5)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_secondary"]
+bg_color = Color(0.14, 0.2, 0.3, 0.9)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.3, 0.6, 0.85, 0.5)
 corner_radius_top_left = 10
 corner_radius_top_right = 10
 corner_radius_bottom_right = 10
 corner_radius_bottom_left = 10
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_hover"]
-bg_color = Color(0.24, 0.42, 0.68, 1)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_secondary_hover"]
+bg_color = Color(0.2, 0.3, 0.45, 1)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
-border_color = Color(0.5, 0.85, 1, 0.9)
+border_color = Color(0.45, 0.8, 1, 0.8)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_danger"]
+bg_color = Color(0.65, 0.18, 0.18, 0.85)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.9, 0.35, 0.35, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_danger_hover"]
+bg_color = Color(0.8, 0.22, 0.22, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0.55, 0.55, 1)
 corner_radius_top_left = 10
 corner_radius_top_right = 10
 corner_radius_bottom_right = 10
 corner_radius_bottom_left = 10
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_input"]
-bg_color = Color(0.12, 0.16, 0.24, 1)
+bg_color = Color(0.05, 0.08, 0.12, 1)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
-border_color = Color(0.3, 0.5, 0.75, 0.8)
-corner_radius_top_left = 6
-corner_radius_top_right = 6
-corner_radius_bottom_right = 6
-corner_radius_bottom_left = 6
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_toast"]
-bg_color = Color(0.1, 0.25, 0.15, 0.95)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.3, 0.9, 0.5, 0.9)
+border_color = Color(0.2, 0.5, 0.8, 0.6)
 corner_radius_top_left = 8
 corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_tab"]
 
 [node name="LobbyMenu" type="Control"]
 layout_mode = 3
@@ -109,298 +128,489 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_dark_bg")
+theme_override_styles/panel = SubResource("StyleBoxFlat_bg")
 
-[node name="CenterContainer" type="CenterContainer" parent="."]
+[node name="MainVBox" type="VBoxContainer" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_constants/separation = 0
 
-[node name="MainCard" type="PanelContainer" parent="CenterContainer"]
-custom_minimum_size = Vector2(880, 560)
+[node name="HeaderPanel" type="PanelContainer" parent="MainVBox"]
+custom_minimum_size = Vector2(0, 68)
 layout_mode = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_card")
+theme_override_styles/panel = SubResource("StyleBoxFlat_header_card")
 
-[node name="Margin" type="MarginContainer" parent="CenterContainer/MainCard"]
+[node name="Margin" type="MarginContainer" parent="MainVBox/HeaderPanel"]
 layout_mode = 2
-theme_override_constants/margin_left = 32
-theme_override_constants/margin_top = 24
-theme_override_constants/margin_right = 32
-theme_override_constants/margin_bottom = 24
+theme_override_constants/margin_left = 28
+theme_override_constants/margin_right = 28
 
-[node name="VBox" type="VBoxContainer" parent="CenterContainer/MainCard/Margin"]
+[node name="HBox" type="HBoxContainer" parent="MainVBox/HeaderPanel/Margin"]
 layout_mode = 2
-theme_override_constants/separation = 12
+theme_override_constants/separation = 20
 
-[node name="NotificationPanel" type="PanelContainer" parent="CenterContainer/MainCard/Margin/VBox"]
+[node name="TitleLabel" type="Label" parent="MainVBox/HeaderPanel/Margin/HBox"]
 layout_mode = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_toast")
+theme_override_colors/font_color = Color(1, 0.85, 0.2, 1)
+theme_override_font_sizes/font_size = 22
+text = "THIN & FAT | СЕТЕВОЕ ЛОББИ"
 
-[node name="NotificationLabel" type="Label" parent="CenterContainer/MainCard/Margin/VBox/NotificationPanel"]
+[node name="Spacer" type="Control" parent="MainVBox/HeaderPanel/Margin/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="RadminStatusLabel" type="Label" parent="MainVBox/HeaderPanel/Margin/HBox"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0.4, 0.95, 0.65, 1)
+theme_override_colors/font_color = Color(0.4, 0.9, 1, 1)
 theme_override_font_sizes/font_size = 14
-text = "🔔 Уведомление"
-horizontal_alignment = 1
+text = "🌐 RADMIN VPN: ПОИСК СЕТИ..."
 
-[node name="SetupView" type="VBoxContainer" parent="CenterContainer/MainCard/Margin/VBox"]
+[node name="BtnCopyMyIP" type="Button" parent="MainVBox/HeaderPanel/Margin/HBox"]
 unique_name_in_owner = true
-layout_mode = 2
-size_flags_vertical = 3
-theme_override_constants/separation = 14
-
-[node name="LobbyTitle" type="Label" parent="CenterContainer/MainCard/Margin/VBox/SetupView"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.35, 0.85, 1, 1)
-theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
-theme_override_constants/outline_size = 8
-theme_override_font_sizes/font_size = 26
-text = "🌐 НАСТРОЙКА СЕТИ И ПОДКЛЮЧЕНИЯ"
-horizontal_alignment = 1
-
-[node name="HSeparator" type="HSeparator" parent="CenterContainer/MainCard/Margin/VBox/SetupView"]
-layout_mode = 2
-
-[node name="FormGrid" type="GridContainer" parent="CenterContainer/MainCard/Margin/VBox/SetupView"]
-layout_mode = 2
-theme_override_constants/h_separation = 12
-theme_override_constants/v_separation = 8
-columns = 2
-
-[node name="IPLabel" type="Label" parent="CenterContainer/MainCard/Margin/VBox/SetupView/FormGrid"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.75, 0.85, 0.95, 1)
-theme_override_font_sizes/font_size = 15
-text = "IP Address:"
-
-[node name="IPInput" type="LineEdit" parent="CenterContainer/MainCard/Margin/VBox/SetupView/FormGrid"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0.9, 0.95, 1, 1)
-theme_override_styles/normal = SubResource("StyleBoxFlat_input")
-text = "127.0.0.1"
-
-[node name="PortLabel" type="Label" parent="CenterContainer/MainCard/Margin/VBox/SetupView/FormGrid"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.75, 0.85, 0.95, 1)
-theme_override_font_sizes/font_size = 15
-text = "Port:"
-
-[node name="PortInput" type="LineEdit" parent="CenterContainer/MainCard/Margin/VBox/SetupView/FormGrid"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0.9, 0.95, 1, 1)
-theme_override_styles/normal = SubResource("StyleBoxFlat_input")
-text = "8910"
-
-[node name="QuickRow" type="HBoxContainer" parent="CenterContainer/MainCard/Margin/VBox/SetupView"]
-layout_mode = 2
-theme_override_constants/separation = 8
-
-[node name="BtnCopyIP" type="Button" parent="CenterContainer/MainCard/Margin/VBox/SetupView/QuickRow"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 36)
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0.9, 0.95, 1, 1)
-theme_override_font_sizes/font_size = 12
-theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
-theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
-text = "📋 КОПИРОВАТЬ IP"
-
-[node name="BtnPasteIP" type="Button" parent="CenterContainer/MainCard/Margin/VBox/SetupView/QuickRow"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 36)
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0.9, 0.95, 1, 1)
-theme_override_font_sizes/font_size = 12
-theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
-theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
-text = "📋 ВСТАВИТЬ IP"
-
-[node name="BtnLocalhost" type="Button" parent="CenterContainer/MainCard/Margin/VBox/SetupView/QuickRow"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 36)
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0.9, 0.95, 1, 1)
-theme_override_font_sizes/font_size = 12
-theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
-theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
-text = "⚡ LOCALHOST"
-
-[node name="ButtonsRow" type="HBoxContainer" parent="CenterContainer/MainCard/Margin/VBox/SetupView"]
-layout_mode = 2
-theme_override_constants/separation = 12
-
-[node name="HostButton" type="Button" parent="CenterContainer/MainCard/Margin/VBox/SetupView/ButtonsRow"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 50)
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/font_size = 16
-theme_override_styles/normal = SubResource("StyleBoxFlat_primary_btn")
-theme_override_styles/hover = SubResource("StyleBoxFlat_primary_btn_hover")
-text = "🚀 СОЗДАТЬ СЕРВЕР"
-
-[node name="JoinButton" type="Button" parent="CenterContainer/MainCard/Margin/VBox/SetupView/ButtonsRow"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 50)
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0.9, 0.95, 1, 1)
-theme_override_font_sizes/font_size = 16
-theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
-theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
-text = "🎮 ПОДКЛЮЧИТЬСЯ"
-
-[node name="HSeparator2" type="HSeparator" parent="CenterContainer/MainCard/Margin/VBox/SetupView"]
-layout_mode = 2
-
-[node name="CharLabel" type="Label" parent="CenterContainer/MainCard/Margin/VBox/SetupView"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.9, 1, 1)
-theme_override_font_sizes/font_size = 15
-text = "ВЫБЕРИТЕ ВАШЕГО ПЕРСОНАЖА:"
-
-[node name="CharRow" type="HBoxContainer" parent="CenterContainer/MainCard/Margin/VBox/SetupView"]
-layout_mode = 2
-theme_override_constants/separation = 12
-
-[node name="BtnSelectFat" type="Button" parent="CenterContainer/MainCard/Margin/VBox/SetupView/CharRow"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 48)
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_colors/font_color = Color(1, 0.8, 0.3, 1)
-theme_override_font_sizes/font_size = 15
-theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
-theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
-text = "🦛 2. ЖИРДЯЙ (160 HP, Силач)"
-
-[node name="BtnSelectThin" type="Button" parent="CenterContainer/MainCard/Margin/VBox/SetupView/CharRow"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 48)
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0.3, 0.95, 1, 1)
-theme_override_font_sizes/font_size = 15
-theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
-theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
-text = "🦒 1. ХУДОЙ (80 HP, Быстрый)"
-
-[node name="SetupBackButton" type="Button" parent="CenterContainer/MainCard/Margin/VBox/SetupView"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 40)
-layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.85, 0.95, 1)
-theme_override_font_sizes/font_size = 14
-theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
-theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
-text = "← В ГЛАВНОЕ МЕНЮ"
-
-[node name="ActiveLobbyView" type="VBoxContainer" parent="CenterContainer/MainCard/Margin/VBox"]
-unique_name_in_owner = true
-visible = false
-layout_mode = 2
-size_flags_vertical = 3
-theme_override_constants/separation = 14
-
-[node name="ActiveHeader" type="HBoxContainer" parent="CenterContainer/MainCard/Margin/VBox/ActiveLobbyView"]
-layout_mode = 2
-theme_override_constants/separation = 12
-
-[node name="ActiveStatusLabel" type="Label" parent="CenterContainer/MainCard/Margin/VBox/ActiveLobbyView/ActiveHeader"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0.35, 0.95, 0.65, 1)
-theme_override_font_sizes/font_size = 20
-text = "👑 ВЫ ХОСТ | IP: 26.x.x.x:8910"
-
-[node name="RoomCopyIPButton" type="Button" parent="CenterContainer/MainCard/Margin/VBox/ActiveLobbyView/ActiveHeader"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(170, 38)
+custom_minimum_size = Vector2(140, 34)
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_font_sizes/font_size = 13
-theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
-theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_secondary")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_secondary_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_secondary")
 text = "📋 СКОПИРОВАТЬ IP"
 
-[node name="HSeparator" type="HSeparator" parent="CenterContainer/MainCard/Margin/VBox/ActiveLobbyView"]
+[node name="ContentMargin" type="MarginContainer" parent="MainVBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/margin_left = 32
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 32
+theme_override_constants/margin_bottom = 20
+
+[node name="TabContainer" type="TabContainer" parent="MainVBox/ContentMargin"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxEmpty_tab")
+tabs_visible = false
+
+[node name="ServerBrowserTab" type="HBoxContainer" parent="MainVBox/ContentMargin/TabContainer"]
+layout_mode = 2
+theme_override_constants/separation = 24
+
+[node name="LeftBrowserPanel" type="PanelContainer" parent="MainVBox/ContentMargin/TabContainer/ServerBrowserTab"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_card")
+
+[node name="Margin" type="MarginContainer" parent="MainVBox/ContentMargin/TabContainer/ServerBrowserTab/LeftBrowserPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 18
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 18
+
+[node name="VBox" type="VBoxContainer" parent="MainVBox/ContentMargin/TabContainer/ServerBrowserTab/LeftBrowserPanel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="HeaderHBox" type="HBoxContainer" parent="MainVBox/ContentMargin/TabContainer/ServerBrowserTab/LeftBrowserPanel/Margin/VBox"]
 layout_mode = 2
 
-[node name="PlayerCardsContainer" type="HBoxContainer" parent="CenterContainer/MainCard/Margin/VBox/ActiveLobbyView"]
+[node name="Label" type="Label" parent="MainVBox/ContentMargin/TabContainer/ServerBrowserTab/LeftBrowserPanel/Margin/VBox/HeaderHBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 18
+text = "📡 СПИСОК СЕРВЕРОВ (LAN / RADMIN VPN)"
+
+[node name="Spacer" type="Control" parent="MainVBox/ContentMargin/TabContainer/ServerBrowserTab/LeftBrowserPanel/Margin/VBox/HeaderHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="BtnRefreshServers" type="Button" parent="MainVBox/ContentMargin/TabContainer/ServerBrowserTab/LeftBrowserPanel/Margin/VBox/HeaderHBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(130, 34)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 13
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_secondary")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_secondary_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_secondary")
+text = "🔄 ОБНОВИТЬ"
+
+[node name="HSeparator" type="HSeparator" parent="MainVBox/ContentMargin/TabContainer/ServerBrowserTab/LeftBrowserPanel/Margin/VBox"]
+layout_mode = 2
+
+[node name="Scroll" type="ScrollContainer" parent="MainVBox/ContentMargin/TabContainer/ServerBrowserTab/LeftBrowserPanel/Margin/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="ServerListContainer" type="VBoxContainer" parent="MainVBox/ContentMargin/TabContainer/ServerBrowserTab/LeftBrowserPanel/Margin/VBox/Scroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="RightActionPanel" type="PanelContainer" parent="MainVBox/ContentMargin/TabContainer/ServerBrowserTab"]
+custom_minimum_size = Vector2(380, 0)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_card")
+
+[node name="Margin" type="MarginContainer" parent="MainVBox/ContentMargin/TabContainer/ServerBrowserTab/RightActionPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 20
+
+[node name="VBox" type="VBoxContainer" parent="MainVBox/ContentMargin/TabContainer/ServerBrowserTab/RightActionPanel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 14
+alignment = 1
+
+[node name="DirectTitle" type="Label" parent="MainVBox/ContentMargin/TabContainer/ServerBrowserTab/RightActionPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.3, 0.9, 1, 1)
+theme_override_font_sizes/font_size = 18
+text = "⚡ ПРЯМОЕ ПОДКЛЮЧЕНИЕ"
+horizontal_alignment = 1
+
+[node name="DirectCodeInput" type="LineEdit" parent="MainVBox/ContentMargin/TabContainer/ServerBrowserTab/RightActionPanel/Margin/VBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 42)
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+theme_override_styles/normal = SubResource("StyleBoxFlat_input")
+placeholder_text = "Введите IP или Код комнаты (e.g. TF-4291)"
+alignment = 1
+
+[node name="PasteHBox" type="HBoxContainer" parent="MainVBox/ContentMargin/TabContainer/ServerBrowserTab/RightActionPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="BtnDirectPaste" type="Button" parent="MainVBox/ContentMargin/TabContainer/ServerBrowserTab/RightActionPanel/Margin/VBox/PasteHBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 13
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_secondary")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_secondary_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_secondary")
+text = "📋 ВСТАВИТЬ"
+
+[node name="BtnDirectLocalhost" type="Button" parent="MainVBox/ContentMargin/TabContainer/ServerBrowserTab/RightActionPanel/Margin/VBox/PasteHBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 13
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_secondary")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_secondary_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_secondary")
+text = "🏠 LOCALHOST"
+
+[node name="BtnDirectJoin" type="Button" parent="MainVBox/ContentMargin/TabContainer/ServerBrowserTab/RightActionPanel/Margin/VBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 46)
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_primary")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_primary_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_primary")
+text = "⚡ ВОЙТИ В КОМНАТУ"
+
+[node name="HSeparator2" type="HSeparator" parent="MainVBox/ContentMargin/TabContainer/ServerBrowserTab/RightActionPanel/Margin/VBox"]
+layout_mode = 2
+
+[node name="BtnOpenCreateRoom" type="Button" parent="MainVBox/ContentMargin/TabContainer/ServerBrowserTab/RightActionPanel/Margin/VBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_secondary")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_secondary_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_secondary")
+text = "➕ СОЗДАТЬ СВОЮ КОМНАТУ"
+
+[node name="BtnBrowserBackMenu" type="Button" parent="MainVBox/ContentMargin/TabContainer/ServerBrowserTab/RightActionPanel/Margin/VBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 42)
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_danger")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_danger_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_danger")
+text = "🏠 В ГЛАВНОЕ МЕНЮ"
+
+[node name="HostCreateTab" type="CenterContainer" parent="MainVBox/ContentMargin/TabContainer"]
+layout_mode = 2
+
+[node name="CreateCard" type="PanelContainer" parent="MainVBox/ContentMargin/TabContainer/HostCreateTab"]
+custom_minimum_size = Vector2(500, 380)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_card")
+
+[node name="Margin" type="MarginContainer" parent="MainVBox/ContentMargin/TabContainer/HostCreateTab/CreateCard"]
+layout_mode = 2
+theme_override_constants/margin_left = 28
+theme_override_constants/margin_top = 28
+theme_override_constants/margin_right = 28
+theme_override_constants/margin_bottom = 28
+
+[node name="VBox" type="VBoxContainer" parent="MainVBox/ContentMargin/TabContainer/HostCreateTab/CreateCard/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="CreateTitle" type="Label" parent="MainVBox/ContentMargin/TabContainer/HostCreateTab/CreateCard/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.2, 1)
+theme_override_font_sizes/font_size = 22
+text = "➕ СОЗДАНИЕ СЕТЕВОЙ КОМНАТЫ"
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="MainVBox/ContentMargin/TabContainer/HostCreateTab/CreateCard/Margin/VBox"]
+layout_mode = 2
+
+[node name="NameLabel" type="Label" parent="MainVBox/ContentMargin/TabContainer/HostCreateTab/CreateCard/Margin/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "Название лобби:"
+
+[node name="HostRoomNameInput" type="LineEdit" parent="MainVBox/ContentMargin/TabContainer/HostCreateTab/CreateCard/Margin/VBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+theme_override_styles/normal = SubResource("StyleBoxFlat_input")
+text = "Кооп Сервер"
+
+[node name="CodeHBox" type="HBoxContainer" parent="MainVBox/ContentMargin/TabContainer/HostCreateTab/CreateCard/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="CodeTitle" type="Label" parent="MainVBox/ContentMargin/TabContainer/HostCreateTab/CreateCard/Margin/VBox/CodeHBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "Код комнаты:"
+
+[node name="HostGeneratedCodeLabel" type="Label" parent="MainVBox/ContentMargin/TabContainer/HostCreateTab/CreateCard/Margin/VBox/CodeHBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.3, 0.9, 1, 1)
+theme_override_font_sizes/font_size = 18
+text = "TF-1001"
+
+[node name="Spacer" type="Control" parent="MainVBox/ContentMargin/TabContainer/HostCreateTab/CreateCard/Margin/VBox/CodeHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="BtnRegenerateCode" type="Button" parent="MainVBox/ContentMargin/TabContainer/HostCreateTab/CreateCard/Margin/VBox/CodeHBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(130, 32)
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_secondary")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_secondary_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_secondary")
+text = "🔄 ОБНОВИТЬ"
+
+[node name="BtnConfirmCreateRoom" type="Button" parent="MainVBox/ContentMargin/TabContainer/HostCreateTab/CreateCard/Margin/VBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_primary")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_primary_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_primary")
+text = "🌟 ЗАПУСТИТЬ ЛОББИ"
+
+[node name="BtnCancelCreateRoom" type="Button" parent="MainVBox/ContentMargin/TabContainer/HostCreateTab/CreateCard/Margin/VBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_danger")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_danger_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_danger")
+text = "⬅️ ОТМЕНА"
+
+[node name="ActiveRoomTab" type="VBoxContainer" parent="MainVBox/ContentMargin/TabContainer"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="RoomInfoCard" type="PanelContainer" parent="MainVBox/ContentMargin/TabContainer/ActiveRoomTab"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_card")
+
+[node name="Margin" type="MarginContainer" parent="MainVBox/ContentMargin/TabContainer/ActiveRoomTab/RoomInfoCard"]
+layout_mode = 2
+theme_override_constants/margin_left = 18
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 18
+theme_override_constants/margin_bottom = 12
+
+[node name="HBox" type="HBoxContainer" parent="MainVBox/ContentMargin/TabContainer/ActiveRoomTab/RoomInfoCard/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="RoomTitleLabel" type="Label" parent="MainVBox/ContentMargin/TabContainer/ActiveRoomTab/RoomInfoCard/Margin/HBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.2, 1)
+theme_override_font_sizes/font_size = 18
+text = "👑 КОМНАТА ОЖИДАНИЯ"
+
+[node name="RoomCodeLabel" type="Label" parent="MainVBox/ContentMargin/TabContainer/ActiveRoomTab/RoomInfoCard/Margin/HBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.3, 0.9, 1, 1)
+theme_override_font_sizes/font_size = 16
+text = "КОД: TF-0000"
+
+[node name="Spacer" type="Control" parent="MainVBox/ContentMargin/TabContainer/ActiveRoomTab/RoomInfoCard/Margin/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="BtnRoomCopyInfo" type="Button" parent="MainVBox/ContentMargin/TabContainer/ActiveRoomTab/RoomInfoCard/Margin/HBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(160, 34)
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_secondary")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_secondary_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_secondary")
+text = "📋 СКОПИРОВАТЬ ДАННЫЕ"
+
+[node name="PlayerCardsContainer" type="HBoxContainer" parent="MainVBox/ContentMargin/TabContainer/ActiveRoomTab"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
-theme_override_constants/separation = 16
+theme_override_constants/separation = 20
 
-[node name="HSeparator2" type="HSeparator" parent="CenterContainer/MainCard/Margin/VBox/ActiveLobbyView"]
+[node name="RoomBottomBar" type="PanelContainer" parent="MainVBox/ContentMargin/TabContainer/ActiveRoomTab"]
 layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_card")
 
-[node name="RoomCharBox" type="HBoxContainer" parent="CenterContainer/MainCard/Margin/VBox/ActiveLobbyView"]
+[node name="Margin" type="MarginContainer" parent="MainVBox/ContentMargin/TabContainer/ActiveRoomTab/RoomBottomBar"]
 layout_mode = 2
-theme_override_constants/separation = 12
+theme_override_constants/margin_left = 18
+theme_override_constants/margin_top = 14
+theme_override_constants/margin_right = 18
+theme_override_constants/margin_bottom = 14
 
-[node name="RoomCharLabel" type="Label" parent="CenterContainer/MainCard/Margin/VBox/ActiveLobbyView/RoomCharBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.9, 1, 1)
-theme_override_font_sizes/font_size = 14
-text = "СМЕНИТЬ ПЕРСОНАЖА:"
-
-[node name="RoomBtnFat" type="Button" parent="CenterContainer/MainCard/Margin/VBox/ActiveLobbyView/RoomCharBox"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 42)
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_colors/font_color = Color(1, 0.8, 0.3, 1)
-theme_override_font_sizes/font_size = 14
-theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
-theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
-text = "🦛 ВЫБРАТЬ ЖИРДЯЯ"
-
-[node name="RoomBtnThin" type="Button" parent="CenterContainer/MainCard/Margin/VBox/ActiveLobbyView/RoomCharBox"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 42)
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0.3, 0.95, 1, 1)
-theme_override_font_sizes/font_size = 14
-theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
-theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
-text = "🦒 ВЫБРАТЬ ХУДОГО"
-
-[node name="ActionRow" type="HBoxContainer" parent="CenterContainer/MainCard/Margin/VBox/ActiveLobbyView"]
+[node name="VBox" type="VBoxContainer" parent="MainVBox/ContentMargin/TabContainer/ActiveRoomTab/RoomBottomBar/Margin"]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="StartMatchButton" type="Button" parent="CenterContainer/MainCard/Margin/VBox/ActiveLobbyView/ActionRow"]
+[node name="HBoxControls" type="HBoxContainer" parent="MainVBox/ContentMargin/TabContainer/ActiveRoomTab/RoomBottomBar/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="HeroLabel" type="Label" parent="MainVBox/ContentMargin/TabContainer/ActiveRoomTab/RoomBottomBar/Margin/VBox/HBoxControls"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "Ваш герой:"
+
+[node name="BtnRoomPickFat" type="Button" parent="MainVBox/ContentMargin/TabContainer/ActiveRoomTab/RoomBottomBar/Margin/VBox/HBoxControls"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 54)
+custom_minimum_size = Vector2(130, 38)
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_secondary")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_secondary_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_secondary")
+text = "🦛 ТОЛСТЯК"
+
+[node name="BtnRoomPickThin" type="Button" parent="MainVBox/ContentMargin/TabContainer/ActiveRoomTab/RoomBottomBar/Margin/VBox/HBoxControls"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(130, 38)
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_secondary")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_secondary_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_secondary")
+text = "🦒 ХУДОЙ"
+
+[node name="VSeparator" type="VSeparator" parent="MainVBox/ContentMargin/TabContainer/ActiveRoomTab/RoomBottomBar/Margin/VBox/HBoxControls"]
+layout_mode = 2
+
+[node name="EmoteLabel" type="Label" parent="MainVBox/ContentMargin/TabContainer/ActiveRoomTab/RoomBottomBar/Margin/VBox/HBoxControls"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "Танец:"
+
+[node name="BtnEmoteDisco" type="Button" parent="MainVBox/ContentMargin/TabContainer/ActiveRoomTab/RoomBottomBar/Margin/VBox/HBoxControls"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(100, 38)
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_secondary")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_secondary_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_secondary")
+text = "🕺 ДИСКО"
+
+[node name="BtnEmoteKazachok" type="Button" parent="MainVBox/ContentMargin/TabContainer/ActiveRoomTab/RoomBottomBar/Margin/VBox/HBoxControls"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(110, 38)
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_secondary")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_secondary_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_secondary")
+text = "💃 КАЗАЧОК"
+
+[node name="BtnEmoteWiggle" type="Button" parent="MainVBox/ContentMargin/TabContainer/ActiveRoomTab/RoomBottomBar/Margin/VBox/HBoxControls"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(100, 38)
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_secondary")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_secondary_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_secondary")
+text = "🪱 ЖЕЛЕ"
+
+[node name="Spacer" type="Control" parent="MainVBox/ContentMargin/TabContainer/ActiveRoomTab/RoomBottomBar/Margin/VBox/HBoxControls"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/font_size = 18
-theme_override_styles/normal = SubResource("StyleBoxFlat_primary_btn")
-theme_override_styles/hover = SubResource("StyleBoxFlat_primary_btn_hover")
-text = "🚀 ЗАПУСТИТЬ МАТЧ (START MATCH)"
 
-[node name="LeaveRoomButton" type="Button" parent="CenterContainer/MainCard/Margin/VBox/ActiveLobbyView/ActionRow"]
+[node name="BtnRoomReady" type="Button" parent="MainVBox/ContentMargin/TabContainer/ActiveRoomTab/RoomBottomBar/Margin/VBox/HBoxControls"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(220, 54)
+custom_minimum_size = Vector2(140, 38)
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.5, 0.5, 1)
 theme_override_font_sizes/font_size = 14
-theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
-theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
-text = "🚪 ВЫЙТИ ИЗ КОМНАТЫ"
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_primary")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_primary_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_primary")
+text = "🟢 ГОТОВ (READY)"
+
+[node name="BtnStartMatch" type="Button" parent="MainVBox/ContentMargin/TabContainer/ActiveRoomTab/RoomBottomBar/Margin/VBox/HBoxControls"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(160, 42)
+layout_mode = 2
+theme_override_font_sizes/font_size = 15
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_primary")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_primary_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_primary")
+text = "🚀 НАЧАТЬ ИГРУ"
+
+[node name="BtnLeaveRoom" type="Button" parent="MainVBox/ContentMargin/TabContainer/ActiveRoomTab/RoomBottomBar/Margin/VBox/HBoxControls"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(100, 38)
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_danger")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_danger_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_danger")
+text = "🚪 ВЫЙТИ"
+
+[node name="RoomNotificationLabel" type="Label" parent="MainVBox/ContentMargin/TabContainer/ActiveRoomTab/RoomBottomBar/Margin/VBox"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(0.3, 0.9, 1, 1)
+theme_override_font_sizes/font_size = 13
+text = "Статус синхронизации..."
+horizontal_alignment = 1
