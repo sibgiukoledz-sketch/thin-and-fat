@@ -35,19 +35,19 @@
 shader = ExtResource("2_pm21f")
 shader_parameter/sky_visible = true
 shader_parameter/color_correction = Vector2(0, 1)
-shader_parameter/ground_color = Color(0.3, 0.3, 0.3, 1)
+shader_parameter/ground_color = Color(0.32, 0.78, 0.28, 1)
 shader_parameter/horizon_offset = 0.0
-shader_parameter/atm_darkness = 0.5
-shader_parameter/atm_sun_intensity = 18.0
-shader_parameter/atm_day_tint = Color(0.807843, 0.909804, 1, 1)
-shader_parameter/atm_horizon_light_tint = Color(0.980392, 0.635294, 0.462745, 1)
+shader_parameter/atm_darkness = 0.2
+shader_parameter/atm_sun_intensity = 22.0
+shader_parameter/atm_day_tint = Color(0.42, 0.76, 1, 1)
+shader_parameter/atm_horizon_light_tint = Color(1, 0.85, 0.7, 1)
 shader_parameter/atm_night_tint = Color(0, 0, 0, 0)
 shader_parameter/atm_level_params = Vector3(1, 0, 0)
 shader_parameter/atm_thickness = 0.7
 shader_parameter/atm_beta_ray = Vector3(5.804544e-06, 1.3562913e-05, 3.311258e-05)
 shader_parameter/atm_beta_mie = Vector3(3.038e-08, 3.038e-08, 3.038e-08)
-shader_parameter/sun_light_color = Color(1, 1, 1, 1)
-shader_parameter/sun_disk_color = Color(0.996094, 0.541334, 0.140076, 1)
+shader_parameter/sun_light_color = Color(1, 0.98, 0.92, 1)
+shader_parameter/sun_disk_color = Color(1, 0.85, 0.35, 1)
 shader_parameter/sun_disk_intensity = 30.0
 shader_parameter/sun_disk_size = 0.02
 shader_parameter/atm_sun_mie_tint = Color(1, 1, 1, 1)
@@ -114,24 +114,28 @@ sky_material = SubResource("ShaderMaterial_fh13f")
 background_mode = 2
 sky = SubResource("Sky_rup4s")
 ambient_light_source = 3
-ambient_light_color = Color(1, 1, 1, 1)
+ambient_light_color = Color(0.75, 0.88, 1, 1)
+ambient_light_sky_contribution = 0.85
+ambient_light_energy = 0.95
 reflected_light_source = 2
 tonemap_mode = 3
-tonemap_white = 6.0
-fog_enabled = true
-fog_light_color = Color(0.65, 0.75, 0.88, 1)
-fog_density = 0.0075
-fog_aerial_perspective = 0.5
-fog_sky_affect = 0.4
-volumetric_fog_enabled = true
-volumetric_fog_density = 0.006
-volumetric_fog_albedo = Color(0.7, 0.8, 0.9, 1)
+tonemap_exposure = 1.15
+tonemap_white = 1.0
+glow_enabled = true
+glow_intensity = 0.5
+glow_bloom = 0.15
+glow_blend_mode = 0
+fog_enabled = false
+volumetric_fog_enabled = false
 
 [sub_resource type="CameraAttributesPractical" id="CameraAttributesPractical_f17e3"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_floor"]
-albedo_color = Color(0.2, 0.22, 0.25, 1)
-roughness = 0.8
+albedo_color = Color(0.32, 0.78, 0.26, 1)
+roughness = 0.55
+rim_enabled = true
+rim = 0.2
+rim_tint = 0.5
 
 [sub_resource type="BoxMesh" id="BoxMesh_floor"]
 material = SubResource("StandardMaterial3D_floor")
@@ -330,7 +334,11 @@ wind_direction = 2.35619451204804
 
 [node name="SunLight" type="DirectionalLight3D" parent="Sky3D" unique_id=946822099]
 transform = Transform3D(0.9277635, -0.3008148, 0.22082876, 0, 0.5917666, 0.8061094, -0.3731687, -0.7478789, 0.5490194, 0.22082876, 0.8061094, 0.5490194)
+light_color = Color(1, 0.97, 0.9, 1)
+light_energy = 1.35
+light_indirect_energy = 1.2
 shadow_enabled = true
+shadow_blur = 1.8
 
 [node name="MoonLight" type="DirectionalLight3D" parent="Sky3D" unique_id=86044256]
 transform = Transform3D(0, -0.98008645, 0.19857182, 0.62604254, 0.1548441, 0.76426053, -0.779789, 0.124314405, 0.61357576, 0.1985718, 0.7642605, 0.6135757)
