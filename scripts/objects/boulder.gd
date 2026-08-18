@@ -138,7 +138,7 @@ func _on_interaction_body_exited(body: Node3D) -> void:
 		_update_prompt()
 
 func _unhandled_input(event: InputEvent) -> void:
-	var is_interact_pressed := event.is_action_pressed("ability_1") or (event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_E)
+	var is_interact_pressed: bool = event.is_action_pressed("ability_1") or (event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_E)
 	if not is_interact_pressed:
 		return
 
