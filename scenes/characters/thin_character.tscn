@@ -120,12 +120,12 @@ height = 0.18
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_upper_arm"]
 material = SubResource("StandardMaterial3D_sweater_teal")
 radius = 0.065
-height = 0.52
+height = 0.46
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_forearm"]
 material = SubResource("StandardMaterial3D_skin")
 radius = 0.055
-height = 0.48
+height = 0.42
 
 [sub_resource type="SphereMesh" id="SphereMesh_hand"]
 material = SubResource("StandardMaterial3D_skin")
@@ -198,50 +198,110 @@ tracks/2/keys = {
 tracks/3/type = "value"
 tracks/3/imported = false
 tracks/3/enabled = true
-tracks/3/path = NodePath("Skeleton3D/Pelvis/Torso:position")
+tracks/3/path = NodePath("Skeleton3D/Pelvis/Hip_L/Shin_L:rotation_degrees")
 tracks/3/interp = 2
 tracks/3/loop_wrap = true
 tracks/3/keys = {
-"times": PackedFloat32Array(0, 1.2, 2.4),
-"transitions": PackedFloat32Array(1, 1, 1),
+"times": PackedFloat32Array(0, 2.4),
+"transitions": PackedFloat32Array(1, 1),
 "update": 0,
-"values": [Vector3(0, 0.28, 0), Vector3(0, 0.30, 0), Vector3(0, 0.28, 0)]
+"values": [Vector3(0, 0, 0), Vector3(0, 0, 0)]
 }
 tracks/4/type = "value"
 tracks/4/imported = false
 tracks/4/enabled = true
-tracks/4/path = NodePath("Skeleton3D/Pelvis/Torso/Neck/HeadPivot:rotation_degrees")
+tracks/4/path = NodePath("Skeleton3D/Pelvis/Hip_R/Shin_R:rotation_degrees")
 tracks/4/interp = 2
 tracks/4/loop_wrap = true
 tracks/4/keys = {
-"times": PackedFloat32Array(0, 1.2, 2.4),
-"transitions": PackedFloat32Array(1, 1, 1),
+"times": PackedFloat32Array(0, 2.4),
+"transitions": PackedFloat32Array(1, 1),
 "update": 0,
-"values": [Vector3(0, 0, 0), Vector3(-2, 0, 2), Vector3(0, 0, 0)]
+"values": [Vector3(0, 0, 0), Vector3(0, 0, 0)]
 }
 tracks/5/type = "value"
 tracks/5/imported = false
 tracks/5/enabled = true
-tracks/5/path = NodePath("Skeleton3D/Pelvis/Torso/Arm_L:rotation_degrees")
+tracks/5/path = NodePath("Skeleton3D/Pelvis/Torso:position")
 tracks/5/interp = 2
 tracks/5/loop_wrap = true
 tracks/5/keys = {
 "times": PackedFloat32Array(0, 1.2, 2.4),
 "transitions": PackedFloat32Array(1, 1, 1),
 "update": 0,
-"values": [Vector3(0, 0, -8), Vector3(0, 0, -5), Vector3(0, 0, -8)]
+"values": [Vector3(0, 0.28, 0), Vector3(0, 0.30, 0), Vector3(0, 0.28, 0)]
 }
 tracks/6/type = "value"
 tracks/6/imported = false
 tracks/6/enabled = true
-tracks/6/path = NodePath("Skeleton3D/Pelvis/Torso/Arm_R:rotation_degrees")
+tracks/6/path = NodePath("Skeleton3D/Pelvis/Torso:rotation_degrees")
 tracks/6/interp = 2
 tracks/6/loop_wrap = true
 tracks/6/keys = {
+"times": PackedFloat32Array(0, 2.4),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Vector3(0, 0, 0), Vector3(0, 0, 0)]
+}
+tracks/7/type = "value"
+tracks/7/imported = false
+tracks/7/enabled = true
+tracks/7/path = NodePath("Skeleton3D/Pelvis/Torso/Neck/HeadPivot:rotation_degrees")
+tracks/7/interp = 2
+tracks/7/loop_wrap = true
+tracks/7/keys = {
+"times": PackedFloat32Array(0, 1.2, 2.4),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector3(0, 0, 0), Vector3(-2, 0, 2), Vector3(0, 0, 0)]
+}
+tracks/8/type = "value"
+tracks/8/imported = false
+tracks/8/enabled = true
+tracks/8/path = NodePath("Skeleton3D/Pelvis/Torso/Arm_L:rotation_degrees")
+tracks/8/interp = 2
+tracks/8/loop_wrap = true
+tracks/8/keys = {
+"times": PackedFloat32Array(0, 1.2, 2.4),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector3(0, 0, -8), Vector3(0, 0, -5), Vector3(0, 0, -8)]
+}
+tracks/9/type = "value"
+tracks/9/imported = false
+tracks/9/enabled = true
+tracks/9/path = NodePath("Skeleton3D/Pelvis/Torso/Arm_R:rotation_degrees")
+tracks/9/interp = 2
+tracks/9/loop_wrap = true
+tracks/9/keys = {
 "times": PackedFloat32Array(0, 1.2, 2.4),
 "transitions": PackedFloat32Array(1, 1, 1),
 "update": 0,
 "values": [Vector3(0, 0, 8), Vector3(0, 0, 5), Vector3(0, 0, 8)]
+}
+tracks/10/type = "value"
+tracks/10/imported = false
+tracks/10/enabled = true
+tracks/10/path = NodePath("Skeleton3D/Pelvis/Torso/Arm_L/Forearm_L:rotation_degrees")
+tracks/10/interp = 2
+tracks/10/loop_wrap = true
+tracks/10/keys = {
+"times": PackedFloat32Array(0, 2.4),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Vector3(0, 0, 0), Vector3(0, 0, 0)]
+}
+tracks/11/type = "value"
+tracks/11/imported = false
+tracks/11/enabled = true
+tracks/11/path = NodePath("Skeleton3D/Pelvis/Torso/Arm_R/Forearm_R:rotation_degrees")
+tracks/11/interp = 2
+tracks/11/loop_wrap = true
+tracks/11/keys = {
+"times": PackedFloat32Array(0, 2.4),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Vector3(0, 0, 0), Vector3(0, 0, 0)]
 }
 
 [sub_resource type="Animation" id="Animation_walk"]
@@ -287,22 +347,46 @@ tracks/2/keys = {
 tracks/3/type = "value"
 tracks/3/imported = false
 tracks/3/enabled = true
-tracks/3/path = NodePath("Skeleton3D/Pelvis/Torso/Arm_L:rotation_degrees")
+tracks/3/path = NodePath("Skeleton3D/Pelvis/Hip_L/Shin_L:rotation_degrees")
 tracks/3/interp = 2
 tracks/3/loop_wrap = true
 tracks/3/keys = {
 "times": PackedFloat32Array(0, 0.4, 0.8),
 "transitions": PackedFloat32Array(1, 1, 1),
 "update": 0,
-"values": [Vector3(24, 0, -10), Vector3(-24, 0, -10), Vector3(24, 0, -10)]
+"values": [Vector3(18, 0, 0), Vector3(0, 0, 0), Vector3(18, 0, 0)]
 }
 tracks/4/type = "value"
 tracks/4/imported = false
 tracks/4/enabled = true
-tracks/4/path = NodePath("Skeleton3D/Pelvis/Torso/Arm_R:rotation_degrees")
+tracks/4/path = NodePath("Skeleton3D/Pelvis/Hip_R/Shin_R:rotation_degrees")
 tracks/4/interp = 2
 tracks/4/loop_wrap = true
 tracks/4/keys = {
+"times": PackedFloat32Array(0, 0.4, 0.8),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector3(0, 0, 0), Vector3(18, 0, 0), Vector3(0, 0, 0)]
+}
+tracks/5/type = "value"
+tracks/5/imported = false
+tracks/5/enabled = true
+tracks/5/path = NodePath("Skeleton3D/Pelvis/Torso/Arm_L:rotation_degrees")
+tracks/5/interp = 2
+tracks/5/loop_wrap = true
+tracks/5/keys = {
+"times": PackedFloat32Array(0, 0.4, 0.8),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector3(24, 0, -10), Vector3(-24, 0, -10), Vector3(24, 0, -10)]
+}
+tracks/6/type = "value"
+tracks/6/imported = false
+tracks/6/enabled = true
+tracks/6/path = NodePath("Skeleton3D/Pelvis/Torso/Arm_R:rotation_degrees")
+tracks/6/interp = 2
+tracks/6/loop_wrap = true
+tracks/6/keys = {
 "times": PackedFloat32Array(0, 0.4, 0.8),
 "transitions": PackedFloat32Array(1, 1, 1),
 "update": 0,
@@ -352,22 +436,46 @@ tracks/2/keys = {
 tracks/3/type = "value"
 tracks/3/imported = false
 tracks/3/enabled = true
-tracks/3/path = NodePath("Skeleton3D/Pelvis/Torso/Arm_L:rotation_degrees")
+tracks/3/path = NodePath("Skeleton3D/Pelvis/Hip_L/Shin_L:rotation_degrees")
 tracks/3/interp = 2
 tracks/3/loop_wrap = true
 tracks/3/keys = {
 "times": PackedFloat32Array(0, 0.25, 0.5),
 "transitions": PackedFloat32Array(1, 1, 1),
 "update": 0,
-"values": [Vector3(45, 0, -15), Vector3(-45, 0, -15), Vector3(45, 0, -15)]
+"values": [Vector3(35, 0, 0), Vector3(0, 0, 0), Vector3(35, 0, 0)]
 }
 tracks/4/type = "value"
 tracks/4/imported = false
 tracks/4/enabled = true
-tracks/4/path = NodePath("Skeleton3D/Pelvis/Torso/Arm_R:rotation_degrees")
+tracks/4/path = NodePath("Skeleton3D/Pelvis/Hip_R/Shin_R:rotation_degrees")
 tracks/4/interp = 2
 tracks/4/loop_wrap = true
 tracks/4/keys = {
+"times": PackedFloat32Array(0, 0.25, 0.5),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector3(0, 0, 0), Vector3(35, 0, 0), Vector3(0, 0, 0)]
+}
+tracks/5/type = "value"
+tracks/5/imported = false
+tracks/5/enabled = true
+tracks/5/path = NodePath("Skeleton3D/Pelvis/Torso/Arm_L:rotation_degrees")
+tracks/5/interp = 2
+tracks/5/loop_wrap = true
+tracks/5/keys = {
+"times": PackedFloat32Array(0, 0.25, 0.5),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector3(45, 0, -15), Vector3(-45, 0, -15), Vector3(45, 0, -15)]
+}
+tracks/6/type = "value"
+tracks/6/imported = false
+tracks/6/enabled = true
+tracks/6/path = NodePath("Skeleton3D/Pelvis/Torso/Arm_R:rotation_degrees")
+tracks/6/interp = 2
+tracks/6/loop_wrap = true
+tracks/6/keys = {
 "times": PackedFloat32Array(0, 0.25, 0.5),
 "transitions": PackedFloat32Array(1, 1, 1),
 "update": 0,
@@ -388,7 +496,7 @@ tracks/0/keys = {
 "times": PackedFloat32Array(0, 1),
 "transitions": PackedFloat32Array(1, 1),
 "update": 0,
-"values": [Vector3(0, 0.72, 0), Vector3(0, 0.72, 0)]
+"values": [Vector3(0, 0.58, 0), Vector3(0, 0.58, 0)]
 }
 tracks/1/type = "value"
 tracks/1/imported = false
@@ -400,7 +508,7 @@ tracks/1/keys = {
 "times": PackedFloat32Array(0, 1),
 "transitions": PackedFloat32Array(1, 1),
 "update": 0,
-"values": [Vector3(-60, 0, -10), Vector3(-60, 0, -10)]
+"values": [Vector3(-65, 0, -6), Vector3(-65, 0, -6)]
 }
 tracks/2/type = "value"
 tracks/2/imported = false
@@ -412,19 +520,67 @@ tracks/2/keys = {
 "times": PackedFloat32Array(0, 1),
 "transitions": PackedFloat32Array(1, 1),
 "update": 0,
-"values": [Vector3(-60, 0, 10), Vector3(-60, 0, 10)]
+"values": [Vector3(-65, 0, 6), Vector3(-65, 0, 6)]
 }
 tracks/3/type = "value"
 tracks/3/imported = false
 tracks/3/enabled = true
-tracks/3/path = NodePath("Skeleton3D/Pelvis/Torso:rotation_degrees")
+tracks/3/path = NodePath("Skeleton3D/Pelvis/Hip_L/Shin_L:rotation_degrees")
 tracks/3/interp = 2
 tracks/3/loop_wrap = true
 tracks/3/keys = {
 "times": PackedFloat32Array(0, 1),
 "transitions": PackedFloat32Array(1, 1),
 "update": 0,
-"values": [Vector3(22, 0, 0), Vector3(22, 0, 0)]
+"values": [Vector3(120, 0, 0), Vector3(120, 0, 0)]
+}
+tracks/4/type = "value"
+tracks/4/imported = false
+tracks/4/enabled = true
+tracks/4/path = NodePath("Skeleton3D/Pelvis/Hip_R/Shin_R:rotation_degrees")
+tracks/4/interp = 2
+tracks/4/loop_wrap = true
+tracks/4/keys = {
+"times": PackedFloat32Array(0, 1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Vector3(120, 0, 0), Vector3(120, 0, 0)]
+}
+tracks/5/type = "value"
+tracks/5/imported = false
+tracks/5/enabled = true
+tracks/5/path = NodePath("Skeleton3D/Pelvis/Torso:rotation_degrees")
+tracks/5/interp = 2
+tracks/5/loop_wrap = true
+tracks/5/keys = {
+"times": PackedFloat32Array(0, 1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Vector3(14, 0, 0), Vector3(14, 0, 0)]
+}
+tracks/6/type = "value"
+tracks/6/imported = false
+tracks/6/enabled = true
+tracks/6/path = NodePath("Skeleton3D/Pelvis/Torso/Arm_L:rotation_degrees")
+tracks/6/interp = 2
+tracks/6/loop_wrap = true
+tracks/6/keys = {
+"times": PackedFloat32Array(0, 1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Vector3(-20, 0, -20), Vector3(-20, 0, -20)]
+}
+tracks/7/type = "value"
+tracks/7/imported = false
+tracks/7/enabled = true
+tracks/7/path = NodePath("Skeleton3D/Pelvis/Torso/Arm_R:rotation_degrees")
+tracks/7/interp = 2
+tracks/7/loop_wrap = true
+tracks/7/keys = {
+"times": PackedFloat32Array(0, 1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Vector3(-20, 0, 20), Vector3(-20, 0, 20)]
 }
 
 [sub_resource type="Animation" id="Animation_crouch_walk"]
@@ -441,7 +597,7 @@ tracks/0/keys = {
 "times": PackedFloat32Array(0, 0.4, 0.8),
 "transitions": PackedFloat32Array(1, 1, 1),
 "update": 0,
-"values": [Vector3(0, 0.72, 0), Vector3(0, 0.78, 0), Vector3(0, 0.72, 0)]
+"values": [Vector3(0, 0.58, 0), Vector3(0, 0.63, 0), Vector3(0, 0.58, 0)]
 }
 tracks/1/type = "value"
 tracks/1/imported = false
@@ -453,7 +609,7 @@ tracks/1/keys = {
 "times": PackedFloat32Array(0, 0.4, 0.8),
 "transitions": PackedFloat32Array(1, 1, 1),
 "update": 0,
-"values": [Vector3(-75, 0, -10), Vector3(-35, 0, -10), Vector3(-75, 0, -10)]
+"values": [Vector3(-75, 0, -6), Vector3(-45, 0, -6), Vector3(-75, 0, -6)]
 }
 tracks/2/type = "value"
 tracks/2/imported = false
@@ -465,19 +621,43 @@ tracks/2/keys = {
 "times": PackedFloat32Array(0, 0.4, 0.8),
 "transitions": PackedFloat32Array(1, 1, 1),
 "update": 0,
-"values": [Vector3(-35, 0, 10), Vector3(-75, 0, 10), Vector3(-35, 0, 10)]
+"values": [Vector3(-45, 0, 6), Vector3(-75, 0, 6), Vector3(-45, 0, 6)]
 }
 tracks/3/type = "value"
 tracks/3/imported = false
 tracks/3/enabled = true
-tracks/3/path = NodePath("Skeleton3D/Pelvis/Torso:rotation_degrees")
+tracks/3/path = NodePath("Skeleton3D/Pelvis/Hip_L/Shin_L:rotation_degrees")
 tracks/3/interp = 2
 tracks/3/loop_wrap = true
 tracks/3/keys = {
 "times": PackedFloat32Array(0, 0.4, 0.8),
 "transitions": PackedFloat32Array(1, 1, 1),
 "update": 0,
-"values": [Vector3(22, 0, 0), Vector3(22, 0, 0), Vector3(22, 0, 0)]
+"values": [Vector3(130, 0, 0), Vector3(95, 0, 0), Vector3(130, 0, 0)]
+}
+tracks/4/type = "value"
+tracks/4/imported = false
+tracks/4/enabled = true
+tracks/4/path = NodePath("Skeleton3D/Pelvis/Hip_R/Shin_R:rotation_degrees")
+tracks/4/interp = 2
+tracks/4/loop_wrap = true
+tracks/4/keys = {
+"times": PackedFloat32Array(0, 0.4, 0.8),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector3(95, 0, 0), Vector3(130, 0, 0), Vector3(95, 0, 0)]
+}
+tracks/5/type = "value"
+tracks/5/imported = false
+tracks/5/enabled = true
+tracks/5/path = NodePath("Skeleton3D/Pelvis/Torso:rotation_degrees")
+tracks/5/interp = 2
+tracks/5/loop_wrap = true
+tracks/5/keys = {
+"times": PackedFloat32Array(0, 0.4, 0.8),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector3(16, 0, 0), Vector3(16, 0, 0), Vector3(16, 0, 0)]
 }
 
 [sub_resource type="Animation" id="Animation_jump"]
@@ -627,18 +807,18 @@ mesh = SubResource("SphereMesh_hair_tuft")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.22, 0.68, 0)
 
 [node name="UpperArmMesh" type="MeshInstance3D" parent="Skeleton3D/Pelvis/Torso/Arm_L"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.04, -0.2, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.22, 0)
 mesh = SubResource("CapsuleMesh_upper_arm")
 
 [node name="Forearm_L" type="Node3D" parent="Skeleton3D/Pelvis/Torso/Arm_L"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.06, -0.42, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.44, 0)
 
 [node name="ForearmMesh" type="MeshInstance3D" parent="Skeleton3D/Pelvis/Torso/Arm_L/Forearm_L"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.18, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.2, 0)
 mesh = SubResource("CapsuleMesh_forearm")
 
 [node name="Hand_L" type="Node3D" parent="Skeleton3D/Pelvis/Torso/Arm_L/Forearm_L"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.38, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.4, 0)
 
 [node name="HandMesh" type="MeshInstance3D" parent="Skeleton3D/Pelvis/Torso/Arm_L/Forearm_L/Hand_L"]
 mesh = SubResource("SphereMesh_hand")
@@ -647,18 +827,18 @@ mesh = SubResource("SphereMesh_hand")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.22, 0.68, 0)
 
 [node name="UpperArmMesh" type="MeshInstance3D" parent="Skeleton3D/Pelvis/Torso/Arm_R"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.04, -0.2, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.22, 0)
 mesh = SubResource("CapsuleMesh_upper_arm")
 
 [node name="Forearm_R" type="Node3D" parent="Skeleton3D/Pelvis/Torso/Arm_R"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.06, -0.42, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.44, 0)
 
 [node name="ForearmMesh" type="MeshInstance3D" parent="Skeleton3D/Pelvis/Torso/Arm_R/Forearm_R"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.18, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.2, 0)
 mesh = SubResource("CapsuleMesh_forearm")
 
 [node name="Hand_R" type="Node3D" parent="Skeleton3D/Pelvis/Torso/Arm_R/Forearm_R"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.38, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.4, 0)
 
 [node name="HandMesh" type="MeshInstance3D" parent="Skeleton3D/Pelvis/Torso/Arm_R/Forearm_R/Hand_R"]
 mesh = SubResource("SphereMesh_hand")

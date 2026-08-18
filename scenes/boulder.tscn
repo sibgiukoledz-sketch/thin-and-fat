@@ -15,7 +15,7 @@ friction = 0.85
 bounce = 0.25
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_col"]
-radius = 1.8
+radius = 1.1
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_rock"]
 next_pass = SubResource("ShaderMaterial_outline")
@@ -27,13 +27,13 @@ rim_tint = 0.4
 
 [sub_resource type="SphereMesh" id="SphereMesh_rock"]
 material = SubResource("StandardMaterial3D_rock")
-radius = 1.8
-height = 3.5
+radius = 1.1
+height = 2.2
 radial_segments = 32
 rings = 24
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_trigger"]
-radius = 3.5
+radius = 2.8
 
 [sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_boulder"]
 properties/0/path = NodePath(".:position")
@@ -65,15 +65,15 @@ contact_monitor = true
 script = ExtResource("1_boulder")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.8, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.1, 0)
 shape = SubResource("SphereShape3D_col")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.8, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.1, 0)
 mesh = SubResource("SphereMesh_rock")
 
 [node name="PromptLabel3D" type="Label3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.8, 0)
 billboard = 1
 double_sided = false
 modulate = Color(1, 0.9, 0.3, 1)
@@ -87,7 +87,7 @@ collision_layer = 8
 collision_mask = 2
 
 [node name="TriggerShape" type="CollisionShape3D" parent="InteractionArea"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.8, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.1, 0)
 shape = SubResource("SphereShape3D_trigger")
 
 [node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="."]

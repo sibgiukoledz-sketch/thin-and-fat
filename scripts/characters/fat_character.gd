@@ -3,13 +3,9 @@ extends Node3D
 
 ## Fat Character ("Толстяк / Жирдяй") — R.E.P.O. & Human Fall Flat Style Controller:
 ## - Full connected humanoid joint hierarchy with real parent-child bone sockets.
-## - Active secondary spring physics (wobbly bobblehead, bouncy squash-and-stretch belly jiggle, and arm sway).
-## - Interactive reactions to environmental mechanics:
-##   * Wind Tunnel Fan: Heavy bracing against hurricane wind.
-##   * Landing Impact / Seismic Leap: Deep dynamic crouch & belly bounce.
-##   * Belly Trampoline: Natural relaxed pose lying on back with puffed bouncy belly.
-##   * Boulder Carrying: Expressive arms cupped forward to hold giant rock.
-## - Clean animation library (idle, walk, sprint, crouch, crouch_walk, jump).
+## - Active secondary spring physics (wobbly bobblehead, bouncy pear belly, and natural arm sway).
+## - Environmental interactive reactions (wind tunnel, static, landings).
+## - Clean, complete animation library (idle, walk, sprint, crouch, crouch_walk, jump).
 
 @onready var skeleton_3d: Skeleton3D = $Skeleton3D
 @onready var animation_player: AnimationPlayer = get_node_or_null("AnimationPlayer") as AnimationPlayer
@@ -53,7 +49,7 @@ var _time_passed: float = 0.0
 
 func _ready() -> void:
 	process_priority = 100
-	rotation_degrees.y = 0.0
+	rotation = Vector3.ZERO
 	play_anim("idle")
 	_last_parent_pos = global_position
 
@@ -101,10 +97,11 @@ func _physics_process(delta: float) -> void:
 	if is_ragdoll or is_trampoline_pose:
 		return
 
-	# 1. Compute parent linear velocity & acceleration for active inertia
+	# 1. Compute parent linear velocity & clamped acceleration for active inertia
 	var current_pos := global_position
 	var current_vel := (current_pos - _last_parent_pos) / maxf(delta, 0.001)
-	var accel := (current_vel - _last_parent_vel) / maxf(delta, 0.001)
+	var raw_accel := (current_vel - _last_parent_vel) / maxf(delta, 0.001)
+	var accel := raw_accel.clamp(Vector3(-20.0, -20.0, -20.0), Vector3(20.0, 20.0, 20.0))
 	_last_parent_pos = current_pos
 	_last_parent_vel = current_vel
 
@@ -113,12 +110,12 @@ func _physics_process(delta: float) -> void:
 	if wind_force_vector.length_squared() > 0.01:
 		wind_tilt_x = clampf(wind_force_vector.z * 0.015, -0.25, 0.25)
 
-	# 3. Active Spring Wobble on Bobblehead (Human Fall Flat feel)
+	# 3. Active Spring Wobble on Bobblehead
 	if head_pivot:
 		var target_tilt := Vector3(
-			clampf(-accel.z * 0.015 + wind_tilt_x, -0.3, 0.3),
-			clampf(current_vel.x * 0.02, -0.22, 0.22),
-			clampf(-accel.x * 0.015, -0.3, 0.3)
+			clampf(-accel.z * 0.012 + wind_tilt_x, -0.25, 0.25),
+			clampf(current_vel.x * 0.015, -0.2, 0.2),
+			clampf(-accel.x * 0.012, -0.25, 0.25)
 		)
 		var spring_k := 140.0
 		var damp := 14.0
@@ -127,21 +124,21 @@ func _physics_process(delta: float) -> void:
 		_head_spring_rot += _head_velocity * delta
 		head_pivot.rotation = _head_spring_rot
 
-	# 4. Active Squash & Stretch on Pear Belly on landing impact / jumps
+	# 4. Active Squash & Stretch on Pear Belly (safely clamped)
 	if torso:
 		var target_scale_y := 1.0
-		if accel.y > 8.0: # Impact landing
-			target_scale_y = 0.82
-		elif accel.y < -8.0: # Jump leap stretch
-			target_scale_y = 1.15
+		if accel.y > 6.0:
+			target_scale_y = 0.88
+		elif accel.y < -6.0:
+			target_scale_y = 1.10
 
-		var belly_k := 180.0
-		var belly_damp := 12.0
+		var belly_k := 160.0
+		var belly_damp := 14.0
 		var b_force := (target_scale_y - _belly_spring_scale_y) * belly_k - (_belly_velocity * belly_damp)
 		_belly_velocity += b_force * delta
-		_belly_spring_scale_y += _belly_velocity * delta
+		_belly_spring_scale_y = clampf(_belly_spring_scale_y + _belly_velocity * delta, 0.82, 1.18)
 
-		var squish_xz := 1.0 / sqrt(maxf(_belly_spring_scale_y, 0.5))
+		var squish_xz := 1.0 / sqrt(_belly_spring_scale_y)
 		torso.scale = Vector3(squish_xz, _belly_spring_scale_y, squish_xz)
 
 	# 5. Carrying pose override
@@ -151,15 +148,20 @@ func _physics_process(delta: float) -> void:
 func _apply_arm_pose() -> void:
 	if arm_l and arm_r:
 		if is_carrying_pose:
-			arm_l.rotation_degrees = Vector3(-40.0, 40.0, -35.0)
-			arm_r.rotation_degrees = Vector3(-40.0, -40.0, 35.0)
+			# Wrap big arms around heavy boulder in front
+			arm_l.rotation_degrees = Vector3(-55.0, 30.0, -30.0)
+			arm_r.rotation_degrees = Vector3(-55.0, -30.0, 30.0)
 			if forearm_l:
-				forearm_l.rotation_degrees = Vector3(25.0, 0.0, 0.0)
+				forearm_l.rotation_degrees = Vector3(45.0, -20.0, 0.0)
 			if forearm_r:
-				forearm_r.rotation_degrees = Vector3(25.0, 0.0, 0.0)
-		elif not animation_player.is_playing() or current_anim == "idle":
+				forearm_r.rotation_degrees = Vector3(45.0, 20.0, 0.0)
+		elif current_anim == "idle":
 			arm_l.rotation_degrees = Vector3(0.0, 0.0, -12.0)
 			arm_r.rotation_degrees = Vector3(0.0, 0.0, 12.0)
+			if forearm_l:
+				forearm_l.rotation_degrees = Vector3.ZERO
+			if forearm_r:
+				forearm_r.rotation_degrees = Vector3.ZERO
 
 func start_ragdoll(velocity: Vector3 = Vector3.ZERO) -> void:
 	is_ragdoll = true
@@ -179,5 +181,8 @@ func stop_ragdoll() -> void:
 	rotation = Vector3.ZERO
 	if pelvis:
 		pelvis.position = Vector3(0.0, PELVIS_REST_Y, 0.0)
+	if torso:
+		torso.rotation = Vector3.ZERO
+		torso.scale = Vector3.ONE
 	current_anim = ""
 	play_anim("idle")

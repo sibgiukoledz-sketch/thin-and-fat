@@ -82,8 +82,8 @@ func _physics_process(delta: float) -> void:
 func _setup_boulder_visuals() -> void:
 	if mesh_instance:
 		var sphere: SphereMesh = SphereMesh.new()
-		sphere.radius = 1.8
-		sphere.height = 3.4
+		sphere.radius = 1.1
+		sphere.height = 2.2
 		sphere.radial_segments = 32
 		sphere.rings = 24
 
@@ -102,7 +102,7 @@ func _setup_boulder_visuals() -> void:
 
 	if collision_shape and not collision_shape.shape:
 		var caps: SphereShape3D = SphereShape3D.new()
-		caps.radius = 1.8
+		caps.radius = 1.1
 		collision_shape.shape = caps
 
 func _process(delta: float) -> void:
@@ -179,22 +179,21 @@ func rpc_pickup_boulder(player_path: NodePath) -> void:
 	if interaction_area:
 		interaction_area.monitoring = false
 
-	# Expand Fat's player collision shape to 1.65m radius cylinder (3.3m width) while carrying boulder
-	# This physically prevents Fat from passing through narrow doors, gates, or passages!
+	# Expand Fat's player collision shape reasonably while carrying boulder
+	# This physically prevents Fat from passing through narrow doors or gates
 	if player_node.collision_shape:
-		var wide_shape := CylinderShape3D.new()
-		wide_shape.radius = 1.65
+		var wide_shape := CapsuleShape3D.new()
+		wide_shape.radius = 0.95
 		wide_shape.height = 1.8
 		player_node.collision_shape.shape = wide_shape
 
 	reparent(player_node)
-	# Position root at y = -0.55m so child mesh (+1.8m offset) sits at y = 1.25m (chest/arms height)
-	# Bottom of boulder sits at y = +0.10m above ground -> ZERO LEVITATION!
-	position = Vector3(0.0, -0.55, -1.35)
+	# Position root at y = 0.15m so child mesh (+1.1m offset) sits at y = 1.25m (chest/arms height)
+	position = Vector3(0.0, 0.15, -1.25)
 	rotation = Vector3.ZERO
 
 	if prompt_label:
-		prompt_label.position = Vector3(0, 3.8, 0)
+		prompt_label.position = Vector3(0, 2.8, 0)
 
 	boulder_picked_up.emit(player_node)
 	if AudioManager:
