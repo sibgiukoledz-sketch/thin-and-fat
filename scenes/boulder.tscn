@@ -1,6 +1,6 @@
 [gd_scene load_steps=9 format=3 uid="uid://c8boulder001"]
 
-[ext_resource type="Script" uid="uid://c8boulder001" path="res://scripts/objects/boulder.gd" id="1_boulder"]
+[ext_resource type="Script" uid="uid://dmx58kn6mf77a" path="res://scripts/objects/boulder.gd" id="1_boulder"]
 
 [sub_resource type="PhysicsMaterial" id="PhysicsMaterial_rock"]
 friction = 0.85

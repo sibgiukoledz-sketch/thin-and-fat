@@ -5,7 +5,7 @@
 [ext_resource type="PackedScene" uid="uid://c_carpet_zone01" path="res://scenes/objects/carpet_zone.tscn" id="3_carpet"]
 [ext_resource type="PackedScene" uid="uid://c_wool_curtain01" path="res://scenes/objects/wool_curtain.tscn" id="4_wool"]
 [ext_resource type="PackedScene" uid="uid://c_metal_ceiling01" path="res://scenes/objects/metal_ceiling.tscn" id="5_mceil"]
-[ext_resource type="PackedScene" uid="uid://yrnkiot641b5" path="res://scenes/objects/heavy_lever.tscn" id="6_lever"]
+[ext_resource type="PackedScene" uid="uid://c8heavylever01" path="res://scenes/objects/heavy_lever.tscn" id="6_lever"]
 [ext_resource type="PackedScene" uid="uid://c_grounding_plate01" path="res://scenes/objects/grounding_plate.tscn" id="7_gplate"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_start_plat"]

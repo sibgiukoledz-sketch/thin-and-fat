@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://c8dummynpc01"]
 
-[ext_resource type="Script" uid="uid://dp6b83f3k7wsq" path="res://scripts/npc/dummy_npc.gd" id="1_dummy"]
+[ext_resource type="Script" uid="uid://d1tsm3kd5lt6u" path="res://scripts/npc/dummy_npc.gd" id="1_dummy"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_dummy"]
 radius = 0.45

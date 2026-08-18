@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://c8trashbin01"]
 
-[ext_resource type="Script" uid="uid://c8trashbin01" path="res://scripts/objects/trash_bin.gd" id="1_trash"]
+[ext_resource type="Script" uid="uid://gguaegd1wvhx" path="res://scripts/objects/trash_bin.gd" id="1_trash"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_trigger"]
 size = Vector3(2, 1.6, 2)

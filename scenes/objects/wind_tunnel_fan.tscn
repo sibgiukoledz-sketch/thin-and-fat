@@ -1,6 +1,6 @@
 [gd_scene load_steps=26 format=3 uid="uid://c7windtunnelfan01"]
 
-[ext_resource type="Script" uid="uid://dqknjse4ig1eq" path="res://scripts/objects/wind_tunnel_fan.gd" id="1_fan"]
+[ext_resource type="Script" uid="uid://cgifvmodqogt8" path="res://scripts/objects/wind_tunnel_fan.gd" id="1_fan"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_base"]
 albedo_color = Color(0.12, 0.62, 0.85, 1)

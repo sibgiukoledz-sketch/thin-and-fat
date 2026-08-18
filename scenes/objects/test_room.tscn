@@ -1,6 +1,6 @@
 [gd_scene load_steps=18 format=3 uid="uid://c7testroom01"]
 
-[ext_resource type="Script" uid="uid://c7testroom01" path="res://scripts/objects/test_room.gd" id="1_room"]
+[ext_resource type="Script" uid="uid://d0snjb2w18f3q" path="res://scripts/objects/test_room.gd" id="1_room"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_floor"]
 albedo_color = Color(0.92, 0.94, 0.96, 1)

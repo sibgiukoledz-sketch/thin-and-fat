@@ -1,6 +1,6 @@
 [gd_scene load_steps=12 format=3 uid="uid://c8showercabin01"]
 
-[ext_resource type="Script" uid="uid://3eqmdibxw3b5" path="res://scripts/objects/shower_cabin.gd" id="1_shower"]
+[ext_resource type="Script" uid="uid://cqffmq4t2fuvg" path="res://scripts/objects/shower_cabin.gd" id="1_shower"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_trigger"]
 size = Vector3(2.4, 2.6, 2.4)
