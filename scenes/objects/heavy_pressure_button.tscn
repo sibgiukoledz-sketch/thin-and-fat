@@ -1,11 +1,13 @@
 [gd_scene load_steps=22 format=3 uid="uid://c8pressbutton001"]
 
-[ext_resource type="Script" path="res://scripts/objects/heavy_pressure_button.gd" id="1_button"]
+[ext_resource type="Script" uid="uid://bsksw0irpi601" path="res://scripts/objects/heavy_pressure_button.gd" id="1_button"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_base"]
-albedo_color = Color(0.12, 0.14, 0.18, 1)
-metallic = 0.9
-roughness = 0.25
+albedo_color = Color(0.18, 0.22, 0.28, 1)
+metallic = 0.6
+roughness = 0.3
+rim_enabled = true
+rim = 0.25
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_base"]
 material = SubResource("StandardMaterial3D_base")
@@ -15,9 +17,10 @@ height = 0.2
 radial_segments = 32
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_rim"]
-albedo_color = Color(0.85, 0.6, 0.08, 1)
-metallic = 0.6
-roughness = 0.4
+albedo_color = Color(1, 0.82, 0.12, 1)
+roughness = 0.35
+rim_enabled = true
+rim = 0.3
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_rim"]
 material = SubResource("StandardMaterial3D_rim")
@@ -27,9 +30,9 @@ height = 0.04
 radial_segments = 32
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ring"]
-albedo_color = Color(1, 0.15, 0.1, 1)
+albedo_color = Color(1, 0.2, 0.15, 1)
 emission_enabled = true
-emission = Color(1, 0.15, 0.1, 1)
+emission = Color(1, 0.2, 0.15, 1)
 emission_energy_multiplier = 3.5
 
 [sub_resource type="TorusMesh" id="TorusMesh_ring"]
@@ -40,9 +43,10 @@ rings = 16
 ring_segments = 32
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_plunger"]
-albedo_color = Color(0.25, 0.28, 0.34, 1)
-metallic = 0.8
-roughness = 0.3
+albedo_color = Color(0.96, 0.25, 0.2, 1)
+roughness = 0.25
+rim_enabled = true
+rim = 0.3
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_plunger"]
 material = SubResource("StandardMaterial3D_plunger")
@@ -52,10 +56,10 @@ height = 0.18
 radial_segments = 32
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_center_decal"]
-albedo_color = Color(1, 0.15, 0.1, 1)
+albedo_color = Color(1, 0.88, 0.2, 1)
 emission_enabled = true
-emission = Color(1, 0.15, 0.1, 1)
-emission_energy_multiplier = 4.0
+emission = Color(1, 0.88, 0.2, 1)
+emission_energy_multiplier = 3.0
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_center_decal"]
 material = SubResource("StandardMaterial3D_center_decal")
@@ -65,8 +69,8 @@ height = 0.02
 radial_segments = 24
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_piston"]
-albedo_color = Color(0.75, 0.8, 0.85, 1)
-metallic = 0.95
+albedo_color = Color(0.85, 0.9, 0.95, 1)
+metallic = 0.9
 roughness = 0.15
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_piston"]
@@ -81,7 +85,7 @@ height = 0.2
 radius = 2.5
 
 [sub_resource type="CylinderShape3D" id="CylinderShape3D_detect"]
-height = 1.0
+height = 1
 radius = 2.1
 
 [sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_press"]

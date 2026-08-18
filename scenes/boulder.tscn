@@ -1,6 +1,6 @@
 [gd_scene load_steps=9 format=3 uid="uid://c8boulder001"]
 
-[ext_resource type="Script" path="res://scripts/objects/boulder.gd" id="1_boulder"]
+[ext_resource type="Script" uid="uid://c8boulder001" path="res://scripts/objects/boulder.gd" id="1_boulder"]
 
 [sub_resource type="PhysicsMaterial" id="PhysicsMaterial_rock"]
 friction = 0.85
@@ -10,17 +10,18 @@ bounce = 0.25
 radius = 1.8
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_rock"]
-albedo_color = Color(0.35, 0.32, 0.28, 1)
-roughness = 0.95
-metallic = 0.05
-uv1_scale = Vector3(3, 3, 3)
+albedo_color = Color(0.62, 0.54, 0.46, 1)
+roughness = 0.45
+rim_enabled = true
+rim = 0.35
+rim_tint = 0.4
 
 [sub_resource type="SphereMesh" id="SphereMesh_rock"]
 material = SubResource("StandardMaterial3D_rock")
 radius = 1.8
-height = 3.4
-radial_segments = 24
-rings = 18
+height = 3.5
+radial_segments = 32
+rings = 24
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_trigger"]
 radius = 3.5
@@ -63,13 +64,14 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.8, 0)
 mesh = SubResource("SphereMesh_rock")
 
 [node name="PromptLabel3D" type="Label3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.0, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4, 0)
 billboard = 1
 double_sided = false
-text = "🪨 ГИГАНТСКИЙ ТЯЖЁЛЫЙ ВАЛУН
-[E] — Поднять (Только для Жирдяя)"
+modulate = Color(1, 0.9, 0.3, 1)
+text = "🪨 СУПЕР-ВАЛУН
+[E] — Поднять (Только для Толстяка)"
 font_size = 32
-outline_size = 8
+outline_size = 10
 
 [node name="InteractionArea" type="Area3D" parent="."]
 collision_layer = 8

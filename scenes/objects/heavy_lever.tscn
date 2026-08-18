@@ -1,19 +1,19 @@
 [gd_scene load_steps=22 format=3 uid="uid://c8heavylever01"]
 
-[ext_resource type="Script" path="res://scripts/objects/heavy_lever.gd" id="1_lever"]
+[ext_resource type="Script" uid="uid://yrnkiot641b5" path="res://scripts/objects/heavy_lever.gd" id="1_lever"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_base"]
-albedo_color = Color(0.14, 0.16, 0.20, 1)
-metallic = 0.9
-roughness = 0.25
+albedo_color = Color(0.12, 0.55, 0.75, 1)
+roughness = 0.35
+rim_enabled = true
+rim = 0.3
 
 [sub_resource type="BoxMesh" id="BoxMesh_base"]
 material = SubResource("StandardMaterial3D_base")
 size = Vector3(0.95, 1.05, 0.65)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_top_panel"]
-albedo_color = Color(0.22, 0.25, 0.30, 1)
-metallic = 0.85
+albedo_color = Color(0.18, 0.22, 0.28, 1)
 roughness = 0.3
 
 [sub_resource type="BoxMesh" id="BoxMesh_top_panel"]
@@ -21,18 +21,17 @@ material = SubResource("StandardMaterial3D_top_panel")
 size = Vector3(0.9, 0.08, 0.6)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_slot"]
-albedo_color = Color(0.08, 0.09, 0.11, 1)
-metallic = 0.95
-roughness = 0.1
+albedo_color = Color(0.08, 0.09, 0.12, 1)
+roughness = 0.2
 
 [sub_resource type="BoxMesh" id="BoxMesh_slot"]
 material = SubResource("StandardMaterial3D_slot")
 size = Vector3(0.18, 0.09, 0.55)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_bezel"]
-albedo_color = Color(0.7, 0.5, 0.08, 1)
+albedo_color = Color(1, 0.82, 0.15, 1)
 metallic = 0.7
-roughness = 0.35
+roughness = 0.25
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_bezel"]
 material = SubResource("StandardMaterial3D_bezel")
@@ -42,9 +41,9 @@ height = 0.04
 radial_segments = 24
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_led_off"]
-albedo_color = Color(1, 0.1, 0.1, 1)
+albedo_color = Color(1, 0.2, 0.15, 1)
 emission_enabled = true
-emission = Color(1, 0.1, 0.1, 1)
+emission = Color(1, 0.2, 0.15, 1)
 emission_energy_multiplier = 4.0
 
 [sub_resource type="SphereMesh" id="SphereMesh_led_off"]
@@ -61,9 +60,9 @@ radius = 0.08
 height = 0.16
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_shaft"]
-albedo_color = Color(0.85, 0.88, 0.92, 1)
-metallic = 0.98
-roughness = 0.1
+albedo_color = Color(0.85, 0.9, 0.95, 1)
+metallic = 0.95
+roughness = 0.15
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_shaft"]
 material = SubResource("StandardMaterial3D_shaft")
@@ -73,14 +72,15 @@ height = 0.85
 radial_segments = 24
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_knob"]
-albedo_color = Color(0.85, 0.15, 0.1, 1)
-metallic = 0.4
-roughness = 0.4
+albedo_color = Color(0.96, 0.22, 0.2, 1)
+roughness = 0.25
+rim_enabled = true
+rim = 0.35
 
 [sub_resource type="SphereMesh" id="SphereMesh_knob"]
 material = SubResource("StandardMaterial3D_knob")
-radius = 0.13
-height = 0.26
+radius = 0.14
+height = 0.28
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_base_col"]
 size = Vector3(1, 1.1, 0.7)
@@ -99,9 +99,9 @@ scale_min = 0.15
 scale_max = 0.35
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_spark_mat"]
-albedo_color = Color(1, 0.8, 0.2, 1)
+albedo_color = Color(1, 0.85, 0.2, 1)
 emission_enabled = true
-emission = Color(1, 0.8, 0.2, 1)
+emission = Color(1, 0.85, 0.2, 1)
 emission_energy_multiplier = 5.0
 
 [sub_resource type="SphereMesh" id="SphereMesh_spark"]
@@ -188,7 +188,7 @@ max_distance = 25.0
 [node name="TitleLabel3D" type="Label3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.8, 0)
 billboard = 1
+modulate = Color(1, 0.85, 0.2, 1)
 text = "🕹️ РУБИЛЬНИК [E]"
 font_size = 32
 outline_size = 8
-modulate = Color(1.0, 0.8, 0.2, 1.0)

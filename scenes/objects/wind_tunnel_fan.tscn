@@ -1,36 +1,38 @@
 [gd_scene load_steps=26 format=3 uid="uid://c7windtunnelfan01"]
 
-[ext_resource type="Script" path="res://scripts/objects/wind_tunnel_fan.gd" id="1_fan"]
+[ext_resource type="Script" uid="uid://dqknjse4ig1eq" path="res://scripts/objects/wind_tunnel_fan.gd" id="1_fan"]
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_concrete"]
-albedo_color = Color(0.18, 0.2, 0.24, 1)
-roughness = 0.5
-metallic = 0.3
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_base"]
+albedo_color = Color(0.12, 0.62, 0.85, 1)
+roughness = 0.35
+rim_enabled = true
+rim = 0.3
 
 [sub_resource type="BoxMesh" id="BoxMesh_base"]
-material = SubResource("StandardMaterial3D_concrete")
+material = SubResource("StandardMaterial3D_base")
 size = Vector3(4.2, 0.5, 3)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_fan_col"]
 size = Vector3(4.2, 4.2, 3)
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_steel_ring"]
-albedo_color = Color(0.25, 0.28, 0.34, 1)
-roughness = 0.2
-metallic = 0.9
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_shroud"]
+albedo_color = Color(0.96, 0.48, 0.12, 1)
+roughness = 0.3
+rim_enabled = true
+rim = 0.35
 
 [sub_resource type="TorusMesh" id="TorusMesh_shroud"]
-material = SubResource("StandardMaterial3D_steel_ring")
+material = SubResource("StandardMaterial3D_shroud")
 inner_radius = 1.75
 outer_radius = 2.1
 rings = 32
 ring_segments = 16
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_hazard_glow"]
-albedo_color = Color(0.1, 0.8, 1, 1)
+albedo_color = Color(0.1, 0.9, 1, 1)
 emission_enabled = true
-emission = Color(0.05, 0.65, 0.95, 1)
-emission_energy_multiplier = 0.8
+emission = Color(0.1, 0.9, 1, 1)
+emission_energy_multiplier = 1.2
 
 [sub_resource type="TorusMesh" id="TorusMesh_cyan_ring"]
 material = SubResource("StandardMaterial3D_hazard_glow")
@@ -40,9 +42,9 @@ rings = 32
 ring_segments = 12
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_hub"]
-albedo_color = Color(0.12, 0.14, 0.18, 1)
-roughness = 0.15
-metallic = 0.95
+albedo_color = Color(0.15, 0.18, 0.24, 1)
+roughness = 0.25
+metallic = 0.7
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_hub"]
 material = SubResource("StandardMaterial3D_hub")
@@ -52,9 +54,10 @@ height = 1.4
 radial_segments = 24
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_cone"]
-albedo_color = Color(0.9, 0.35, 0.1, 1)
+albedo_color = Color(1, 0.85, 0.15, 1)
 roughness = 0.25
-metallic = 0.8
+rim_enabled = true
+rim = 0.3
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_nose_cone"]
 material = SubResource("StandardMaterial3D_cone")
@@ -64,12 +67,11 @@ height = 0.7
 radial_segments = 24
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_blade_accent"]
-albedo_color = Color(0.95, 0.4, 0.1, 1)
-roughness = 0.2
-metallic = 0.75
+albedo_color = Color(0.96, 0.35, 0.12, 1)
+roughness = 0.3
 emission_enabled = true
-emission = Color(0.85, 0.3, 0.05, 1)
-emission_energy_multiplier = 0.5
+emission = Color(0.96, 0.35, 0.12, 1)
+emission_energy_multiplier = 0.4
 
 [sub_resource type="BoxMesh" id="BoxMesh_blade"]
 material = SubResource("StandardMaterial3D_blade_accent")
@@ -77,9 +79,9 @@ size = Vector3(3.6, 0.38, 0.06)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_grill"]
 transparency = 1
-albedo_color = Color(0.5, 0.55, 0.65, 0.7)
-roughness = 0.2
+albedo_color = Color(0.9, 0.95, 1, 0.8)
 metallic = 0.85
+roughness = 0.2
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_grill_spoke"]
 material = SubResource("StandardMaterial3D_grill")
@@ -101,10 +103,12 @@ initial_velocity_max = 24.0
 gravity = Vector3(0, -0.2, 0)
 scale_min = 0.06
 scale_max = 0.25
+color = Color(0.8, 0.95, 1, 0.8)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_wind_part"]
 transparency = 1
-albedo_color = Color(0.7, 0.9, 1, 0.65)
+albedo_color = Color(0.8, 0.95, 1, 0.75)
+roughness = 0.1
 
 [sub_resource type="BoxMesh" id="BoxMesh_wind_part"]
 material = SubResource("StandardMaterial3D_wind_part")

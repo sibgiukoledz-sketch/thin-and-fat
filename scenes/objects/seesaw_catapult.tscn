@@ -1,16 +1,18 @@
 [gd_scene load_steps=22 format=3 uid="uid://c7seesawcatapult01"]
 
-[ext_resource type="Script" path="res://scripts/objects/seesaw_catapult.gd" id="1_seesaw"]
+[ext_resource type="Script" uid="uid://bfjw80nfoixcq" path="res://scripts/objects/seesaw_catapult.gd" id="1_seesaw"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_metal_frame"]
-albedo_color = Color(0.2, 0.22, 0.26, 1)
-roughness = 0.35
-metallic = 0.85
+albedo_color = Color(0.12, 0.72, 0.92, 1)
+metallic = 0.5
+roughness = 0.25
+rim_enabled = true
+rim = 0.3
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_axle"]
 material = SubResource("StandardMaterial3D_metal_frame")
-top_radius = 0.15
-bottom_radius = 0.15
+top_radius = 0.18
+bottom_radius = 0.18
 height = 2.6
 radial_segments = 16
 
@@ -22,58 +24,62 @@ size = Vector3(1.2, 1.3, 0.3)
 size = Vector3(1.4, 1.3, 2.6)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_bumper"]
-albedo_color = Color(0.1, 0.1, 0.12, 1)
-roughness = 0.9
+albedo_color = Color(0.96, 0.25, 0.2, 1)
+roughness = 0.4
+rim_enabled = true
+rim = 0.3
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_bumper"]
 material = SubResource("StandardMaterial3D_bumper")
-top_radius = 0.35
-bottom_radius = 0.4
+top_radius = 0.38
+bottom_radius = 0.45
 height = 0.25
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_plank_heavy_wood"]
-albedo_color = Color(0.55, 0.35, 0.18, 1)
-roughness = 0.55
-metallic = 0.05
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_plank_yellow"]
+albedo_color = Color(1, 0.82, 0.12, 1)
+roughness = 0.35
+rim_enabled = true
+rim = 0.3
 
 [sub_resource type="BoxMesh" id="BoxMesh_plank_main"]
-material = SubResource("StandardMaterial3D_plank_heavy_wood")
+material = SubResource("StandardMaterial3D_plank_yellow")
 size = Vector3(9.6, 0.22, 2.2)
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_iron_trim"]
-albedo_color = Color(0.3, 0.32, 0.38, 1)
-roughness = 0.3
-metallic = 0.9
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_red_trim"]
+albedo_color = Color(0.96, 0.25, 0.2, 1)
+roughness = 0.35
 
-[sub_resource type="BoxMesh" id="BoxMesh_iron_strip"]
-material = SubResource("StandardMaterial3D_iron_trim")
-size = Vector3(9.65, 0.24, 0.15)
+[sub_resource type="BoxMesh" id="BoxMesh_red_strip"]
+material = SubResource("StandardMaterial3D_red_trim")
+size = Vector3(9.65, 0.24, 0.18)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_plank"]
 size = Vector3(9.6, 0.25, 2.2)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_pad_left"]
-albedo_color = Color(0.95, 0.25, 0.15, 1)
+albedo_color = Color(0.96, 0.22, 0.2, 1)
 emission_enabled = true
-emission = Color(0.8, 0.15, 0.1, 1)
-emission_energy_multiplier = 0.6
+emission = Color(0.96, 0.22, 0.2, 1)
+emission_energy_multiplier = 0.8
+roughness = 0.25
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_target_left"]
 material = SubResource("StandardMaterial3D_pad_left")
 top_radius = 0.95
-bottom_radius = 1.0
+bottom_radius = 1
 height = 0.08
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_pad_right"]
-albedo_color = Color(0.2, 0.75, 1, 1)
+albedo_color = Color(0.1, 0.8, 1, 1)
 emission_enabled = true
-emission = Color(0.1, 0.6, 0.9, 1)
-emission_energy_multiplier = 0.6
+emission = Color(0.1, 0.8, 1, 1)
+emission_energy_multiplier = 0.8
+roughness = 0.25
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_target_right"]
 material = SubResource("StandardMaterial3D_pad_right")
 top_radius = 0.95
-bottom_radius = 1.0
+bottom_radius = 1
 height = 0.08
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_detect_side"]
@@ -84,16 +90,19 @@ direction = Vector3(0, 1, 0)
 spread = 60.0
 initial_velocity_min = 5.0
 initial_velocity_max = 10.0
-gravity = Vector3(0, -12.0, 0)
-scale_min = 0.06
-scale_max = 0.22
+gravity = Vector3(0, -12, 0)
+scale_min = 0.08
+scale_max = 0.25
+color = Color(1, 0.9, 0.3, 1)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_part"]
-albedo_color = Color(0.95, 0.85, 0.65, 0.85)
+shading_mode = 0
+albedo_color = Color(1, 0.9, 0.3, 1)
 
-[sub_resource type="BoxMesh" id="BoxMesh_part"]
+[sub_resource type="SphereMesh" id="SphereMesh_part"]
 material = SubResource("StandardMaterial3D_part")
-size = Vector3(0.12, 0.12, 0.12)
+radius = 0.1
+height = 0.2
 
 [node name="SeesawCatapult" type="Node3D"]
 script = ExtResource("1_seesaw")
@@ -136,13 +145,13 @@ collision_mask = 3
 [node name="PlankMesh" type="MeshInstance3D" parent="PlankPivot/PlankStatic"]
 mesh = SubResource("BoxMesh_plank_main")
 
-[node name="IronTrimLeft" type="MeshInstance3D" parent="PlankPivot/PlankStatic"]
+[node name="RedTrimLeft" type="MeshInstance3D" parent="PlankPivot/PlankStatic"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1.05)
-mesh = SubResource("BoxMesh_iron_strip")
+mesh = SubResource("BoxMesh_red_strip")
 
-[node name="IronTrimRight" type="MeshInstance3D" parent="PlankPivot/PlankStatic"]
+[node name="RedTrimRight" type="MeshInstance3D" parent="PlankPivot/PlankStatic"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1.05)
-mesh = SubResource("BoxMesh_iron_strip")
+mesh = SubResource("BoxMesh_red_strip")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="PlankPivot/PlankStatic"]
 shape = SubResource("BoxShape3D_plank")
@@ -179,7 +188,7 @@ lifetime = 0.9
 one_shot = true
 explosiveness = 0.95
 process_material = SubResource("ParticleProcessMaterial_blast")
-draw_pass_1 = SubResource("BoxMesh_part")
+draw_pass_1 = SubResource("SphereMesh_part")
 
 [node name="ParticlesRight" type="GPUParticles3D" parent="PlankPivot"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.8, 0.2, 0)
@@ -189,4 +198,4 @@ lifetime = 0.9
 one_shot = true
 explosiveness = 0.95
 process_material = SubResource("ParticleProcessMaterial_blast")
-draw_pass_1 = SubResource("BoxMesh_part")
+draw_pass_1 = SubResource("SphereMesh_part")
