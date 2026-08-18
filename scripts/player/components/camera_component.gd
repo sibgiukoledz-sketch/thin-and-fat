@@ -3,10 +3,9 @@ extends Node
 
 ## Player Camera Component:
 ## - Full 1st-person & 3rd-person support (Scroll Wheel zoom & Middle-Click toggle)
-## - Mouse look rotation (Yaw on Player, Pitch clamped -89..89 on Head)
-## - Dynamic animated socket tracking (Head node tracks each character's actual animated head bone)
-## - Head & torso mesh culling in 1st-person (completely unobstructed first-person view)
-## - Clean, non-colliding SpringArm3D for 3rd person (camera distance 3.2m by default)
+## - Dynamic animated socket tracking (Follows head in 3D: standing, crouch, & trampoline pose)
+## - Wall clipping protection: SpringArm3D with layer 1+4 mask & safety margin
+## - Head & body culling in 1st-person (only hands & arms visible!)
 ## - Supports 180° ceiling crawling camera flip for Thin
 
 const MOUSE_SENSITIVITY_DEFAULT := 0.0025
@@ -36,10 +35,12 @@ func setup(p_player: CharacterBody3D, p_head: Node3D, p_spring_arm: SpringArm3D,
 	if spring_arm:
 		spring_arm.add_excluded_object(player.get_rid())
 		spring_arm.spring_length = current_camera_zoom
-		spring_arm.margin = 0.2
+		spring_arm.margin = 0.3
+		spring_arm.collision_mask = 5 # Collide with world static (1) and rigid bodies/props (4)
 
 	if camera_3d:
 		camera_3d.position = Vector3.ZERO
+		camera_3d.near = 0.05
 
 func handle_input(event: InputEvent, mouse_sensitivity: float, nausea_intensity: float, is_ceiling_crawling: bool = false) -> void:
 	if not player or not player.is_multiplayer_authority():
@@ -80,24 +81,26 @@ func update_camera(delta: float, is_sprinting: bool, is_ceiling_crawling: bool =
 	if spring_arm:
 		spring_arm.spring_length = current_camera_zoom
 
-	# Dynamic Head Tracking: Align Head position with the actual animated head socket of each character!
+	# Dynamic 3D Head Tracking: Follow the animated head joint in X, Y, and Z!
+	# This ensures the camera stays at the head even when Fat turns into a belly trampoline on his back!
 	if head and player:
-		var target_head_y: float = player.stand_head_y
+		var target_head_pos := Vector3(0.0, player.stand_head_y, 0.0)
 		if is_ceiling_crawling:
-			target_head_y = 0.6
+			target_head_pos = Vector3(0.0, 0.6, 0.0)
 		elif player.character_model and player.character_model.has_method("get_head_socket"):
 			var socket: Node3D = player.character_model.call("get_head_socket")
 			if socket:
-				# Position head directly at the character model's animated head joint
-				target_head_y = socket.global_position.y - player.global_position.y
+				# Transform world position of head socket into player's local space
+				var local_socket: Vector3 = player.global_transform.affine_inverse() * socket.global_position
+				target_head_pos = local_socket
 		elif player.is_crouching or player.synced_state_name.to_lower() == "crouch":
-			target_head_y = player.crouch_head_y
+			target_head_pos = Vector3(0.0, player.crouch_head_y, 0.0)
 
-		head.position.y = lerpf(head.position.y, target_head_y, delta * 16.0)
+		head.position = head.position.lerp(target_head_pos, delta * 16.0)
 		var target_z_deg: float = 180.0 if is_ceiling_crawling else 0.0
 		head.rotation_degrees.z = lerpf(head.rotation_degrees.z, target_z_deg, delta * 12.0)
 
-	# In 1st Person: Hide local player's head and neck so camera sees cleanly with zero obstruction
+	# In 1st Person: Cull local player's head/body so only arms/hands are visible
 	if player and player.is_multiplayer_authority():
 		if _last_cull_state != is_first_person:
 			_last_cull_state = is_first_person

@@ -2,8 +2,9 @@ class_name HeavyBoulder
 extends RigidBody3D
 
 ## Heavy Puzzle Boulder ("Супер-Валун"):
-## - Mass: 450 kg (Only "Fat / Жирдяй" can lift and throw it).
+## - Mass: 450 kg (Only "Fat / Жирдяй" can lift and throw it with [E]).
 ## - Overhead carry: lifts high above Fat's head in raised hands.
+## - Full interaction handler on key [E] / action "ability_1".
 ## - Physics isolation while carried (prevents player repulsion / flying).
 ## - Puzzle interaction: Acts as a windbreak against Wind Tunnel Fan,
 ##   triggers Heavy Pressure Buttons, and catapults players on Seesaws.
@@ -12,10 +13,11 @@ signal boulder_picked_up(by_player: CharacterBody3D)
 signal boulder_thrown(by_player: CharacterBody3D)
 
 @export var throw_force: float = 14.0
-@export var min_impact_damage_velocity: float = 4.5
+@export var min_impact_damage_velocity: float = 3.5
 
 var _is_carried: bool = false
 var _carrier_player: CharacterBody3D = null
+var _player_in_range: CharacterBody3D = null
 var _warning_text: String = ""
 var _warning_timer: float = 0.0
 
@@ -55,9 +57,9 @@ func _physics_process(delta: float) -> void:
 	var thin_touching := false
 	for res in results:
 		var collider: Object = res.collider
-		if collider is Player:
-			var p: Player = collider as Player
-			if p.selected_character_id.to_lower() == "thin":
+		if collider and collider.has_method("get"):
+			var char_id: String = String(collider.get("selected_character_id"))
+			if char_id.to_lower() == "thin":
 				thin_touching = true
 				break
 
@@ -108,39 +110,70 @@ func _update_prompt() -> void:
 	if _is_carried:
 		prompt_label.text = "🪨 СУПЕР-ВАЛУН\n[E] — Бросить вперёд"
 		prompt_label.modulate = Color(0.3, 1.0, 0.4)
-	else:
+		prompt_label.visible = true
+	elif _player_in_range:
 		prompt_label.text = "🪨 СУПЕР-ВАЛУН\n[E] — Поднять (Только для Толстяка)"
 		prompt_label.modulate = Color(1.0, 0.9, 0.3)
+		prompt_label.visible = true
+	else:
+		prompt_label.text = "🪨 СУПЕР-ВАЛУН"
+		prompt_label.modulate = Color(0.8, 0.8, 0.8, 0.7)
+		prompt_label.visible = true
 
 func _show_warning(text: String, duration: float = 2.5) -> void:
 	_warning_text = text
 	_warning_timer = duration
 
 func _on_interaction_body_entered(body: Node3D) -> void:
-	if body is Player:
-		var p: Player = body as Player
-		if p.selected_character_id.to_lower() == "thin":
+	if body is CharacterBody3D and body.has_method("is_multiplayer_authority"):
+		_player_in_range = body as CharacterBody3D
+		var char_id: String = String(body.get("selected_character_id"))
+		if char_id.to_lower() == "thin":
 			_show_warning("⚠️ ВАЛУН СЛИШКОМ ТЯЖЕЛЫЙ (450 КГ)!\nНУЖЕН ТОЛСТЯК!", 3.0)
+		_update_prompt()
 
-func _on_interaction_body_exited(_body: Node3D) -> void:
-	pass
+func _on_interaction_body_exited(body: Node3D) -> void:
+	if body == _player_in_range:
+		_player_in_range = null
+		_update_prompt()
 
-func interact(player: Player) -> void:
-	if not player:
+func _unhandled_input(event: InputEvent) -> void:
+	var is_interact_pressed := event.is_action_pressed("ability_1") or (event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_E)
+	if not is_interact_pressed:
 		return
 
-	if player.selected_character_id.to_lower() != "fat":
+	if _is_carried:
+		if _carrier_player and _carrier_player.is_multiplayer_authority():
+			var throw_dir: Vector3 = -_carrier_player.global_transform.basis.z
+			if "camera_3d" in _carrier_player and _carrier_player.camera_3d:
+				throw_dir = -_carrier_player.camera_3d.global_transform.basis.z
+			rpc_throw_boulder.rpc(_carrier_player.get_path(), throw_dir)
+			get_viewport().set_input_as_handled()
+	elif _player_in_range and _player_in_range.is_multiplayer_authority():
+		interact(_player_in_range)
+		get_viewport().set_input_as_handled()
+
+func interact(p_body: CharacterBody3D) -> void:
+	if not p_body:
+		return
+
+	var char_id: String = String(p_body.get("selected_character_id"))
+	if char_id.to_lower() != "fat":
 		_show_warning("💥 ВАЛУН СЛИШКОМ ТЯЖЕЛЫЙ! ХУДОГО СПЛЮЩИЛО В БУМАГУ!")
 		if AudioManager:
 			AudioManager.play_sfx_3d("fail_buzz", global_position)
-		player.apply_paper_flatten(10.0)
+		if p_body.has_method("apply_paper_flatten"):
+			p_body.call("apply_paper_flatten", 10.0)
 		return
 
 	if not _is_carried:
-		rpc_pickup_boulder.rpc(player.get_path())
+		rpc_pickup_boulder.rpc(p_body.get_path())
 	else:
-		if _carrier_player == player:
-			rpc_throw_boulder.rpc(player.get_path(), player.global_transform.basis.z * -1.0)
+		if _carrier_player == p_body:
+			var throw_dir: Vector3 = -p_body.global_transform.basis.z
+			if "camera_3d" in p_body and p_body.camera_3d:
+				throw_dir = -p_body.camera_3d.global_transform.basis.z
+			rpc_throw_boulder.rpc(p_body.get_path(), throw_dir)
 
 @rpc("any_peer", "call_local", "reliable")
 func rpc_pickup_boulder(player_path: NodePath) -> void:
