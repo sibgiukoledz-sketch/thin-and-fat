@@ -5,8 +5,9 @@ extends Node
 ## - Handles Roblox-style 1st person / 3rd person smooth camera zoom (Scroll Wheel)
 ## - Mouse look rotation (Yaw on Player, Pitch clamped -89..89 on Head)
 ## - Sprint FOV transitions & nausea camera tilt
-## - Supports 180° ceiling crawling camera flip on Head node:
-##   Ceiling appears as floor for Thin with natural mouse controls!
+## - Dynamic crouch eye-height transition
+## - Unobstructed 1st-person eye positioning (in front of character skull)
+## - Supports 180° ceiling crawling camera flip on Head node for Thin
 
 const MOUSE_SENSITIVITY_DEFAULT := 0.0025
 const ZOOM_STEP := 0.5
@@ -57,19 +58,30 @@ func handle_input(event: InputEvent, mouse_sensitivity: float, nausea_intensity:
 			target_camera_zoom = clampf(target_camera_zoom + ZOOM_STEP, MIN_ZOOM, MAX_ZOOM)
 
 func update_camera(delta: float, is_sprinting: bool, is_ceiling_crawling: bool = false) -> void:
-	current_camera_zoom = lerpf(current_camera_zoom, target_camera_zoom, delta * 12.0)
+	current_camera_zoom = lerpf(current_camera_zoom, target_camera_zoom, delta * 14.0)
 	is_first_person = (current_camera_zoom < 0.25)
 
 	if spring_arm:
 		spring_arm.spring_length = current_camera_zoom
 
-	if head:
-		var target_head_y: float = 0.6 if is_ceiling_crawling else (player.stand_head_y if player else 1.8)
-		head.position.y = lerpf(head.position.y, target_head_y, delta * 10.0)
+	if head and player:
+		var target_head_y: float
+		if is_ceiling_crawling:
+			target_head_y = 0.6
+		elif player.is_crouching or player.synced_state_name.to_lower() == "crouch":
+			target_head_y = player.crouch_head_y
+		else:
+			target_head_y = player.stand_head_y
+
+		head.position.y = lerpf(head.position.y, target_head_y, delta * 12.0)
 		var target_z_deg: float = 180.0 if is_ceiling_crawling else 0.0
 		head.rotation_degrees.z = lerpf(head.rotation_degrees.z, target_z_deg, delta * 12.0)
 
 	if camera_3d:
+		# In First Person: place camera slightly forward to avoid clipping into own head/face
+		var target_cam_z: float = -0.22 if is_first_person else 0.0
+		camera_3d.position.z = lerpf(camera_3d.position.z, target_cam_z, delta * 12.0)
+
 		var target_fov := SPRINT_FOV if is_sprinting else NORMAL_FOV
 		camera_3d.fov = lerpf(camera_3d.fov, target_fov, delta * 8.0)
 		camera_3d.rotation_degrees.z = lerpf(camera_3d.rotation_degrees.z, 0.0, delta * 8.0)

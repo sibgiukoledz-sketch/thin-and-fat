@@ -179,21 +179,13 @@ func rpc_pickup_boulder(player_path: NodePath) -> void:
 	if interaction_area:
 		interaction_area.monitoring = false
 
-	# Expand Fat's player collision shape reasonably while carrying boulder
-	# This physically prevents Fat from passing through narrow doors or gates
-	if player_node.collision_shape:
-		var wide_shape := CapsuleShape3D.new()
-		wide_shape.radius = 0.95
-		wide_shape.height = 1.8
-		player_node.collision_shape.shape = wide_shape
-
 	reparent(player_node)
-	# Position root at y = 0.15m so child mesh (+1.1m offset) sits at y = 1.25m (chest/arms height)
-	position = Vector3(0.0, 0.15, -1.25)
+	# Position root at y = 1.35m so child mesh (+1.1m offset) sits directly overhead at y = 2.45m in raised hands!
+	position = Vector3(0.0, 1.35, -0.1)
 	rotation = Vector3.ZERO
 
 	if prompt_label:
-		prompt_label.position = Vector3(0, 2.8, 0)
+		prompt_label.position = Vector3(0, 2.6, 0)
 
 	boulder_picked_up.emit(player_node)
 	if AudioManager:
