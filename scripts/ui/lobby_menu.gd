@@ -333,7 +333,7 @@ func _update_active_room_ui() -> void:
 	var local_char := NetworkManager.local_character_id if NetworkManager else "fat"
 
 	# Host Card
-	var host_char := local_char if is_server else NetworkManager.player_character_choices.get(1, "fat")
+	var host_char: String = local_char if is_server else String(NetworkManager.player_character_choices.get(1, "fat"))
 	var host_card := _create_player_card(1, "👑 ХОСТ (ИГРОК 1)", host_char, true, my_id == 1)
 	player_cards_container.add_child(host_card)
 
@@ -347,7 +347,7 @@ func _update_active_room_ui() -> void:
 				break
 
 	if client_connected or client_id != 0:
-		var client_char := local_char if my_id != 1 else NetworkManager.player_character_choices.get(client_id, "thin")
+		var client_char: String = local_char if my_id != 1 else String(NetworkManager.player_character_choices.get(client_id, "thin"))
 		var client_card := _create_player_card(client_id, "🎮 НАПАРНИК (ИГРОК 2)", client_char, true, my_id == client_id)
 		player_cards_container.add_child(client_card)
 	else:
