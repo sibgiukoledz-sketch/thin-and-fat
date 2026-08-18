@@ -222,10 +222,10 @@ func set_character(char_id: String) -> void:
 		jump_velocity = 3.2
 		stamina_drain_rate = 35.0
 		stamina_regen_rate = 22.0
-		stand_height = 1.8
-		crouch_height = 1.0
-		stand_head_y = 1.62
-		crouch_head_y = 0.95
+		stand_height = 2.1
+		crouch_height = 1.6
+		stand_head_y = 2.04
+		crouch_head_y = 1.66
 
 		var cap_shape := CapsuleShape3D.new()
 		cap_shape.radius = 0.65
@@ -244,10 +244,10 @@ func set_character(char_id: String) -> void:
 		jump_velocity = 8.5
 		stamina_drain_rate = 18.0
 		stamina_regen_rate = 30.0
-		stand_height = 2.4
-		crouch_height = 1.2
-		stand_head_y = 2.30
-		crouch_head_y = 1.20
+		stand_height = 2.7
+		crouch_height = 2.0
+		stand_head_y = 2.65
+		crouch_head_y = 1.98
 
 		var cap_shape := CapsuleShape3D.new()
 		cap_shape.radius = 0.35

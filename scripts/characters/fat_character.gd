@@ -53,9 +53,13 @@ func _ready() -> void:
 	play_anim("idle")
 	_last_parent_pos = global_position
 
+@onready var pear_belly_mesh: MeshInstance3D = get_node_or_null("Skeleton3D/Pelvis/Torso/PearBellyMesh") as MeshInstance3D
+
 func set_first_person_view(is_first_person: bool) -> void:
 	if head_pivot:
 		head_pivot.visible = not is_first_person
+	if pear_belly_mesh:
+		pear_belly_mesh.visible = not is_first_person
 
 func set_carrying_pose(is_carrying: bool) -> void:
 	is_carrying_pose = is_carrying

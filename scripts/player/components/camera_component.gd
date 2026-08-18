@@ -2,9 +2,9 @@ class_name PlayerCameraComponent
 extends Node
 
 ## Player Camera Component:
-## - Full 1st-person & 3rd-person support (smooth Scroll Wheel zoom & [V] toggle)
+## - Full 1st-person & 3rd-person support (Scroll Wheel zoom & Middle-Click toggle)
 ## - Mouse look rotation (Yaw on Player, Pitch clamped -89..89 on Head)
-## - Dynamic true eye-level alignment for both Fat and Thin characters
+## - Dynamic true eye-level alignment directly on the character heads
 ## - Head mesh hiding in 1st-person (completely unobstructed first-person view)
 ## - Clean, non-colliding SpringArm3D for 3rd person
 ## - Supports 180° ceiling crawling camera flip for Thin
@@ -63,10 +63,8 @@ func handle_input(event: InputEvent, mouse_sensitivity: float, nausea_intensity:
 			target_camera_zoom = clampf(target_camera_zoom - ZOOM_STEP, MIN_ZOOM, MAX_ZOOM)
 		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
 			target_camera_zoom = clampf(target_camera_zoom + ZOOM_STEP, MIN_ZOOM, MAX_ZOOM)
-
-	# [V] Key quick toggle between 1st Person and 3rd Person
-	if event is InputEventKey and event.pressed and not event.echo:
-		if event.keycode == KEY_V:
+		elif event.button_index == MOUSE_BUTTON_MIDDLE:
+			# Middle Mouse Button quick toggle between 1st Person and 3rd Person
 			if target_camera_zoom < 0.5:
 				target_camera_zoom = DEFAULT_ZOOM
 			else:
@@ -92,7 +90,7 @@ func update_camera(delta: float, is_sprinting: bool, is_ceiling_crawling: bool =
 		var target_z_deg: float = 180.0 if is_ceiling_crawling else 0.0
 		head.rotation_degrees.z = lerpf(head.rotation_degrees.z, target_z_deg, delta * 12.0)
 
-	# In 1st Person: Hide the local player's head so camera sees cleanly with zero obstruction
+	# In 1st Person: Hide local player's head and neck so camera sees cleanly with zero obstruction
 	if player and player.is_multiplayer_authority():
 		if _last_cull_state != is_first_person:
 			_last_cull_state = is_first_person
@@ -100,7 +98,10 @@ func update_camera(delta: float, is_sprinting: bool, is_ceiling_crawling: bool =
 				player.character_model.call("set_first_person_view", is_first_person)
 
 	if camera_3d:
-		camera_3d.position = Vector3.ZERO
+		# In 1st person: push camera slightly forward to eye level; in 3rd person: stay at spring arm tip
+		var target_cam_z: float = -0.20 if is_first_person else 0.0
+		camera_3d.position = Vector3(0.0, 0.0, target_cam_z)
+
 		var target_fov := SPRINT_FOV if is_sprinting else NORMAL_FOV
 		camera_3d.fov = lerpf(camera_3d.fov, target_fov, delta * 8.0)
 		camera_3d.rotation_degrees.z = lerpf(camera_3d.rotation_degrees.z, 0.0, delta * 8.0)
