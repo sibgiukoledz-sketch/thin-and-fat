@@ -4,9 +4,9 @@ extends Node
 ## Player Camera Component:
 ## - Full 1st-person & 3rd-person support (Scroll Wheel zoom & Middle-Click toggle)
 ## - Mouse look rotation (Yaw on Player, Pitch clamped -89..89 on Head)
-## - Dynamic true eye-level alignment directly on the character heads
-## - Head mesh hiding in 1st-person (completely unobstructed first-person view)
-## - Clean, non-colliding SpringArm3D for 3rd person
+## - Dynamic animated socket tracking (Head node tracks each character's actual animated head bone)
+## - Head & torso mesh culling in 1st-person (completely unobstructed first-person view)
+## - Clean, non-colliding SpringArm3D for 3rd person (camera distance 3.2m by default)
 ## - Supports 180° ceiling crawling camera flip for Thin
 
 const MOUSE_SENSITIVITY_DEFAULT := 0.0025
@@ -38,6 +38,9 @@ func setup(p_player: CharacterBody3D, p_head: Node3D, p_spring_arm: SpringArm3D,
 		spring_arm.spring_length = current_camera_zoom
 		spring_arm.margin = 0.2
 
+	if camera_3d:
+		camera_3d.position = Vector3.ZERO
+
 func handle_input(event: InputEvent, mouse_sensitivity: float, nausea_intensity: float, is_ceiling_crawling: bool = false) -> void:
 	if not player or not player.is_multiplayer_authority():
 		return
@@ -64,7 +67,7 @@ func handle_input(event: InputEvent, mouse_sensitivity: float, nausea_intensity:
 		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
 			target_camera_zoom = clampf(target_camera_zoom + ZOOM_STEP, MIN_ZOOM, MAX_ZOOM)
 		elif event.button_index == MOUSE_BUTTON_MIDDLE:
-			# Middle Mouse Button quick toggle between 1st Person and 3rd Person
+			# Middle Mouse Button toggle between 1st Person and 3rd Person
 			if target_camera_zoom < 0.5:
 				target_camera_zoom = DEFAULT_ZOOM
 			else:
@@ -77,16 +80,20 @@ func update_camera(delta: float, is_sprinting: bool, is_ceiling_crawling: bool =
 	if spring_arm:
 		spring_arm.spring_length = current_camera_zoom
 
+	# Dynamic Head Tracking: Align Head position with the actual animated head socket of each character!
 	if head and player:
-		var target_head_y: float
+		var target_head_y: float = player.stand_head_y
 		if is_ceiling_crawling:
 			target_head_y = 0.6
+		elif player.character_model and player.character_model.has_method("get_head_socket"):
+			var socket: Node3D = player.character_model.call("get_head_socket")
+			if socket:
+				# Position head directly at the character model's animated head joint
+				target_head_y = socket.global_position.y - player.global_position.y
 		elif player.is_crouching or player.synced_state_name.to_lower() == "crouch":
 			target_head_y = player.crouch_head_y
-		else:
-			target_head_y = player.stand_head_y
 
-		head.position.y = lerpf(head.position.y, target_head_y, delta * 12.0)
+		head.position.y = lerpf(head.position.y, target_head_y, delta * 16.0)
 		var target_z_deg: float = 180.0 if is_ceiling_crawling else 0.0
 		head.rotation_degrees.z = lerpf(head.rotation_degrees.z, target_z_deg, delta * 12.0)
 
@@ -98,10 +105,6 @@ func update_camera(delta: float, is_sprinting: bool, is_ceiling_crawling: bool =
 				player.character_model.call("set_first_person_view", is_first_person)
 
 	if camera_3d:
-		# In 1st person: push camera slightly forward to eye level; in 3rd person: stay at spring arm tip
-		var target_cam_z: float = -0.20 if is_first_person else 0.0
-		camera_3d.position = Vector3(0.0, 0.0, target_cam_z)
-
 		var target_fov := SPRINT_FOV if is_sprinting else NORMAL_FOV
 		camera_3d.fov = lerpf(camera_3d.fov, target_fov, delta * 8.0)
 		camera_3d.rotation_degrees.z = lerpf(camera_3d.rotation_degrees.z, 0.0, delta * 8.0)

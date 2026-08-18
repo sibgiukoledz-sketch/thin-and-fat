@@ -55,6 +55,9 @@ func _ready() -> void:
 
 @onready var pear_belly_mesh: MeshInstance3D = get_node_or_null("Skeleton3D/Pelvis/Torso/PearBellyMesh") as MeshInstance3D
 
+func get_head_socket() -> Node3D:
+	return head_pivot
+
 func set_first_person_view(is_first_person: bool) -> void:
 	if head_pivot:
 		head_pivot.visible = not is_first_person

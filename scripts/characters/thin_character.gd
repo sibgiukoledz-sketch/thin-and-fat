@@ -56,6 +56,9 @@ func _ready() -> void:
 	play_anim("idle")
 	_last_parent_pos = global_position
 
+func get_head_socket() -> Node3D:
+	return head_pivot
+
 func set_first_person_view(is_first_person: bool) -> void:
 	if head_pivot:
 		head_pivot.visible = not is_first_person
