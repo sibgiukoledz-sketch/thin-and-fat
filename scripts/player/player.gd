@@ -755,3 +755,5 @@ func _stop_ragdoll() -> void:
 func _build_character_visuals(is_fat: bool) -> void:
 	if visual_loader:
 		character_model = visual_loader.build_visuals(mesh_instance, is_fat)
+		if is_multiplayer_authority() and camera_component and character_model and character_model.has_method("set_first_person_view"):
+			character_model.call("set_first_person_view", camera_component.is_first_person)

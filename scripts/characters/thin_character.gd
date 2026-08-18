@@ -56,6 +56,11 @@ func _ready() -> void:
 	play_anim("idle")
 	_last_parent_pos = global_position
 
+@onready var pelvis_mesh: MeshInstance3D = get_node_or_null("Skeleton3D/Pelvis/PelvisMesh") as MeshInstance3D
+@onready var sweater_mesh: MeshInstance3D = get_node_or_null("Skeleton3D/Pelvis/Torso/SweaterMesh") as MeshInstance3D
+@onready var sweater_stripe_1: MeshInstance3D = get_node_or_null("Skeleton3D/Pelvis/Torso/SweaterStripe1") as MeshInstance3D
+@onready var sweater_stripe_2: MeshInstance3D = get_node_or_null("Skeleton3D/Pelvis/Torso/SweaterStripe2") as MeshInstance3D
+
 func get_head_socket() -> Node3D:
 	return head_pivot
 
@@ -64,6 +69,23 @@ func set_first_person_view(is_first_person: bool) -> void:
 		head_pivot.visible = not is_first_person
 	if neck:
 		neck.visible = not is_first_person
+	if sweater_mesh:
+		sweater_mesh.visible = not is_first_person
+	if sweater_stripe_1:
+		sweater_stripe_1.visible = not is_first_person
+	if sweater_stripe_2:
+		sweater_stripe_2.visible = not is_first_person
+	if pelvis_mesh:
+		pelvis_mesh.visible = not is_first_person
+	if hip_l:
+		hip_l.visible = not is_first_person
+	if hip_r:
+		hip_r.visible = not is_first_person
+	# Hands and arms stay always visible in 1st person!
+	if arm_l:
+		arm_l.visible = true
+	if arm_r:
+		arm_r.visible = true
 
 func set_wind_reaction(wind_vec: Vector3) -> void:
 	wind_force_vector = wind_vec
