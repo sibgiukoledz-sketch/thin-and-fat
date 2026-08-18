@@ -135,12 +135,12 @@ func start_ragdoll(velocity: Vector3 = Vector3.ZERO) -> void:
 	tw.tween_property(self, "rotation:z", tumble_z, 0.4)
 	tw.parallel().tween_property(self, "rotation:x", tumble_x, 0.4)
 	if pelvis:
-		tw.parallel().tween_property(pelvis, "position:y", 0.3, 0.3)
+		tw.parallel().tween_property(pelvis, "position:y", 0.45, 0.3)
 
 func stop_ragdoll() -> void:
 	is_ragdoll = false
 	rotation = Vector3.ZERO
 	if pelvis:
-		pelvis.position = Vector3.ZERO
+		pelvis.position = Vector3(0.0, 0.82, 0.0)
 	current_anim = "idle"
 	play_anim("idle")

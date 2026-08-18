@@ -64,13 +64,13 @@ albedo_color = Color(1, 1, 1, 1)
 
 [sub_resource type="SphereMesh" id="SphereMesh_pelvis"]
 material = SubResource("StandardMaterial3D_denim")
-radius = 0.65
-height = 0.7
+radius = 0.62
+height = 0.65
 
 [sub_resource type="SphereMesh" id="SphereMesh_pear_torso"]
 material = SubResource("StandardMaterial3D_hoodie")
-radius = 0.78
-height = 1.15
+radius = 0.75
+height = 1.1
 
 [sub_resource type="BoxMesh" id="BoxMesh_pocket"]
 material = SubResource("StandardMaterial3D_hoodie")
@@ -83,13 +83,13 @@ outer_radius = 0.42
 
 [sub_resource type="SphereMesh" id="SphereMesh_head"]
 material = SubResource("StandardMaterial3D_skin")
-radius = 0.34
-height = 0.62
+radius = 0.32
+height = 0.58
 
 [sub_resource type="SphereMesh" id="SphereMesh_cap"]
 material = SubResource("StandardMaterial3D_cap")
-radius = 0.35
-height = 0.38
+radius = 0.33
+height = 0.36
 
 [sub_resource type="BoxMesh" id="BoxMesh_visor"]
 material = SubResource("StandardMaterial3D_cap_visor")
@@ -116,36 +116,36 @@ size = Vector3(0.1, 0.025, 0.025)
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_upper_arm"]
 material = SubResource("StandardMaterial3D_hoodie")
-radius = 0.18
-height = 0.48
+radius = 0.17
+height = 0.44
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_forearm"]
 material = SubResource("StandardMaterial3D_skin")
-radius = 0.15
-height = 0.42
+radius = 0.14
+height = 0.38
 
 [sub_resource type="SphereMesh" id="SphereMesh_hand"]
 material = SubResource("StandardMaterial3D_skin")
-radius = 0.16
-height = 0.22
+radius = 0.15
+height = 0.2
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_thigh"]
 material = SubResource("StandardMaterial3D_denim")
 radius = 0.2
-height = 0.45
+height = 0.4
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_shin"]
 material = SubResource("StandardMaterial3D_skin")
 radius = 0.16
-height = 0.4
+height = 0.36
 
 [sub_resource type="BoxMesh" id="BoxMesh_shoe_top"]
 material = SubResource("StandardMaterial3D_sneaker_red")
-size = Vector3(0.28, 0.15, 0.36)
+size = Vector3(0.28, 0.14, 0.36)
 
 [sub_resource type="BoxMesh" id="BoxMesh_shoe_sole"]
 material = SubResource("StandardMaterial3D_white")
-size = Vector3(0.3, 0.06, 0.38)
+size = Vector3(0.3, 0.08, 0.38)
 
 [sub_resource type="Animation" id="Animation_idle"]
 resource_name = "idle"
@@ -161,7 +161,7 @@ tracks/0/keys = {
 "times": PackedFloat32Array(0, 1, 2),
 "transitions": PackedFloat32Array(1, 1, 1),
 "update": 0,
-"values": [Vector3(0, 0.45, 0), Vector3(0, 0.48, 0), Vector3(0, 0.45, 0)]
+"values": [Vector3(0, 0.35, 0), Vector3(0, 0.38, 0), Vector3(0, 0.35, 0)]
 }
 tracks/1/type = "value"
 tracks/1/imported = false
@@ -214,7 +214,7 @@ tracks/0/keys = {
 "times": PackedFloat32Array(0, 0.2, 0.4, 0.6, 0.8),
 "transitions": PackedFloat32Array(1, 1, 1, 1, 1),
 "update": 0,
-"values": [Vector3(0, 0.55, 0), Vector3(0, 0.62, 0), Vector3(0, 0.55, 0), Vector3(0, 0.62, 0), Vector3(0, 0.55, 0)]
+"values": [Vector3(0, 0.82, 0), Vector3(0, 0.88, 0), Vector3(0, 0.82, 0), Vector3(0, 0.88, 0), Vector3(0, 0.82, 0)]
 }
 tracks/1/type = "value"
 tracks/1/imported = false
@@ -279,7 +279,7 @@ tracks/0/keys = {
 "times": PackedFloat32Array(0, 0.125, 0.25, 0.375, 0.5),
 "transitions": PackedFloat32Array(1, 1, 1, 1, 1),
 "update": 0,
-"values": [Vector3(0, 0.52, 0), Vector3(0, 0.65, 0), Vector3(0, 0.52, 0), Vector3(0, 0.65, 0), Vector3(0, 0.52, 0)]
+"values": [Vector3(0, 0.80, 0), Vector3(0, 0.92, 0), Vector3(0, 0.80, 0), Vector3(0, 0.92, 0), Vector3(0, 0.80, 0)]
 }
 tracks/1/type = "value"
 tracks/1/imported = false
@@ -344,7 +344,7 @@ tracks/0/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Vector3(0, 0.28, 0)]
+"values": [Vector3(0, 0.45, 0)]
 }
 tracks/1/type = "value"
 tracks/1/imported = false
@@ -438,44 +438,44 @@ script = ExtResource("1_fatchar")
 [node name="Skeleton3D" type="Skeleton3D" parent="."]
 
 [node name="Pelvis" type="Node3D" parent="Skeleton3D"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.55, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.82, 0)
 
 [node name="PelvisMesh" type="MeshInstance3D" parent="Skeleton3D/Pelvis"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.1, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.08, 0)
 mesh = SubResource("SphereMesh_pelvis")
 
 [node name="Torso" type="Node3D" parent="Skeleton3D/Pelvis"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.45, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.35, 0)
 
 [node name="PearBellyMesh" type="MeshInstance3D" parent="Skeleton3D/Pelvis/Torso"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.15, -0.04)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.12, -0.05)
 mesh = SubResource("SphereMesh_pear_torso")
 
 [node name="KangarooPocket" type="MeshInstance3D" parent="Skeleton3D/Pelvis/Torso"]
-transform = Transform3D(1, 0, 0, 0, 0.965926, 0.258819, 0, -0.258819, 0.965926, 0, 0.05, -0.74)
+transform = Transform3D(1, 0, 0, 0, 0.965926, 0.258819, 0, -0.258819, 0.965926, 0, 0.05, -0.72)
 mesh = SubResource("BoxMesh_pocket")
 
 [node name="Collar" type="MeshInstance3D" parent="Skeleton3D/Pelvis/Torso"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.65, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.58, 0)
 mesh = SubResource("TorusMesh_collar")
 
 [node name="HeadPivot" type="Node3D" parent="Skeleton3D/Pelvis/Torso"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.72, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.65, 0)
 
 [node name="HeadMesh" type="MeshInstance3D" parent="Skeleton3D/Pelvis/Torso/HeadPivot"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.22, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.18, 0)
 mesh = SubResource("SphereMesh_head")
 
 [node name="Cap" type="MeshInstance3D" parent="Skeleton3D/Pelvis/Torso/HeadPivot"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.38, 0.02)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.32, 0.02)
 mesh = SubResource("SphereMesh_cap")
 
 [node name="Visor" type="MeshInstance3D" parent="Skeleton3D/Pelvis/Torso/HeadPivot/Cap"]
-transform = Transform3D(1, 0, 0, 0, 0.965926, -0.258819, 0, 0.258819, 0.965926, 0, 0.06, 0.32)
+transform = Transform3D(1, 0, 0, 0, 0.965926, -0.258819, 0, 0.258819, 0.965926, 0, 0.05, 0.3)
 mesh = SubResource("BoxMesh_visor")
 
 [node name="Eye_L" type="MeshInstance3D" parent="Skeleton3D/Pelvis/Torso/HeadPivot"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.11, 0.26, -0.3)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.1, 0.22, -0.28)
 mesh = SubResource("SphereMesh_sclera")
 
 [node name="Pupil_L" type="MeshInstance3D" parent="Skeleton3D/Pelvis/Torso/HeadPivot/Eye_L"]
@@ -487,7 +487,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.012, 0.012, -0.015)
 mesh = SubResource("SphereMesh_highlight")
 
 [node name="Eye_R" type="MeshInstance3D" parent="Skeleton3D/Pelvis/Torso/HeadPivot"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.11, 0.26, -0.3)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.1, 0.22, -0.28)
 mesh = SubResource("SphereMesh_sclera")
 
 [node name="Pupil_R" type="MeshInstance3D" parent="Skeleton3D/Pelvis/Torso/HeadPivot/Eye_R"]
@@ -499,55 +499,55 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.012, 0.012, -0.015)
 mesh = SubResource("SphereMesh_highlight")
 
 [node name="Eyebrow_L" type="MeshInstance3D" parent="Skeleton3D/Pelvis/Torso/HeadPivot"]
-transform = Transform3D(0.984808, -0.173648, 0, 0.173648, 0.984808, 0, 0, 0, 1, -0.11, 0.35, -0.3)
+transform = Transform3D(0.984808, -0.173648, 0, 0.173648, 0.984808, 0, 0, 0, 1, -0.1, 0.3, -0.28)
 mesh = SubResource("BoxMesh_eyebrow")
 
 [node name="Eyebrow_R" type="MeshInstance3D" parent="Skeleton3D/Pelvis/Torso/HeadPivot"]
-transform = Transform3D(0.984808, 0.173648, 0, -0.173648, 0.984808, 0, 0, 0, 1, 0.11, 0.35, -0.3)
+transform = Transform3D(0.984808, 0.173648, 0, -0.173648, 0.984808, 0, 0, 0, 1, 0.1, 0.3, -0.28)
 mesh = SubResource("BoxMesh_eyebrow")
 
 [node name="Arm_L" type="Node3D" parent="Skeleton3D/Pelvis/Torso"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.75, 0.45, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.72, 0.38, 0)
 
 [node name="UpperArmMesh" type="MeshInstance3D" parent="Skeleton3D/Pelvis/Torso/Arm_L"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.12, -0.18, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.1, -0.16, 0)
 mesh = SubResource("CapsuleMesh_upper_arm")
 
 [node name="Forearm_L" type="Node3D" parent="Skeleton3D/Pelvis/Torso/Arm_L"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.16, -0.38, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.14, -0.34, 0)
 
 [node name="ForearmMesh" type="MeshInstance3D" parent="Skeleton3D/Pelvis/Torso/Arm_L/Forearm_L"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.16, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.15, 0)
 mesh = SubResource("CapsuleMesh_forearm")
 
 [node name="Hand_L" type="Node3D" parent="Skeleton3D/Pelvis/Torso/Arm_L/Forearm_L"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.34, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.32, 0)
 
 [node name="HandMesh" type="MeshInstance3D" parent="Skeleton3D/Pelvis/Torso/Arm_L/Forearm_L/Hand_L"]
 mesh = SubResource("SphereMesh_hand")
 
 [node name="Arm_R" type="Node3D" parent="Skeleton3D/Pelvis/Torso"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.75, 0.45, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.72, 0.38, 0)
 
 [node name="UpperArmMesh" type="MeshInstance3D" parent="Skeleton3D/Pelvis/Torso/Arm_R"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.12, -0.18, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.1, -0.16, 0)
 mesh = SubResource("CapsuleMesh_upper_arm")
 
 [node name="Forearm_R" type="Node3D" parent="Skeleton3D/Pelvis/Torso/Arm_R"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.16, -0.38, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.14, -0.34, 0)
 
 [node name="ForearmMesh" type="MeshInstance3D" parent="Skeleton3D/Pelvis/Torso/Arm_R/Forearm_R"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.16, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.15, 0)
 mesh = SubResource("CapsuleMesh_forearm")
 
 [node name="Hand_R" type="Node3D" parent="Skeleton3D/Pelvis/Torso/Arm_R/Forearm_R"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.34, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.32, 0)
 
 [node name="HandMesh" type="MeshInstance3D" parent="Skeleton3D/Pelvis/Torso/Arm_R/Forearm_R/Hand_R"]
 mesh = SubResource("SphereMesh_hand")
 
 [node name="Hip_L" type="Node3D" parent="Skeleton3D/Pelvis"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.32, -0.1, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.32, -0.05, 0)
 
 [node name="ThighMesh" type="MeshInstance3D" parent="Skeleton3D/Pelvis/Hip_L"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.18, 0)
@@ -557,21 +557,22 @@ mesh = SubResource("CapsuleMesh_thigh")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.36, 0)
 
 [node name="ShinMesh" type="MeshInstance3D" parent="Skeleton3D/Pelvis/Hip_L/Shin_L"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.14, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.15, 0)
 mesh = SubResource("CapsuleMesh_shin")
 
 [node name="Foot_L" type="Node3D" parent="Skeleton3D/Pelvis/Hip_L/Shin_L"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.28, -0.06)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.3, -0.06)
 
 [node name="ShoeTop" type="MeshInstance3D" parent="Skeleton3D/Pelvis/Hip_L/Shin_L/Foot_L"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.02, 0)
 mesh = SubResource("BoxMesh_shoe_top")
 
 [node name="ShoeSole" type="MeshInstance3D" parent="Skeleton3D/Pelvis/Hip_L/Shin_L/Foot_L"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.09, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.07, 0)
 mesh = SubResource("BoxMesh_shoe_sole")
 
 [node name="Hip_R" type="Node3D" parent="Skeleton3D/Pelvis"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.32, -0.1, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.32, -0.05, 0)
 
 [node name="ThighMesh" type="MeshInstance3D" parent="Skeleton3D/Pelvis/Hip_R"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.18, 0)
@@ -581,17 +582,18 @@ mesh = SubResource("CapsuleMesh_thigh")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.36, 0)
 
 [node name="ShinMesh" type="MeshInstance3D" parent="Skeleton3D/Pelvis/Hip_R/Shin_R"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.14, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.15, 0)
 mesh = SubResource("CapsuleMesh_shin")
 
 [node name="Foot_R" type="Node3D" parent="Skeleton3D/Pelvis/Hip_R/Shin_R"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.28, -0.06)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.3, -0.06)
 
 [node name="ShoeTop" type="MeshInstance3D" parent="Skeleton3D/Pelvis/Hip_R/Shin_R/Foot_R"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.02, 0)
 mesh = SubResource("BoxMesh_shoe_top")
 
 [node name="ShoeSole" type="MeshInstance3D" parent="Skeleton3D/Pelvis/Hip_R/Shin_R/Foot_R"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.09, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.07, 0)
 mesh = SubResource("BoxMesh_shoe_sole")
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="."]
