@@ -114,16 +114,16 @@ sky_material = SubResource("ShaderMaterial_fh13f")
 background_mode = 2
 sky = SubResource("Sky_rup4s")
 ambient_light_source = 3
-ambient_light_color = Color(0.75, 0.88, 1, 1)
-ambient_light_sky_contribution = 0.85
-ambient_light_energy = 0.95
+ambient_light_color = Color(0.72, 0.84, 0.96, 1)
+ambient_light_sky_contribution = 0.65
+ambient_light_energy = 0.45
 reflected_light_source = 2
 tonemap_mode = 3
-tonemap_exposure = 1.15
+tonemap_exposure = 1.0
 tonemap_white = 1.0
 glow_enabled = true
-glow_intensity = 0.5
-glow_bloom = 0.15
+glow_intensity = 0.2
+glow_bloom = 0.05
 glow_blend_mode = 0
 fog_enabled = false
 volumetric_fog_enabled = false
@@ -334,11 +334,19 @@ wind_direction = 2.35619451204804
 
 [node name="SunLight" type="DirectionalLight3D" parent="Sky3D" unique_id=946822099]
 transform = Transform3D(0.9277635, -0.3008148, 0.22082876, 0, 0.5917666, 0.8061094, -0.3731687, -0.7478789, 0.5490194, 0.22082876, 0.8061094, 0.5490194)
-light_color = Color(1, 0.97, 0.9, 1)
-light_energy = 1.35
-light_indirect_energy = 1.2
+light_color = Color(1, 0.98, 0.92, 1)
+light_energy = 0.9
+light_indirect_energy = 0.45
 shadow_enabled = true
-shadow_blur = 1.8
+directional_shadow_mode = 2
+directional_shadow_split_1 = 0.08
+directional_shadow_split_2 = 0.22
+directional_shadow_split_3 = 0.5
+directional_shadow_blend_splits = true
+directional_shadow_max_distance = 75.0
+directional_shadow_bias = 0.02
+directional_shadow_normal_bias = 1.6
+shadow_blur = 0.8
 
 [node name="MoonLight" type="DirectionalLight3D" parent="Sky3D" unique_id=86044256]
 transform = Transform3D(0, -0.98008645, 0.19857182, 0.62604254, 0.1548441, 0.76426053, -0.779789, 0.124314405, 0.61357576, 0.1985718, 0.7642605, 0.6135757)
