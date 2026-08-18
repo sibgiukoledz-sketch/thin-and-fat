@@ -5,8 +5,8 @@ extends Node
 ## - Handles Roblox-style 1st person / 3rd person smooth camera zoom (Scroll Wheel)
 ## - Mouse look rotation (Yaw on Player, Pitch clamped -89..89 on Head)
 ## - Sprint FOV transitions & nausea camera tilt
-## - Dynamic crouch eye-height transition
-## - Unobstructed 1st-person eye positioning (in front of character skull)
+## - Smooth crouch eye-height transition
+## - Local mesh visibility culling in 1st person (prevents seeing inside own head/skull)
 ## - Supports 180° ceiling crawling camera flip on Head node for Thin
 
 const MOUSE_SENSITIVITY_DEFAULT := 0.0025
@@ -30,6 +30,8 @@ func setup(p_player: CharacterBody3D, p_head: Node3D, p_spring_arm: SpringArm3D,
 	head = p_head
 	spring_arm = p_spring_arm
 	camera_3d = p_camera
+	if spring_arm:
+		spring_arm.add_excluded_object(player.get_rid())
 
 func handle_input(event: InputEvent, mouse_sensitivity: float, nausea_intensity: float, is_ceiling_crawling: bool = false) -> void:
 	if not player or not player.is_multiplayer_authority():
@@ -59,6 +61,7 @@ func handle_input(event: InputEvent, mouse_sensitivity: float, nausea_intensity:
 
 func update_camera(delta: float, is_sprinting: bool, is_ceiling_crawling: bool = false) -> void:
 	current_camera_zoom = lerpf(current_camera_zoom, target_camera_zoom, delta * 14.0)
+	var was_first_person := is_first_person
 	is_first_person = (current_camera_zoom < 0.25)
 
 	if spring_arm:
@@ -77,11 +80,17 @@ func update_camera(delta: float, is_sprinting: bool, is_ceiling_crawling: bool =
 		var target_z_deg: float = 180.0 if is_ceiling_crawling else 0.0
 		head.rotation_degrees.z = lerpf(head.rotation_degrees.z, target_z_deg, delta * 12.0)
 
-	if camera_3d:
-		# In First Person: place camera slightly forward to avoid clipping into own head/face
-		var target_cam_z: float = -0.22 if is_first_person else 0.0
-		camera_3d.position.z = lerpf(camera_3d.position.z, target_cam_z, delta * 12.0)
+	# Local mesh culling: hide own body in first-person to prevent camera clipping inside skull/face
+	if player and player.is_multiplayer_authority() and player.mesh_instance:
+		if is_first_person:
+			if player.mesh_instance.visible:
+				player.mesh_instance.visible = false
+		else:
+			if not player.mesh_instance.visible:
+				player.mesh_instance.visible = true
 
+	if camera_3d:
+		camera_3d.position = Vector3.ZERO
 		var target_fov := SPRINT_FOV if is_sprinting else NORMAL_FOV
 		camera_3d.fov = lerpf(camera_3d.fov, target_fov, delta * 8.0)
 		camera_3d.rotation_degrees.z = lerpf(camera_3d.rotation_degrees.z, 0.0, delta * 8.0)

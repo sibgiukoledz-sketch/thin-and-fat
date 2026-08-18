@@ -1,52 +1,39 @@
 class_name HeavyBoulder
 extends RigidBody3D
 
-## Giant Rugged Boulder with native Godot 3D Rigid Body physics.
-## Features 512x512 AAA procedural multi-layer granite textures, normal map displacement,
-## non-uniform roughness, and top-level world-space detailed micro-particle systems (Dust, Shards, Shockwave, Friction Sparks).
+## Heavy Puzzle Boulder ("Супер-Валун"):
+## - Mass: 450 kg (Only "Fat / Жирдяй" can lift and throw it).
+## - Overhead carry: lifts high above Fat's head in raised hands.
+## - Physics isolation while carried (prevents player repulsion / flying).
+## - Puzzle interaction: Acts as a windbreak against Wind Tunnel Fan,
+##   triggers Heavy Pressure Buttons, and catapults players on Seesaws.
 
-signal boulder_picked_up(by_player: Node3D)
-signal boulder_thrown(by_player: Node3D)
-signal boulder_impact(position: Vector3)
+signal boulder_picked_up(by_player: CharacterBody3D)
+signal boulder_thrown(by_player: CharacterBody3D)
 
-@export var damage_on_impact: float = 75.0
-@export var impact_radius: float = 5.5
-@export var throw_force: float = 18.5
-
-@onready var prompt_label: Label3D = $PromptLabel3D
-@onready var mesh_instance: MeshInstance3D = $MeshInstance3D
-@onready var collision_shape: CollisionShape3D = $CollisionShape3D
-@onready var interaction_area: Area3D = $InteractionArea
+@export var throw_force: float = 14.0
+@export var min_impact_damage_velocity: float = 4.5
 
 var _is_carried: bool = false
 var _carrier_player: CharacterBody3D = null
-
-# 4-Tier AAA VFX Nodes (Top-level World Space)
-var _vfx_dict: Dictionary = {}
-
-var _warning_timer: float = 0.0
 var _warning_text: String = ""
-var _last_impact_time: float = 0.0
+var _warning_timer: float = 0.0
 
-func _enter_tree() -> void:
-	set_multiplayer_authority(1)
+@onready var collision_shape: CollisionShape3D = get_node_or_null("CollisionShape3D") as CollisionShape3D
+@onready var mesh_instance: MeshInstance3D = get_node_or_null("MeshInstance3D") as MeshInstance3D
+@onready var interaction_area: Area3D = get_node_or_null("InteractionArea") as Area3D
+@onready var prompt_label: Label3D = get_node_or_null("PromptLabel3D") as Label3D
 
 func _ready() -> void:
-	collision_layer = 4
-	collision_mask = 7
-	mass = 450.0
-	linear_damp = 0.4
-	angular_damp = 0.5
-	freeze = false
+	max_contacts_reported = 4
 	contact_monitor = true
-	max_contacts_reported = 8
+	body_entered.connect(_on_physics_body_entered)
 
 	if interaction_area:
 		interaction_area.body_entered.connect(_on_interaction_body_entered)
-	body_entered.connect(_on_physics_body_entered)
+		interaction_area.body_exited.connect(_on_interaction_body_exited)
 
 	_setup_boulder_visuals()
-	_vfx_dict = BoulderVFXBuilder.build_impact_vfx(self)
 	_update_prompt()
 
 func _physics_process(delta: float) -> void:
@@ -58,7 +45,7 @@ func _physics_process(delta: float) -> void:
 		return
 
 	var shape := SphereShape3D.new()
-	shape.radius = 3.2
+	shape.radius = 2.4
 	var query := PhysicsShapeQueryParameters3D.new()
 	query.shape = shape
 	query.transform = global_transform
@@ -119,33 +106,26 @@ func _update_prompt() -> void:
 		return
 
 	if _is_carried:
-		prompt_label.text = "🪨 ВАЛУН (В РУКАХ)\n[E] - БРОСИТЬ ВАЛУН"
-		prompt_label.modulate = Color(1.0, 0.85, 0.2)
+		prompt_label.text = "🪨 СУПЕР-ВАЛУН\n[E] — Бросить вперёд"
+		prompt_label.modulate = Color(0.3, 1.0, 0.4)
 	else:
-		prompt_label.text = "🪨 ГРОМАДНЫЙ ВАЛУН (450 КГ)\n[E] - ПОДНЯТЬ (ТОЛЬКО ЖИРДЯЙ)"
-		prompt_label.modulate = Color(0.9, 0.9, 0.9)
+		prompt_label.text = "🪨 СУПЕР-ВАЛУН\n[E] — Поднять (Только для Толстяка)"
+		prompt_label.modulate = Color(1.0, 0.9, 0.3)
 
-func _unhandled_input(event: InputEvent) -> void:
-	if event.is_action_pressed("interact"):
-		if _is_carried and _carrier_player and _carrier_player.is_multiplayer_authority():
-			try_interact_boulder(_carrier_player)
-			return
+func _show_warning(text: String, duration: float = 2.5) -> void:
+	_warning_text = text
+	_warning_timer = duration
 
-		if interaction_area:
-			for body in interaction_area.get_overlapping_bodies():
-				if body is Player:
-					var p: Player = body as Player
-					if p.is_multiplayer_authority():
-						try_interact_boulder(p)
-						break
+func _on_interaction_body_entered(body: Node3D) -> void:
+	if body is Player:
+		var p: Player = body as Player
+		if p.selected_character_id.to_lower() == "thin":
+			_show_warning("⚠️ ВАЛУН СЛИШКОМ ТЯЖЕЛЫЙ (450 КГ)!\nНУЖЕН ТОЛСТЯК!", 3.0)
 
-func _on_interaction_body_entered(body: Node) -> void:
-	if body.has_method("is_multiplayer_authority"):
-		var p: CharacterBody3D = body as CharacterBody3D
-		if p.is_multiplayer_authority() and Input.is_action_just_pressed("interact"):
-			try_interact_boulder(p)
+func _on_interaction_body_exited(_body: Node3D) -> void:
+	pass
 
-func try_interact_boulder(player: CharacterBody3D) -> void:
+func interact(player: Player) -> void:
 	if not player:
 		return
 
@@ -171,17 +151,22 @@ func rpc_pickup_boulder(player_path: NodePath) -> void:
 	_is_carried = true
 	_carrier_player = player_node
 	player_node.is_carrying_heavy_object = true
-	freeze = true
 
-	# Disable boulder collision shape while carried so physics solver does NOT push player
+	# Complete physics isolation while carried to prevent physics engine repulsion
+	collision_layer = 0
+	collision_mask = 0
+	freeze = true
+	freeze_mode = RigidBody3D.FREEZE_MODE_KINEMATIC
+
 	if collision_shape:
 		collision_shape.disabled = true
 	if interaction_area:
 		interaction_area.monitoring = false
+		interaction_area.monitorable = false
 
 	reparent(player_node)
-	# Position root at y = 1.35m so child mesh (+1.1m offset) sits directly overhead at y = 2.45m in raised hands!
-	position = Vector3(0.0, 1.35, -0.1)
+	# Position directly overhead at y = 1.60m so rock bottom rests on raised hands above head
+	position = Vector3(0.0, 1.60, 0.0)
 	rotation = Vector3.ZERO
 
 	if prompt_label:
@@ -190,7 +175,7 @@ func rpc_pickup_boulder(player_path: NodePath) -> void:
 	boulder_picked_up.emit(player_node)
 	if AudioManager:
 		AudioManager.play_sfx_3d("heavy_lift", global_position)
-	print("🪨 BOULDER PICKED UP by %s (Player collision radius expanded to 1.65m)" % player_node.name)
+	print("🪨 BOULDER PICKED UP OVERHEAD by %s" % player_node.name)
 
 @rpc("any_peer", "call_local", "reliable")
 func rpc_throw_boulder(player_path: NodePath, throw_dir: Vector3) -> void:
@@ -201,12 +186,6 @@ func rpc_throw_boulder(player_path: NodePath, throw_dir: Vector3) -> void:
 	_is_carried = false
 	if player_node:
 		player_node.is_carrying_heavy_object = false
-		# Reset player collision shape back to standard capsule
-		if player_node.collision_shape:
-			var normal_shape := CapsuleShape3D.new()
-			normal_shape.radius = 0.65
-			normal_shape.height = 1.8
-			player_node.collision_shape.shape = normal_shape
 	_carrier_player = null
 
 	var current_global_pos := global_position
@@ -214,15 +193,18 @@ func rpc_throw_boulder(player_path: NodePath, throw_dir: Vector3) -> void:
 	reparent(main_world)
 	global_position = current_global_pos
 
-	# Re-enable full collision layers & mask for dynamic physics impact
+	# Re-enable full physics layers & mask for dynamic impact
 	collision_layer = 4
 	collision_mask = 7
+	freeze = false
+	freeze_mode = RigidBody3D.FREEZE_MODE_STATIC
+
 	if collision_shape:
 		collision_shape.disabled = false
 	if interaction_area:
 		interaction_area.monitoring = true
+		interaction_area.monitorable = true
 
-	freeze = false
 	var impulse_vector := (throw_dir.normalized() + Vector3(0, 0.45, 0)).normalized() * throw_force * mass
 	apply_central_impulse(impulse_vector)
 	apply_torque_impulse(Vector3(randf_range(-40, 40), randf_range(-40, 40), randf_range(-40, 40)))
@@ -238,53 +220,8 @@ func _on_physics_body_entered(body: Node) -> void:
 		if p:
 			var char_id: String = String(p.get("selected_character_id"))
 			if char_id.to_lower() == "thin":
-				var vel := linear_velocity.length()
-				if vel > 0.8:
+				if linear_velocity.length() > min_impact_damage_velocity:
 					if p.has_method("apply_paper_flatten"):
-						p.call("apply_paper_flatten", 10.0)
+						p.call("apply_paper_flatten", 8.0)
 					if AudioManager:
 						AudioManager.play_sfx_3d("boulder_impact", global_position)
-					print("💥 BOULDER ROLLED OVER THIN PLAYER AND FLATTENED HIM!")
-	var now: float = Time.get_ticks_msec() / 1000.0
-	if now - _last_impact_time < 0.20:
-		return
-	_last_impact_time = now
-
-	var impact_vel := linear_velocity.length()
-	if impact_vel > 2.5:
-		BoulderVFXBuilder.trigger_impact_vfx(_vfx_dict, global_position)
-		if AudioManager:
-			AudioManager.play_sfx_3d("boulder_impact", global_position)
-		boulder_impact.emit(global_position)
-
-		if impact_vel > 6.0:
-			_apply_area_crush_damage()
-
-func _apply_area_crush_damage() -> void:
-	var space_state := get_world_3d().direct_space_state
-	var shape := SphereShape3D.new()
-	shape.radius = impact_radius
-
-	var query := PhysicsShapeQueryParameters3D.new()
-	query.shape = shape
-	query.transform = global_transform
-	query.collision_mask = 3
-
-	var results := space_state.intersect_shape(query)
-	for res in results:
-		var collider: Object = res.collider
-		if collider and collider is CharacterBody3D and collider.has_method("is_multiplayer_authority") and collider != _carrier_player:
-			var p: CharacterBody3D = collider as CharacterBody3D
-			if p:
-				var char_id: String = String(p.get("selected_character_id"))
-				if char_id.to_lower() == "thin":
-					if p.has_method("apply_paper_flatten"):
-						p.call("apply_paper_flatten", 10.0)
-					print("💥 BOULDER CRUSHED THIN PLAYER INTO PAPER!")
-				else:
-					if p.has_method("take_damage"):
-						p.call("take_damage", damage_on_impact, global_position)
-
-func _show_warning(msg: String) -> void:
-	_warning_text = msg
-	_warning_timer = 2.5

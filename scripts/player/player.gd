@@ -543,23 +543,8 @@ func _physics_process(delta: float) -> void:
 			hud.set_nausea_intensity(nausea_intensity)
 
 func _update_carried_boulder_collision_shape() -> void:
-	if not collision_shape or is_movement_blocked():
-		return
-	var is_fat := (selected_character_id.to_lower() == "fat")
-	var cap_shape := CapsuleShape3D.new()
-
-	if is_fat:
-		if is_carrying_heavy_object:
-			cap_shape.radius = 1.65
-			cap_shape.height = 2.8
-		else:
-			cap_shape.radius = 0.65
-			cap_shape.height = 1.8
-	else:
-		cap_shape.radius = 0.35
-		cap_shape.height = 2.4
-
-	collision_shape.shape = cap_shape
+	if character_model and character_model.has_method("set_carrying_pose"):
+		character_model.call("set_carrying_pose", is_carrying_heavy_object)
 
 func is_sprint_requested() -> bool:
 	if is_movement_blocked():
@@ -588,17 +573,12 @@ func _handle_stamina_regen(delta: float) -> void:
 func set_crouch_state(crouch: bool) -> void:
 	is_crouching = crouch
 	var target_h := crouch_height if is_crouching else stand_height
-	var target_head := crouch_head_y if is_crouching else stand_head_y
 
 	if collision_shape and collision_shape.shape is CapsuleShape3D:
 		var cap := collision_shape.shape as CapsuleShape3D
 		var tw := create_tween().set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 		tw.tween_property(cap, "height", target_h, 0.2)
 		tw.parallel().tween_property(collision_shape, "position:y", target_h * 0.5, 0.2)
-
-	if head:
-		var tw_head := create_tween().set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-		tw_head.tween_property(head, "position:y", target_head, 0.2)
 
 func is_overhead_clear() -> bool:
 	if not overhead_ray_cast:
