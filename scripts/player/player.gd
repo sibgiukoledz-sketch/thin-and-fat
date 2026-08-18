@@ -74,8 +74,7 @@ var target_speed: float = 0.0
 
 # Component & Node References
 @onready var head: Node3D = $Head
-@onready var spring_arm: SpringArm3D = $Head/SpringArm3D
-@onready var camera_3d: Camera3D = $Head/SpringArm3D/Camera3D
+@onready var camera_3d: Camera3D = $Head/Camera3D
 @onready var collision_shape: CollisionShape3D = $CollisionShape3D
 @onready var mesh_instance: MeshInstance3D = $MeshInstance3D
 @onready var overhead_ray_cast: RayCast3D = get_node_or_null("OverheadRayCast") as RayCast3D
@@ -170,7 +169,7 @@ func _setup_sub_components() -> void:
 	camera_component = PlayerCameraComponent.new()
 	camera_component.name = "CameraComponent"
 	add_child(camera_component)
-	camera_component.setup(self, head, spring_arm, camera_3d)
+	camera_component.setup(self, head, camera_3d)
 
 	visual_loader = CharacterVisualLoader.new()
 	visual_loader.name = "CharacterVisualLoader"

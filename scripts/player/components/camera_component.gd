@@ -3,8 +3,8 @@ extends Node
 
 ## Player Camera Component:
 ## - Full 1st-person & 3rd-person support (Scroll Wheel zoom & Middle-Click toggle)
-## - Dynamic animated socket tracking (Follows head in 3D: standing, crouch, & trampoline pose)
-## - Wall clipping protection: SpringArm3D with layer 1+4 mask & safety margin
+## - Dynamic 3D Animated Socket Tracking (Follows head in 3D: standing, crouch, & trampoline pose)
+## - Direct Raycast Camera Boom: Guaranteed $3.2$m distance in 3rd person with wall clipping prevention
 ## - Head & body culling in 1st-person (only hands & arms visible!)
 ## - Supports 180° ceiling crawling camera flip for Thin
 
@@ -18,7 +18,6 @@ const SPRINT_FOV := 85.0
 
 var player: CharacterBody3D = null
 var head: Node3D = null
-var spring_arm: SpringArm3D = null
 var camera_3d: Camera3D = null
 
 var target_camera_zoom: float = DEFAULT_ZOOM
@@ -26,21 +25,14 @@ var current_camera_zoom: float = DEFAULT_ZOOM
 var is_first_person: bool = false
 var _last_cull_state: bool = false
 
-func setup(p_player: CharacterBody3D, p_head: Node3D, p_spring_arm: SpringArm3D, p_camera: Camera3D) -> void:
+func setup(p_player: CharacterBody3D, p_head: Node3D, p_camera: Camera3D) -> void:
 	player = p_player
 	head = p_head
-	spring_arm = p_spring_arm
 	camera_3d = p_camera
 
-	if spring_arm:
-		spring_arm.add_excluded_object(player.get_rid())
-		spring_arm.spring_length = current_camera_zoom
-		spring_arm.margin = 0.3
-		spring_arm.collision_mask = 5 # Collide with world static (1) and rigid bodies/props (4)
-
 	if camera_3d:
-		camera_3d.position = Vector3.ZERO
 		camera_3d.near = 0.05
+		camera_3d.position = Vector3(0.0, 0.2, DEFAULT_ZOOM)
 
 func handle_input(event: InputEvent, mouse_sensitivity: float, nausea_intensity: float, is_ceiling_crawling: bool = false) -> void:
 	if not player or not player.is_multiplayer_authority():
@@ -75,11 +67,8 @@ func handle_input(event: InputEvent, mouse_sensitivity: float, nausea_intensity:
 				target_camera_zoom = 0.0
 
 func update_camera(delta: float, is_sprinting: bool, is_ceiling_crawling: bool = false) -> void:
-	current_camera_zoom = lerpf(current_camera_zoom, target_camera_zoom, delta * 12.0)
+	current_camera_zoom = lerpf(current_camera_zoom, target_camera_zoom, delta * 14.0)
 	is_first_person = (current_camera_zoom < 0.35)
-
-	if spring_arm:
-		spring_arm.spring_length = current_camera_zoom
 
 	# Dynamic 3D Head Tracking: Follow the animated head joint in X, Y, and Z!
 	# This ensures the camera stays at the head even when Fat turns into a belly trampoline on his back!
@@ -96,7 +85,7 @@ func update_camera(delta: float, is_sprinting: bool, is_ceiling_crawling: bool =
 		elif player.is_crouching or player.synced_state_name.to_lower() == "crouch":
 			target_head_pos = Vector3(0.0, player.crouch_head_y, 0.0)
 
-		head.position = head.position.lerp(target_head_pos, delta * 16.0)
+		head.position = head.position.lerp(target_head_pos, delta * 18.0)
 		var target_z_deg: float = 180.0 if is_ceiling_crawling else 0.0
 		head.rotation_degrees.z = lerpf(head.rotation_degrees.z, target_z_deg, delta * 12.0)
 
@@ -107,7 +96,30 @@ func update_camera(delta: float, is_sprinting: bool, is_ceiling_crawling: bool =
 			if player.character_model and player.character_model.has_method("set_first_person_view"):
 				player.character_model.call("set_first_person_view", is_first_person)
 
-	if camera_3d:
+	# Camera Positioning & Wall Collision Protection
+	if camera_3d and head and player:
+		if is_first_person:
+			# 1st person: Camera is placed right at the eyes facing forward
+			camera_3d.position = camera_3d.position.lerp(Vector3(0.0, 0.0, -0.15), delta * 20.0)
+		else:
+			# 3rd person: Camera sits behind and slightly above head
+			var desired_dist: float = current_camera_zoom
+			var start_pos: Vector3 = head.global_position
+			var back_dir: Vector3 = head.global_transform.basis.z # Points backward from head
+			var target_world_pos: Vector3 = start_pos + back_dir * desired_dist + Vector3(0, 0.2, 0)
+
+			# Raycast against world geometry (layer 1) to prevent clipping through walls and floors
+			var space_state := player.get_world_3d().direct_space_state
+			if space_state:
+				var query := PhysicsRayQueryParameters3D.create(start_pos, target_world_pos, 1, [player.get_rid()])
+				var hit := space_state.intersect_ray(query)
+				if hit:
+					var hit_pos: Vector3 = hit.position
+					var actual_dist: float = (hit_pos - start_pos).length()
+					desired_dist = maxf(actual_dist - 0.28, 0.2)
+
+			camera_3d.position = Vector3(0.0, 0.2, desired_dist)
+
 		var target_fov := SPRINT_FOV if is_sprinting else NORMAL_FOV
 		camera_3d.fov = lerpf(camera_3d.fov, target_fov, delta * 8.0)
 		camera_3d.rotation_degrees.z = lerpf(camera_3d.rotation_degrees.z, 0.0, delta * 8.0)
