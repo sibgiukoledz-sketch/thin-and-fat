@@ -53,6 +53,10 @@ func _ready() -> void:
 	play_anim("idle")
 	_last_parent_pos = global_position
 
+func set_first_person_view(is_first_person: bool) -> void:
+	if head_pivot:
+		head_pivot.visible = not is_first_person
+
 func set_carrying_pose(is_carrying: bool) -> void:
 	is_carrying_pose = is_carrying
 	_apply_arm_pose()

@@ -56,6 +56,12 @@ func _ready() -> void:
 	play_anim("idle")
 	_last_parent_pos = global_position
 
+func set_first_person_view(is_first_person: bool) -> void:
+	if head_pivot:
+		head_pivot.visible = not is_first_person
+	if neck:
+		neck.visible = not is_first_person
+
 func set_wind_reaction(wind_vec: Vector3) -> void:
 	wind_force_vector = wind_vec
 

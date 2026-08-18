@@ -224,8 +224,8 @@ func set_character(char_id: String) -> void:
 		stamina_regen_rate = 22.0
 		stand_height = 1.8
 		crouch_height = 1.0
-		stand_head_y = 1.50
-		crouch_head_y = 0.85
+		stand_head_y = 1.62
+		crouch_head_y = 0.95
 
 		var cap_shape := CapsuleShape3D.new()
 		cap_shape.radius = 0.65
@@ -246,8 +246,8 @@ func set_character(char_id: String) -> void:
 		stamina_regen_rate = 30.0
 		stand_height = 2.4
 		crouch_height = 1.2
-		stand_head_y = 2.05
-		crouch_head_y = 1.0
+		stand_head_y = 2.30
+		crouch_head_y = 1.20
 
 		var cap_shape := CapsuleShape3D.new()
 		cap_shape.radius = 0.35
