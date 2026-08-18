@@ -516,11 +516,12 @@ func rpc_toggle_belly_trampoline(active: bool) -> void:
 		return
 
 	if is_belly_trampoline:
-		if player.mesh_instance:
-			var tw := player.create_tween().set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
-			tw.tween_property(player.mesh_instance, "rotation_degrees:x", 90.0, 0.25)
-			tw.parallel().tween_property(player.mesh_instance, "position:y", 0.22, 0.25)
-			tw.parallel().tween_property(player.mesh_instance, "scale", Vector3(1.4, 1.4, 0.75), 0.25)
+		if player.character_model and player.character_model.has_method("set_trampoline_pose"):
+			player.character_model.call("set_trampoline_pose", true)
+		elif player.mesh_instance:
+			var tw := player.create_tween().set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
+			tw.tween_property(player.mesh_instance, "rotation_degrees:x", 85.0, 0.25)
+			tw.parallel().tween_property(player.mesh_instance, "position:y", 0.35, 0.25)
 
 		if player.head:
 			var tw_head := player.create_tween().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
@@ -543,11 +544,12 @@ func rpc_toggle_belly_trampoline(active: bool) -> void:
 		print("🛏 BELLY TRAMPOLINE: Fat laid down on back! Belly is facing up to sky!")
 
 	else:
-		if player.mesh_instance:
+		if player.character_model and player.character_model.has_method("set_trampoline_pose"):
+			player.character_model.call("set_trampoline_pose", false)
+		elif player.mesh_instance:
 			var tw := player.create_tween().set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
 			tw.tween_property(player.mesh_instance, "rotation_degrees:x", 0.0, 0.2)
 			tw.parallel().tween_property(player.mesh_instance, "position:y", 0.0, 0.2)
-			tw.parallel().tween_property(player.mesh_instance, "scale", Vector3.ONE, 0.2)
 
 		if player.head:
 			var target_head_y: float = player.stand_head_y if "stand_head_y" in player else 1.4
@@ -735,8 +737,11 @@ func update_mechanics(delta: float) -> void:
 	if not _ensure_player_ref() or player.is_dead:
 		return
 
-	if player and player.character_model and player.character_model.has_method("set_carrying_pose"):
-		player.character_model.call("set_carrying_pose", player.is_carrying_heavy_object)
+	if player and player.character_model:
+		if player.character_model.has_method("set_carrying_pose"):
+			player.character_model.call("set_carrying_pose", player.is_carrying_heavy_object)
+		if player.character_model.has_method("set_stench_level"):
+			player.character_model.call("set_stench_level", stench_level)
 
 	if is_belly_trampoline and player and player.collision_shape:
 		if not (player.collision_shape.shape is BoxShape3D):

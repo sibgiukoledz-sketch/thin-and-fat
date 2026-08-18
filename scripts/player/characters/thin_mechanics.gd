@@ -326,3 +326,6 @@ func _update_spark_visuals() -> void:
 
 	if _plasma_particles:
 		_plasma_particles.emitting = is_electrified
+
+	if player and player.character_model and player.character_model.has_method("set_static_charge"):
+		player.character_model.call("set_static_charge", is_electrified)

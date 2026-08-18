@@ -170,6 +170,8 @@ func _apply_wind_physics(delta: float, max_wind_distance: float) -> void:
 
 					var char_id := String(p.get("selected_character_id"))
 					if char_id.to_lower() == "fat":
+						if p.has_method("apply_wind_reaction"):
+							p.call("apply_wind_reaction", wind_dir * wind_force * 0.4)
 						var dot_fat: float = p.velocity.dot(wind_dir)
 						# 1. Subtle minor heavy drift backward when Fat stands still or moves slowly
 						if dot_fat < 0.5:
@@ -184,6 +186,8 @@ func _apply_wind_physics(delta: float, max_wind_distance: float) -> void:
 						continue
 
 					# Blown backward violently by wind!
+					if p.has_method("apply_wind_reaction"):
+						p.call("apply_wind_reaction", wind_dir * wind_force)
 					var push_vel: Vector3 = wind_dir * (wind_force * 1.6)
 					p.velocity.x = lerpf(p.velocity.x, push_vel.x, 14.0 * delta)
 					p.velocity.z = lerpf(p.velocity.z, push_vel.z, 14.0 * delta)
@@ -206,6 +210,8 @@ func _apply_wind_physics(delta: float, max_wind_distance: float) -> void:
 
 				if forward_dist > 0.0 and forward_dist <= max_wind_distance + 0.5 and side_dist < 2.5:
 					if not _check_is_shielded(fan_origin, player_node.global_position):
+						if player_node.has_method("apply_wind_reaction"):
+							player_node.call("apply_wind_reaction", wind_dir * wind_force)
 						var push_vel: Vector3 = wind_dir * (wind_force * 1.6)
 						player_node.velocity.x = lerpf(player_node.velocity.x, push_vel.x, 14.0 * delta)
 						player_node.velocity.z = lerpf(player_node.velocity.z, push_vel.z, 14.0 * delta)

@@ -105,6 +105,12 @@ var crouch_head_y: float = 0.8
 
 var character_model: Node3D = null
 var voice_indicator_label: Label3D = null
+var current_wind_reaction: Vector3 = Vector3.ZERO
+
+func apply_wind_reaction(wind_vec: Vector3) -> void:
+	current_wind_reaction = wind_vec
+	if character_model and character_model.has_method("set_wind_reaction"):
+		character_model.call("set_wind_reaction", wind_vec)
 
 func _enter_tree() -> void:
 	var id_from_name := name.to_int()
@@ -491,12 +497,15 @@ func _physics_process(delta: float) -> void:
 	elif not is_on_floor():
 		target_anim = "jump"
 	elif is_crouching or state_lower == "crouch":
-		target_anim = "crouch"
+		if horiz_speed > 0.25:
+			target_anim = "crouch_walk"
+		else:
+			target_anim = "crouch"
 	elif state_lower == "sprint":
 		target_anim = "sprint"
 	elif state_lower == "walk":
 		target_anim = "walk"
-	elif is_multiplayer_authority() and Vector2(velocity.x, velocity.z).length() > 0.6:
+	elif is_multiplayer_authority() and horiz_speed > 0.6:
 		if is_sprint_requested():
 			target_anim = "sprint"
 		else:
@@ -504,6 +513,11 @@ func _physics_process(delta: float) -> void:
 
 	if character_model and character_model.has_method("play_anim"):
 		character_model.call("play_anim", target_anim)
+
+	if current_wind_reaction.length_squared() > 0.001:
+		current_wind_reaction = current_wind_reaction.lerp(Vector3.ZERO, 5.0 * delta)
+		if character_model and character_model.has_method("set_wind_reaction"):
+			character_model.call("set_wind_reaction", current_wind_reaction)
 
 	if is_paper_flattened:
 		var overhead_open := is_overhead_clear()
