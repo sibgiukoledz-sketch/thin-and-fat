@@ -1,37 +1,140 @@
 [gd_scene format=3 uid="uid://c8dummynpc01"]
 
-[ext_resource type="Script" path="res://scripts/npc/dummy_npc.gd" id="1_dummy"]
+[ext_resource type="Script" uid="uid://dp6b83f3k7wsq" path="res://scripts/npc/dummy_npc.gd" id="1_dummy"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_dummy"]
 radius = 0.45
 height = 1.8
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_dummy"]
-albedo_color = Color(0.82, 0.52, 0.25, 1)
-roughness = 0.5
-metallic = 0.2
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_bot_body"]
+albedo_color = Color(1, 0.78, 0.12, 1)
+roughness = 0.35
+rim_enabled = true
+rim = 0.3
+rim_tint = 0.5
 
-[sub_resource type="CapsuleMesh" id="CapsuleMesh_dummy"]
-material = SubResource("StandardMaterial3D_dummy")
-radius = 0.45
-height = 1.8
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_bot_dark"]
+albedo_color = Color(0.16, 0.17, 0.2, 1)
+roughness = 0.4
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_target_red"]
+albedo_color = Color(0.96, 0.22, 0.2, 1)
+roughness = 0.3
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_target_white"]
+albedo_color = Color(0.98, 0.98, 0.98, 1)
+roughness = 0.3
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_spring"]
+albedo_color = Color(0.75, 0.78, 0.85, 1)
+metallic = 0.85
+roughness = 0.2
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_bot_eye"]
+albedo_color = Color(0.1, 0.9, 1, 1)
+emission_enabled = true
+emission = Color(0.1, 0.9, 1, 1)
+emission_energy_multiplier = 2.0
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_antenna_tip"]
+albedo_color = Color(1, 0.25, 0.2, 1)
+emission_enabled = true
+emission = Color(1, 0.25, 0.2, 1)
+emission_energy_multiplier = 1.5
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_base"]
+material = SubResource("StandardMaterial3D_bot_dark")
+top_radius = 0.55
+bottom_radius = 0.6
+height = 0.12
+
+[sub_resource type="TorusMesh" id="TorusMesh_base_rim"]
+material = SubResource("StandardMaterial3D_bot_body")
+inner_radius = 0.52
+outer_radius = 0.58
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_stem"]
+material = SubResource("StandardMaterial3D_spring")
+top_radius = 0.08
+bottom_radius = 0.08
+height = 0.5
+
+[sub_resource type="TorusMesh" id="TorusMesh_spring_coil"]
+material = SubResource("StandardMaterial3D_spring")
+inner_radius = 0.08
+outer_radius = 0.14
+
+[sub_resource type="SphereMesh" id="SphereMesh_torso"]
+material = SubResource("StandardMaterial3D_bot_body")
+radius = 0.42
+height = 0.75
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_target_outer"]
+material = SubResource("StandardMaterial3D_target_red")
+top_radius = 0.26
+bottom_radius = 0.26
+height = 0.02
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_target_mid"]
+material = SubResource("StandardMaterial3D_target_white")
+top_radius = 0.18
+bottom_radius = 0.18
+height = 0.025
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_target_center"]
+material = SubResource("StandardMaterial3D_target_red")
+top_radius = 0.09
+bottom_radius = 0.09
+height = 0.03
+
+[sub_resource type="SphereMesh" id="SphereMesh_head"]
+material = SubResource("StandardMaterial3D_bot_body")
+radius = 0.26
+height = 0.45
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_visor"]
+material = SubResource("StandardMaterial3D_bot_dark")
+top_radius = 0.22
+bottom_radius = 0.22
+height = 0.12
+
+[sub_resource type="SphereMesh" id="SphereMesh_eye"]
+material = SubResource("StandardMaterial3D_bot_eye")
+radius = 0.04
+height = 0.04
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_antenna_rod"]
+material = SubResource("StandardMaterial3D_spring")
+top_radius = 0.012
+bottom_radius = 0.012
+height = 0.18
+
+[sub_resource type="SphereMesh" id="SphereMesh_antenna_ball"]
+material = SubResource("StandardMaterial3D_antenna_tip")
+radius = 0.035
+height = 0.07
 
 [sub_resource type="ViewportTexture" id="ViewportTexture_hp"]
 viewport_path = NodePath("SubViewport")
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bg"]
-bg_color = Color(0.1, 0.08, 0.06, 0.85)
+bg_color = Color(0.08, 0.1, 0.14, 0.85)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.2, 0.3, 0.4, 0.5)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hp"]
+bg_color = Color(0.96, 0.25, 0.2, 1)
 corner_radius_top_left = 6
 corner_radius_top_right = 6
 corner_radius_bottom_right = 6
 corner_radius_bottom_left = 6
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hp"]
-bg_color = Color(0.9, 0.25, 0.2, 1)
-corner_radius_top_left = 4
-corner_radius_top_right = 4
-corner_radius_bottom_right = 4
-corner_radius_bottom_left = 4
 
 [sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_spark"]
 direction = Vector3(0, 1, 0)
@@ -41,11 +144,11 @@ initial_velocity_max = 6.0
 gravity = Vector3(0, -9.8, 0)
 scale_min = 0.08
 scale_max = 0.18
-color = Color(1, 0.7, 0.2, 1)
+color = Color(1, 0.8, 0.2, 1)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_spark"]
 shading_mode = 0
-albedo_color = Color(1, 0.75, 0.2, 1)
+albedo_color = Color(1, 0.85, 0.2, 1)
 
 [sub_resource type="SphereMesh" id="SphereMesh_spark"]
 material = SubResource("StandardMaterial3D_spark")
@@ -63,7 +166,7 @@ properties/2/path = NodePath(".:max_health")
 properties/2/spawn = true
 properties/2/replication_mode = 1
 
-[node name="DummyNPC" type="CharacterBody3D"]
+[node name="DummyNPC" type="CharacterBody3D" unique_id=20811234]
 collision_layer = 4
 collision_mask = 3
 script = ExtResource("1_dummy")
@@ -72,12 +175,74 @@ script = ExtResource("1_dummy")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
 shape = SubResource("CapsuleShape3D_dummy")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
-mesh = SubResource("CapsuleMesh_dummy")
+[node name="Visuals" type="Node3D" parent="."]
+
+[node name="Base" type="MeshInstance3D" parent="Visuals"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.06, 0)
+mesh = SubResource("CylinderMesh_base")
+
+[node name="BaseRim" type="MeshInstance3D" parent="Visuals/Base"]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 0.04, 0)
+mesh = SubResource("TorusMesh_base_rim")
+
+[node name="Stem" type="MeshInstance3D" parent="Visuals"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.35, 0)
+mesh = SubResource("CylinderMesh_stem")
+
+[node name="Coil1" type="MeshInstance3D" parent="Visuals/Stem"]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, -0.1, 0)
+mesh = SubResource("TorusMesh_spring_coil")
+
+[node name="Coil2" type="MeshInstance3D" parent="Visuals/Stem"]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 0.1, 0)
+mesh = SubResource("TorusMesh_spring_coil")
+
+[node name="Torso" type="MeshInstance3D" parent="Visuals"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.85, 0)
+mesh = SubResource("SphereMesh_torso")
+
+[node name="TargetOuter" type="MeshInstance3D" parent="Visuals/Torso"]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, -0.41)
+mesh = SubResource("CylinderMesh_target_outer")
+
+[node name="TargetMid" type="MeshInstance3D" parent="Visuals/Torso/TargetOuter"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.005, 0)
+mesh = SubResource("CylinderMesh_target_mid")
+
+[node name="TargetCenter" type="MeshInstance3D" parent="Visuals/Torso/TargetOuter"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.01, 0)
+mesh = SubResource("CylinderMesh_target_center")
+
+[node name="NeckCoil" type="MeshInstance3D" parent="Visuals"]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 1.26, 0)
+mesh = SubResource("TorusMesh_spring_coil")
+
+[node name="Head" type="MeshInstance3D" parent="Visuals"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.55, 0)
+mesh = SubResource("SphereMesh_head")
+
+[node name="Visor" type="MeshInstance3D" parent="Visuals/Head"]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0.02, -0.16)
+mesh = SubResource("CylinderMesh_visor")
+
+[node name="Eye_L" type="MeshInstance3D" parent="Visuals/Head/Visor"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.09, 0.07, 0)
+mesh = SubResource("SphereMesh_eye")
+
+[node name="Eye_R" type="MeshInstance3D" parent="Visuals/Head/Visor"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.09, 0.07, 0)
+mesh = SubResource("SphereMesh_eye")
+
+[node name="AntennaRod" type="MeshInstance3D" parent="Visuals/Head"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.28, 0)
+mesh = SubResource("CylinderMesh_antenna_rod")
+
+[node name="AntennaBall" type="MeshInstance3D" parent="Visuals/Head/AntennaRod"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.1, 0)
+mesh = SubResource("SphereMesh_antenna_ball")
 
 [node name="HPSprite3D" type="Sprite3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.25, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.35, 0)
 billboard = 1
 double_sided = false
 texture = SubResource("ViewportTexture_hp")
@@ -110,9 +275,9 @@ theme_override_constants/separation = 4
 
 [node name="HPLabel" type="Label" parent="SubViewport/Panel/VBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.9, 0.8, 1)
+theme_override_colors/font_color = Color(1, 0.95, 0.8, 1)
 theme_override_font_sizes/font_size = 14
-text = "MANNEQUIN: 200 / 200 HP"
+text = "🎯 CRASH DUMMY: 200 / 200 HP"
 horizontal_alignment = 1
 
 [node name="HPBar" type="ProgressBar" parent="SubViewport/Panel/VBox"]
@@ -123,7 +288,7 @@ value = 100.0
 show_percentage = false
 
 [node name="HitParticles" type="GPUParticles3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.0, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
 emitting = false
 amount = 14
 lifetime = 0.4

@@ -12,7 +12,7 @@ signal dummy_hit(damage: float, hit_position: Vector3)
 @export var current_health: float = 200.0
 @export var auto_respawn_delay: float = 3.0
 
-@onready var mesh_instance: MeshInstance3D = $MeshInstance3D
+@onready var mesh_instance: Node3D = get_node_or_null("Visuals") as Node3D
 @onready var hp_viewport: SubViewport = $SubViewport
 @onready var hp_sprite_3d: Sprite3D = $HPSprite3D
 @onready var hp_bar: ProgressBar = $SubViewport/Panel/VBox/HPBar
