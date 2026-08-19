@@ -1,9 +1,13 @@
-[gd_scene load_steps=28 format=3 uid="uid://c8mainmenufps01"]
+[gd_scene load_steps=32 format=3 uid="uid://c8mainmenufps01"]
 
 [ext_resource type="Script" path="res://scripts/ui/main_menu.gd" id="1_menu"]
-[ext_resource type="PackedScene" path="res://scenes/ui/audio_settings_dialog.tscn" id="2_audio_dialog"]
-[ext_resource type="PackedScene" path="res://scenes/characters/fat_character.tscn" id="3_fat_char"]
-[ext_resource type="PackedScene" path="res://scenes/characters/thin_character.tscn" id="4_thin_char"]
+[ext_resource type="Theme" uid="uid://dfthinandfattheme01" path="res://resources/ui_theme.tres" id="2_theme"]
+[ext_resource type="PackedScene" path="res://scenes/ui/audio_settings_dialog.tscn" id="3_audio_dialog"]
+[ext_resource type="PackedScene" path="res://scenes/characters/fat_character.tscn" id="4_fat_char"]
+[ext_resource type="PackedScene" path="res://scenes/characters/thin_character.tscn" id="5_thin_char"]
+[ext_resource type="FontFile" uid="uid://cdqb10dd5tuid" path="res://assets/ui/fonts/RussoOne-Regular.ttf" id="6_russo"]
+[ext_resource type="FontFile" uid="uid://w0j61saadnf0" path="res://assets/ui/fonts/Rubik-Bold.ttf" id="7_rubik_bold"]
+[ext_resource type="FontFile" uid="uid://djg0820ypjh8y" path="res://assets/ui/fonts/Rubik-Medium.ttf" id="8_rubik_med"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sky"]
 sky_top_color = Color(0.12, 0.25, 0.45, 1)
@@ -19,14 +23,13 @@ background_mode = 2
 sky = SubResource("Sky_env")
 ambient_light_source = 3
 ambient_light_color = Color(0.65, 0.75, 0.9, 1)
-ambient_light_energy = 0.9
+ambient_light_energy = 0.55
 tonemap_mode = 2
-glow_enabled = true
-glow_bloom = 0.2
+glow_enabled = false
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_pedestal"]
 albedo_color = Color(0.18, 0.24, 0.32, 1)
-roughness = 0.35
+roughness = 0.55
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_pedestal"]
 material = SubResource("StandardMaterial3D_pedestal")
@@ -37,7 +40,7 @@ radial_segments = 48
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_floor"]
 albedo_color = Color(0.06, 0.08, 0.12, 1)
-roughness = 0.65
+roughness = 0.85
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_floor"]
 material = SubResource("StandardMaterial3D_floor")
@@ -45,7 +48,7 @@ size = Vector2(80, 80)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_wall"]
 albedo_color = Color(0.12, 0.16, 0.22, 1)
-roughness = 0.7
+roughness = 0.85
 
 [sub_resource type="BoxMesh" id="BoxMesh_wall"]
 material = SubResource("StandardMaterial3D_wall")
@@ -53,7 +56,7 @@ size = Vector3(16, 8, 0.5)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_table"]
 albedo_color = Color(0.35, 0.22, 0.14, 1)
-roughness = 0.5
+roughness = 0.75
 
 [sub_resource type="BoxMesh" id="BoxMesh_table"]
 material = SubResource("StandardMaterial3D_table")
@@ -70,113 +73,222 @@ height = 1.3
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_crate"]
 albedo_color = Color(0.48, 0.36, 0.22, 1)
-roughness = 0.6
+roughness = 0.75
 
 [sub_resource type="BoxMesh" id="BoxMesh_crate"]
 material = SubResource("StandardMaterial3D_crate")
 size = Vector3(0.9, 0.9, 0.9)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_card"]
-bg_color = Color(0.06, 0.09, 0.14, 0.9)
+content_margin_left = 22.0
+content_margin_top = 20.0
+content_margin_right = 22.0
+content_margin_bottom = 20.0
+bg_color = Color(0.08, 0.12, 0.20, 0.94)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
-border_color = Color(0.25, 0.65, 0.95, 0.5)
+border_color = Color(0.22, 0.55, 0.88, 0.5)
 corner_radius_top_left = 16
 corner_radius_top_right = 16
 corner_radius_bottom_right = 16
 corner_radius_bottom_left = 16
 shadow_color = Color(0, 0, 0, 0.55)
 shadow_size = 14
+shadow_offset = Vector2(0, 4)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_primary"]
-bg_color = Color(0.16, 0.68, 0.36, 1)
+content_margin_left = 18.0
+content_margin_top = 10.0
+content_margin_right = 18.0
+content_margin_bottom = 14.0
+bg_color = Color(0.16, 0.72, 0.38, 1)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.4, 0.95, 0.6, 1)
-corner_radius_top_left = 10
-corner_radius_top_right = 10
-corner_radius_bottom_right = 10
-corner_radius_bottom_left = 10
-shadow_color = Color(0.1, 0.45, 0.22, 0.3)
-shadow_size = 6
+border_width_bottom = 5
+border_color = Color(0.10, 0.52, 0.26, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+shadow_color = Color(0.16, 0.72, 0.38, 0.35)
+shadow_size = 8
+shadow_offset = Vector2(0, 3)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_primary_hover"]
-bg_color = Color(0.22, 0.82, 0.44, 1)
+content_margin_left = 18.0
+content_margin_top = 10.0
+content_margin_right = 18.0
+content_margin_bottom = 14.0
+bg_color = Color(0.22, 0.84, 0.46, 1)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.7, 1, 0.8, 1)
-corner_radius_top_left = 10
-corner_radius_top_right = 10
-corner_radius_bottom_right = 10
-corner_radius_bottom_left = 10
+border_width_bottom = 5
+border_color = Color(0.14, 0.65, 0.34, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+shadow_color = Color(0.22, 0.84, 0.46, 0.5)
+shadow_size = 10
+shadow_offset = Vector2(0, 3)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_secondary"]
-bg_color = Color(0.14, 0.2, 0.3, 0.9)
+content_margin_left = 16.0
+content_margin_top = 10.0
+content_margin_right = 16.0
+content_margin_bottom = 14.0
+bg_color = Color(0.12, 0.48, 0.78, 1)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.3, 0.6, 0.85, 0.5)
-corner_radius_top_left = 10
-corner_radius_top_right = 10
-corner_radius_bottom_right = 10
-corner_radius_bottom_left = 10
+border_width_bottom = 5
+border_color = Color(0.08, 0.32, 0.55, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+shadow_color = Color(0, 0, 0, 0.35)
+shadow_size = 6
+shadow_offset = Vector2(0, 3)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_secondary_hover"]
-bg_color = Color(0.2, 0.3, 0.45, 1)
+content_margin_left = 16.0
+content_margin_top = 10.0
+content_margin_right = 16.0
+content_margin_bottom = 14.0
+bg_color = Color(0.18, 0.60, 0.95, 1)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.45, 0.8, 1, 0.8)
-corner_radius_top_left = 10
-corner_radius_top_right = 10
-corner_radius_bottom_right = 10
-corner_radius_bottom_left = 10
+border_width_bottom = 5
+border_color = Color(0.12, 0.45, 0.75, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+shadow_color = Color(0.18, 0.60, 0.95, 0.45)
+shadow_size = 8
+shadow_offset = Vector2(0, 3)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_accent"]
+content_margin_left = 16.0
+content_margin_top = 10.0
+content_margin_right = 16.0
+content_margin_bottom = 14.0
+bg_color = Color(0.92, 0.62, 0.12, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 5
+border_color = Color(0.70, 0.44, 0.06, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+shadow_color = Color(0.92, 0.62, 0.12, 0.35)
+shadow_size = 8
+shadow_offset = Vector2(0, 3)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_accent_hover"]
+content_margin_left = 16.0
+content_margin_top = 10.0
+content_margin_right = 16.0
+content_margin_bottom = 14.0
+bg_color = Color(1.0, 0.72, 0.20, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 5
+border_color = Color(0.80, 0.52, 0.08, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+shadow_color = Color(1.0, 0.72, 0.20, 0.5)
+shadow_size = 10
+shadow_offset = Vector2(0, 3)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_danger"]
-bg_color = Color(0.65, 0.18, 0.18, 0.85)
+content_margin_left = 16.0
+content_margin_top = 10.0
+content_margin_right = 16.0
+content_margin_bottom = 14.0
+bg_color = Color(0.78, 0.22, 0.22, 1)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.9, 0.35, 0.35, 1)
-corner_radius_top_left = 10
-corner_radius_top_right = 10
-corner_radius_bottom_right = 10
-corner_radius_bottom_left = 10
+border_width_bottom = 5
+border_color = Color(0.55, 0.12, 0.12, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+shadow_color = Color(0.78, 0.22, 0.22, 0.35)
+shadow_size = 6
+shadow_offset = Vector2(0, 3)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_danger_hover"]
-bg_color = Color(0.8, 0.22, 0.22, 1)
+content_margin_left = 16.0
+content_margin_top = 10.0
+content_margin_right = 16.0
+content_margin_bottom = 14.0
+bg_color = Color(0.92, 0.28, 0.28, 1)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
-border_width_bottom = 2
-border_color = Color(1, 0.55, 0.55, 1)
+border_width_bottom = 5
+border_color = Color(0.70, 0.16, 0.16, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+shadow_color = Color(0.92, 0.28, 0.28, 0.45)
+shadow_size = 8
+shadow_offset = Vector2(0, 3)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hp_fill"]
+bg_color = Color(0.20, 0.82, 0.40, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.5, 1.0, 0.7, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_stamina_fill"]
+bg_color = Color(0.18, 0.72, 0.95, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.5, 0.9, 1.0, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_badge"]
+content_margin_left = 14.0
+content_margin_top = 6.0
+content_margin_right = 14.0
+content_margin_bottom = 6.0
+bg_color = Color(0.08, 0.14, 0.22, 0.9)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.25, 0.65, 0.95, 0.5)
 corner_radius_top_left = 10
 corner_radius_top_right = 10
 corner_radius_bottom_right = 10
 corner_radius_bottom_left = 10
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hp_fill"]
-bg_color = Color(0.2, 0.85, 0.4, 1)
-corner_radius_top_left = 4
-corner_radius_top_right = 4
-corner_radius_bottom_right = 4
-corner_radius_bottom_left = 4
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_stamina_fill"]
-bg_color = Color(0.18, 0.7, 0.95, 1)
-corner_radius_top_left = 4
-corner_radius_top_right = 4
-corner_radius_bottom_right = 4
-corner_radius_bottom_left = 4
 
 [node name="MainMenu" type="Node3D"]
 script = ExtResource("1_menu")
@@ -187,7 +299,7 @@ environment = SubResource("Environment_main")
 [node name="SunLight" type="DirectionalLight3D" parent="."]
 transform = Transform3D(0.866025, -0.353553, 0.353553, 0, 0.707107, 0.707107, -0.5, -0.612372, 0.612372, 5, 8, 5)
 light_color = Color(1, 0.96, 0.9, 1)
-light_energy = 1.25
+light_energy = 0.90
 shadow_enabled = true
 
 [node name="FloorPlane" type="MeshInstance3D" parent="."]
@@ -207,22 +319,23 @@ mesh = SubResource("CylinderMesh_pedestal")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.6, -2.9)
 modulate = Color(1, 0.85, 0.25, 1)
 text = "★ THIN & FAT CO-OP ★"
-font_size = 46
+font = ExtResource("6_russo")
+font_size = 48
 outline_size = 12
 
 [node name="FatSpotlight" type="SpotLight3D" parent="DioramaStage"]
 unique_name_in_owner = true
 transform = Transform3D(1, 0, 0, 0, 0.258819, 0.965926, 0, -0.965926, 0.258819, -0.9, 4.5, 0.8)
-light_color = Color(1, 0.85, 0.65, 1)
-light_energy = 3.5
+light_color = Color(1, 0.90, 0.80, 1)
+light_energy = 1.6
 spot_range = 8.0
 spot_angle = 32.0
 
 [node name="ThinSpotlight" type="SpotLight3D" parent="DioramaStage"]
 unique_name_in_owner = true
 transform = Transform3D(1, 0, 0, 0, 0.258819, 0.965926, 0, -0.965926, 0.258819, 0.9, 4.5, 0.8)
-light_color = Color(0.65, 0.88, 1, 1)
-light_energy = 1.0
+light_color = Color(0.80, 0.92, 1, 1)
+light_energy = 0.6
 spot_range = 8.0
 spot_angle = 32.0
 
@@ -242,11 +355,11 @@ mesh = SubResource("BoxMesh_crate")
 
 [node name="Characters" type="Node3D" parent="DioramaStage"]
 
-[node name="FatModel" parent="DioramaStage/Characters" instance=ExtResource("3_fat_char")]
+[node name="FatModel" parent="DioramaStage/Characters" instance=ExtResource("4_fat_char")]
 unique_name_in_owner = true
 transform = Transform3D(0.965926, 0, -0.258819, 0, 1, 0, 0.258819, 0, 0.965926, -0.9, 0.35, 0)
 
-[node name="ThinModel" parent="DioramaStage/Characters" instance=ExtResource("4_thin_char")]
+[node name="ThinModel" parent="DioramaStage/Characters" instance=ExtResource("5_thin_char")]
 unique_name_in_owner = true
 transform = Transform3D(0.965926, 0, 0.258819, 0, 1, 0, -0.258819, 0, 0.965926, 0.9, 0.35, 0)
 
@@ -268,103 +381,99 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+theme = ExtResource("2_theme")
 
 [node name="LeftMargin" type="MarginContainer" parent="CanvasLayer/UIContainer"]
 layout_mode = 1
 anchors_preset = 9
 anchor_bottom = 1.0
-offset_right = 380.0
+offset_right = 400.0
 grow_vertical = 2
 theme_override_constants/margin_left = 36
-theme_override_constants/margin_top = 36
-theme_override_constants/margin_bottom = 36
+theme_override_constants/margin_top = 32
+theme_override_constants/margin_bottom = 32
 
 [node name="LeftCard" type="PanelContainer" parent="CanvasLayer/UIContainer/LeftMargin"]
-custom_minimum_size = Vector2(340, 0)
+custom_minimum_size = Vector2(360, 0)
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_card")
 
-[node name="Margin" type="MarginContainer" parent="CanvasLayer/UIContainer/LeftMargin/LeftCard"]
+[node name="VBox" type="VBoxContainer" parent="CanvasLayer/UIContainer/LeftMargin/LeftCard"]
 layout_mode = 2
-theme_override_constants/margin_left = 24
-theme_override_constants/margin_top = 24
-theme_override_constants/margin_right = 24
-theme_override_constants/margin_bottom = 24
-
-[node name="VBox" type="VBoxContainer" parent="CanvasLayer/UIContainer/LeftMargin/LeftCard/Margin"]
-layout_mode = 2
-theme_override_constants/separation = 12
+theme_override_constants/separation = 14
 alignment = 1
 
-[node name="LogoLabel" type="Label" parent="CanvasLayer/UIContainer/LeftMargin/LeftCard/Margin/VBox"]
+[node name="LogoLabel" type="Label" parent="CanvasLayer/UIContainer/LeftMargin/LeftCard/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.85, 0.2, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
-theme_override_constants/shadow_offset_x = 2
-theme_override_constants/shadow_offset_y = 2
+theme_override_constants/shadow_offset_x = 0
+theme_override_constants/shadow_offset_y = 3
+theme_override_fonts/font = ExtResource("6_russo")
 theme_override_font_sizes/font_size = 32
 text = "THIN & FAT"
 horizontal_alignment = 1
 
-[node name="LogoSubtitle" type="Label" parent="CanvasLayer/UIContainer/LeftMargin/LeftCard/Margin/VBox"]
+[node name="LogoSubtitle" type="Label" parent="CanvasLayer/UIContainer/LeftMargin/LeftCard/VBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.7, 0.85, 1, 0.9)
+theme_override_colors/font_color = Color(0.50, 0.85, 1.0, 0.95)
+theme_override_fonts/font = ExtResource("7_rubik_bold")
 theme_override_font_sizes/font_size = 13
 text = "CO-OP PHYSICS SANDBOX"
 horizontal_alignment = 1
 
-[node name="HSeparator" type="HSeparator" parent="CanvasLayer/UIContainer/LeftMargin/LeftCard/Margin/VBox"]
+[node name="HSeparator" type="HSeparator" parent="CanvasLayer/UIContainer/LeftMargin/LeftCard/VBox"]
 layout_mode = 2
 
-[node name="HostInstantButton" type="Button" parent="CanvasLayer/UIContainer/LeftMargin/LeftCard/Margin/VBox"]
+[node name="HostInstantButton" type="Button" parent="CanvasLayer/UIContainer/LeftMargin/LeftCard/VBox"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 48)
+custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("7_rubik_bold")
 theme_override_font_sizes/font_size = 16
 theme_override_styles/normal = SubResource("StyleBoxFlat_btn_primary")
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_primary_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_primary")
 text = "🎮  БЫСТРАЯ ИГРА (HOST)"
 
-[node name="LobbyButton" type="Button" parent="CanvasLayer/UIContainer/LeftMargin/LeftCard/Margin/VBox"]
+[node name="LobbyButton" type="Button" parent="CanvasLayer/UIContainer/LeftMargin/LeftCard/VBox"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 44)
+custom_minimum_size = Vector2(0, 46)
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("7_rubik_bold")
 theme_override_font_sizes/font_size = 15
 theme_override_styles/normal = SubResource("StyleBoxFlat_btn_secondary")
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_secondary_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_secondary")
 text = "🌐  СЕТЕВОЕ ЛОББИ (JOIN)"
 
-[node name="CharSelectButton" type="Button" parent="CanvasLayer/UIContainer/LeftMargin/LeftCard/Margin/VBox"]
+[node name="CharSelectButton" type="Button" parent="CanvasLayer/UIContainer/LeftMargin/LeftCard/VBox"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 44)
+custom_minimum_size = Vector2(0, 46)
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("7_rubik_bold")
 theme_override_font_sizes/font_size = 15
-theme_override_styles/normal = SubResource("StyleBoxFlat_btn_secondary")
-theme_override_styles/hover = SubResource("StyleBoxFlat_btn_secondary_hover")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_secondary")
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_accent")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_accent_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_accent")
 text = "👥  СМЕНИТЬ ПЕРСОНАЖА"
 
-[node name="AudioSettingsButton" type="Button" parent="CanvasLayer/UIContainer/LeftMargin/LeftCard/Margin/VBox"]
+[node name="AudioSettingsButton" type="Button" parent="CanvasLayer/UIContainer/LeftMargin/LeftCard/VBox"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 44)
+custom_minimum_size = Vector2(0, 46)
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("7_rubik_bold")
 theme_override_font_sizes/font_size = 15
 theme_override_styles/normal = SubResource("StyleBoxFlat_btn_secondary")
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_secondary_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_secondary")
 text = "🔊  НАСТРОЙКИ АУДИО"
 
-[node name="QuitButton" type="Button" parent="CanvasLayer/UIContainer/LeftMargin/LeftCard/Margin/VBox"]
+[node name="QuitButton" type="Button" parent="CanvasLayer/UIContainer/LeftMargin/LeftCard/VBox"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 44)
+custom_minimum_size = Vector2(0, 46)
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("7_rubik_bold")
 theme_override_font_sizes/font_size = 15
 theme_override_styles/normal = SubResource("StyleBoxFlat_btn_danger")
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_danger_hover")
@@ -377,126 +486,127 @@ anchors_preset = 11
 anchor_left = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -380.0
+offset_left = -400.0
 grow_horizontal = 0
 grow_vertical = 2
-theme_override_constants/margin_top = 36
+theme_override_constants/margin_top = 32
 theme_override_constants/margin_right = 36
-theme_override_constants/margin_bottom = 36
+theme_override_constants/margin_bottom = 32
 
 [node name="RightCard" type="PanelContainer" parent="CanvasLayer/UIContainer/RightMargin"]
-custom_minimum_size = Vector2(340, 0)
+custom_minimum_size = Vector2(360, 0)
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_card")
 
-[node name="Margin" type="MarginContainer" parent="CanvasLayer/UIContainer/RightMargin/RightCard"]
+[node name="VBox" type="VBoxContainer" parent="CanvasLayer/UIContainer/RightMargin/RightCard"]
 layout_mode = 2
-theme_override_constants/margin_left = 22
-theme_override_constants/margin_top = 22
-theme_override_constants/margin_right = 22
-theme_override_constants/margin_bottom = 22
-
-[node name="VBox" type="VBoxContainer" parent="CanvasLayer/UIContainer/RightMargin/RightCard/Margin"]
-layout_mode = 2
-theme_override_constants/separation = 10
+theme_override_constants/separation = 12
 alignment = 1
 
-[node name="CharNameLabel" type="Label" parent="CanvasLayer/UIContainer/RightMargin/RightCard/Margin/VBox"]
+[node name="CharNameLabel" type="Label" parent="CanvasLayer/UIContainer/RightMargin/RightCard/VBox"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.3, 0.9, 1, 1)
+theme_override_fonts/font = ExtResource("6_russo")
 theme_override_font_sizes/font_size = 22
 text = "🦛 ТОЛСТЯК (FAT)"
 horizontal_alignment = 1
 
-[node name="HSeparator2" type="HSeparator" parent="CanvasLayer/UIContainer/RightMargin/RightCard/Margin/VBox"]
+[node name="HSeparator2" type="HSeparator" parent="CanvasLayer/UIContainer/RightMargin/RightCard/VBox"]
 layout_mode = 2
 
-[node name="HpLabel" type="Label" parent="CanvasLayer/UIContainer/RightMargin/RightCard/Margin/VBox"]
+[node name="HpLabel" type="Label" parent="CanvasLayer/UIContainer/RightMargin/RightCard/VBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.85, 0.9, 0.95, 1)
+theme_override_colors/font_color = Color(0.9, 0.95, 1, 1)
+theme_override_fonts/font = ExtResource("7_rubik_bold")
 theme_override_font_sizes/font_size = 13
 text = "ЗДОРОВЬЕ:"
 
-[node name="CharHpBar" type="ProgressBar" parent="CanvasLayer/UIContainer/RightMargin/RightCard/Margin/VBox"]
+[node name="CharHpBar" type="ProgressBar" parent="CanvasLayer/UIContainer/RightMargin/RightCard/VBox"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 14)
+custom_minimum_size = Vector2(0, 16)
 layout_mode = 2
 theme_override_styles/fill = SubResource("StyleBoxFlat_hp_fill")
 max_value = 160.0
 value = 160.0
 show_percentage = false
 
-[node name="StaminaLabel" type="Label" parent="CanvasLayer/UIContainer/RightMargin/RightCard/Margin/VBox"]
+[node name="StaminaLabel" type="Label" parent="CanvasLayer/UIContainer/RightMargin/RightCard/VBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.85, 0.9, 0.95, 1)
+theme_override_colors/font_color = Color(0.9, 0.95, 1, 1)
+theme_override_fonts/font = ExtResource("7_rubik_bold")
 theme_override_font_sizes/font_size = 13
 text = "ВЫНОСЛИВОСТЬ / СКОРОСТЬ:"
 
-[node name="CharStaminaBar" type="ProgressBar" parent="CanvasLayer/UIContainer/RightMargin/RightCard/Margin/VBox"]
+[node name="CharStaminaBar" type="ProgressBar" parent="CanvasLayer/UIContainer/RightMargin/RightCard/VBox"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 14)
+custom_minimum_size = Vector2(0, 16)
 layout_mode = 2
 theme_override_styles/fill = SubResource("StyleBoxFlat_stamina_fill")
 max_value = 120.0
 value = 80.0
 show_percentage = false
 
-[node name="CharDescLabel" type="Label" parent="CanvasLayer/UIContainer/RightMargin/RightCard/Margin/VBox"]
+[node name="CharDescLabel" type="Label" parent="CanvasLayer/UIContainer/RightMargin/RightCard/VBox"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.8, 0.9, 1, 0.85)
+theme_override_fonts/font = ExtResource("8_rubik_med")
 theme_override_font_sizes/font_size = 13
 text = "• Здоровье: 160 HP
 • Силач: Поднимает и бросает 450 кг валуны на [E]
 • Токсичная вонь: Травит врагов вокруг"
 autowrap_mode = 2
 
-[node name="HSeparator3" type="HSeparator" parent="CanvasLayer/UIContainer/RightMargin/RightCard/Margin/VBox"]
+[node name="HSeparator3" type="HSeparator" parent="CanvasLayer/UIContainer/RightMargin/RightCard/VBox"]
 layout_mode = 2
 
-[node name="DanceLabel" type="Label" parent="CanvasLayer/UIContainer/RightMargin/RightCard/Margin/VBox"]
+[node name="DanceLabel" type="Label" parent="CanvasLayer/UIContainer/RightMargin/RightCard/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.85, 0.3, 1)
+theme_override_fonts/font = ExtResource("7_rubik_bold")
 theme_override_font_sizes/font_size = 14
 text = "💃 ТАНЦЫ И ЭМОЦИИ:"
 horizontal_alignment = 1
 
-[node name="DanceHBox" type="HBoxContainer" parent="CanvasLayer/UIContainer/RightMargin/RightCard/Margin/VBox"]
+[node name="DanceHBox" type="HBoxContainer" parent="CanvasLayer/UIContainer/RightMargin/RightCard/VBox"]
 layout_mode = 2
-theme_override_constants/separation = 6
+theme_override_constants/separation = 8
 
-[node name="BtnDanceDisco" type="Button" parent="CanvasLayer/UIContainer/RightMargin/RightCard/Margin/VBox/DanceHBox"]
+[node name="BtnDanceDisco" type="Button" parent="CanvasLayer/UIContainer/RightMargin/RightCard/VBox/DanceHBox"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 34)
+custom_minimum_size = Vector2(0, 38)
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_fonts/font = ExtResource("7_rubik_bold")
 theme_override_font_sizes/font_size = 12
-theme_override_styles/normal = SubResource("StyleBoxFlat_btn_secondary")
-theme_override_styles/hover = SubResource("StyleBoxFlat_btn_secondary_hover")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_secondary")
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_accent")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_accent_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_accent")
 text = "🕺 ДИСКО"
 
-[node name="BtnDanceKazachok" type="Button" parent="CanvasLayer/UIContainer/RightMargin/RightCard/Margin/VBox/DanceHBox"]
+[node name="BtnDanceKazachok" type="Button" parent="CanvasLayer/UIContainer/RightMargin/RightCard/VBox/DanceHBox"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 34)
+custom_minimum_size = Vector2(0, 38)
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_fonts/font = ExtResource("7_rubik_bold")
 theme_override_font_sizes/font_size = 12
-theme_override_styles/normal = SubResource("StyleBoxFlat_btn_secondary")
-theme_override_styles/hover = SubResource("StyleBoxFlat_btn_secondary_hover")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_secondary")
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_accent")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_accent_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_accent")
 text = "💃 КАЗАЧОК"
 
-[node name="BtnDanceWiggle" type="Button" parent="CanvasLayer/UIContainer/RightMargin/RightCard/Margin/VBox/DanceHBox"]
+[node name="BtnDanceWiggle" type="Button" parent="CanvasLayer/UIContainer/RightMargin/RightCard/VBox/DanceHBox"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 34)
+custom_minimum_size = Vector2(0, 38)
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_fonts/font = ExtResource("7_rubik_bold")
 theme_override_font_sizes/font_size = 12
-theme_override_styles/normal = SubResource("StyleBoxFlat_btn_secondary")
-theme_override_styles/hover = SubResource("StyleBoxFlat_btn_secondary_hover")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_secondary")
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_accent")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_accent_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_accent")
 text = "🪱 ЖЕЛЕ"
 
 [node name="BottomMargin" type="MarginContainer" parent="CanvasLayer/UIContainer"]
@@ -505,36 +615,42 @@ anchors_preset = 12
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = -64.0
+offset_top = -68.0
 grow_horizontal = 2
 grow_vertical = 0
 theme_override_constants/margin_left = 36
 theme_override_constants/margin_right = 36
-theme_override_constants/margin_bottom = 16
+theme_override_constants/margin_bottom = 18
 
 [node name="HBox" type="HBoxContainer" parent="CanvasLayer/UIContainer/BottomMargin"]
 layout_mode = 2
+theme_override_constants/separation = 12
 alignment = 1
 
-[node name="RadminLabel" type="Label" parent="CanvasLayer/UIContainer/BottomMargin/HBox"]
+[node name="RadminBadge" type="PanelContainer" parent="CanvasLayer/UIContainer/BottomMargin/HBox"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_badge")
+
+[node name="RadminLabel" type="Label" parent="CanvasLayer/UIContainer/BottomMargin/HBox/RadminBadge"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.4, 0.9, 1, 1)
-theme_override_font_sizes/font_size = 14
+theme_override_fonts/font = ExtResource("7_rubik_bold")
+theme_override_font_sizes/font_size = 13
 text = "🌐 RADMIN VPN: ПОИСК СЕТИ..."
 
 [node name="CopyIPButton" type="Button" parent="CanvasLayer/UIContainer/BottomMargin/HBox"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(160, 32)
+custom_minimum_size = Vector2(160, 36)
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("7_rubik_bold")
 theme_override_font_sizes/font_size = 13
 theme_override_styles/normal = SubResource("StyleBoxFlat_btn_secondary")
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_secondary_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_secondary")
 text = "📋 СКОПИРОВАТЬ IP"
 
-[node name="AudioSettingsDialog" parent="CanvasLayer" instance=ExtResource("2_audio_dialog")]
+[node name="AudioSettingsDialog" parent="CanvasLayer" instance=ExtResource("3_audio_dialog")]
 unique_name_in_owner = true
 layout_mode = 3
 anchors_preset = 15

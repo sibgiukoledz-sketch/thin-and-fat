@@ -1,6 +1,76 @@
-[gd_scene load_steps=2 format=3 uid="uid://c8audiosettings001"]
+[gd_scene load_steps=10 format=3 uid="uid://c8audiosettings001"]
 
 [ext_resource type="Script" path="res://scripts/ui/audio_settings_dialog.gd" id="1_audioscript"]
+[ext_resource type="Theme" uid="uid://dfthinandfattheme01" path="res://resources/ui_theme.tres" id="2_theme"]
+[ext_resource type="FontFile" uid="uid://cdqb10dd5tuid" path="res://assets/ui/fonts/RussoOne-Regular.ttf" id="3_russo"]
+[ext_resource type="FontFile" uid="uid://w0j61saadnf0" path="res://assets/ui/fonts/Rubik-Bold.ttf" id="4_rubik_bold"]
+[ext_resource type="FontFile" uid="uid://djg0820ypjh8y" path="res://assets/ui/fonts/Rubik-Medium.ttf" id="5_rubik_med"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dialog_card"]
+content_margin_left = 32.0
+content_margin_top = 28.0
+content_margin_right = 32.0
+content_margin_bottom = 28.0
+bg_color = Color(0.08, 0.12, 0.20, 0.98)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.25, 0.65, 0.95, 0.6)
+corner_radius_top_left = 18
+corner_radius_top_right = 18
+corner_radius_bottom_right = 18
+corner_radius_bottom_left = 18
+shadow_color = Color(0, 0, 0, 0.7)
+shadow_size = 24
+shadow_offset = Vector2(0, 6)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_secondary"]
+content_margin_left = 16.0
+content_margin_top = 10.0
+content_margin_right = 16.0
+content_margin_bottom = 14.0
+bg_color = Color(0.12, 0.48, 0.78, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 5
+border_color = Color(0.08, 0.32, 0.55, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+shadow_color = Color(0, 0, 0, 0.35)
+shadow_size = 6
+shadow_offset = Vector2(0, 3)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_danger"]
+content_margin_left = 16.0
+content_margin_top = 10.0
+content_margin_right = 16.0
+content_margin_bottom = 14.0
+bg_color = Color(0.78, 0.22, 0.22, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 5
+border_color = Color(0.55, 0.12, 0.12, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+shadow_color = Color(0.78, 0.22, 0.22, 0.35)
+shadow_size = 6
+shadow_offset = Vector2(0, 3)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mic_bar"]
+bg_color = Color(0.20, 0.85, 0.45, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+shadow_color = Color(0.20, 0.85, 0.45, 0.4)
+shadow_size = 4
 
 [node name="AudioSettingsDialog" type="Control"]
 layout_mode = 3
@@ -9,6 +79,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+theme = ExtResource("2_theme")
 script = ExtResource("1_audioscript")
 
 [node name="Backdrop" type="ColorRect" parent="."]
@@ -18,7 +89,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0, 0, 0, 0.65)
+color = Color(0, 0, 0, 0.75)
 
 [node name="CenterContainer" type="CenterContainer" parent="."]
 layout_mode = 1
@@ -29,155 +100,200 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="CardPanel" type="PanelContainer" parent="CenterContainer"]
-custom_minimum_size = Vector2(620, 0)
+custom_minimum_size = Vector2(680, 0)
 layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_dialog_card")
 
-[node name="Margin" type="MarginContainer" parent="CenterContainer/CardPanel"]
+[node name="VBox" type="VBoxContainer" parent="CenterContainer/CardPanel"]
 layout_mode = 2
-theme_override_constants/margin_left = 24
-theme_override_constants/margin_top = 24
-theme_override_constants/margin_right = 24
-theme_override_constants/margin_bottom = 24
+theme_override_constants/separation = 14
 
-[node name="VBox" type="VBoxContainer" parent="CenterContainer/CardPanel/Margin"]
+[node name="TitleLabel" type="Label" parent="CenterContainer/CardPanel/VBox"]
 layout_mode = 2
-theme_override_constants/separation = 12
-
-[node name="TitleLabel" type="Label" parent="CenterContainer/CardPanel/Margin/VBox"]
-layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.2, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
+theme_override_constants/shadow_offset_y = 2
+theme_override_fonts/font = ExtResource("3_russo")
 theme_override_font_sizes/font_size = 24
 text = "⚙️ НАСТРОЙКИ ЗВУКА И МИКРОФОНА"
 horizontal_alignment = 1
 
-[node name="HSeparator1" type="HSeparator" parent="CenterContainer/CardPanel/Margin/VBox"]
+[node name="HSeparator1" type="HSeparator" parent="CenterContainer/CardPanel/VBox"]
 layout_mode = 2
 
-[node name="VolMasterBox" type="HBoxContainer" parent="CenterContainer/CardPanel/Margin/VBox"]
-layout_mode = 2
-
-[node name="Label" type="Label" parent="CenterContainer/CardPanel/Margin/VBox/VolMasterBox"]
-custom_minimum_size = Vector2(180, 0)
-layout_mode = 2
-text = "🔊 Общая громкость:"
-
-[node name="MasterSlider" type="HSlider" parent="CenterContainer/CardPanel/Margin/VBox/VolMasterBox"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 4
-value = 100.0
-
-[node name="MasterValLabel" type="Label" parent="CenterContainer/CardPanel/Margin/VBox/VolMasterBox"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(50, 0)
-layout_mode = 2
-text = "100%"
-
-[node name="VolSFXBox" type="HBoxContainer" parent="CenterContainer/CardPanel/Margin/VBox"]
-layout_mode = 2
-
-[node name="Label" type="Label" parent="CenterContainer/CardPanel/Margin/VBox/VolSFXBox"]
-custom_minimum_size = Vector2(180, 0)
-layout_mode = 2
-text = "🎮 Звуковые эффекты:"
-
-[node name="SFXSlider" type="HSlider" parent="CenterContainer/CardPanel/Margin/VBox/VolSFXBox"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 4
-value = 100.0
-
-[node name="SFXValLabel" type="Label" parent="CenterContainer/CardPanel/Margin/VBox/VolSFXBox"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(50, 0)
-layout_mode = 2
-text = "100%"
-
-[node name="VolVoiceBox" type="HBoxContainer" parent="CenterContainer/CardPanel/Margin/VBox"]
-layout_mode = 2
-
-[node name="Label" type="Label" parent="CenterContainer/CardPanel/Margin/VBox/VolVoiceBox"]
-custom_minimum_size = Vector2(180, 0)
-layout_mode = 2
-text = "💬 Голосовой чат:"
-
-[node name="VoiceSlider" type="HSlider" parent="CenterContainer/CardPanel/Margin/VBox/VolVoiceBox"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 4
-value = 100.0
-
-[node name="VoiceValLabel" type="Label" parent="CenterContainer/CardPanel/Margin/VBox/VolVoiceBox"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(50, 0)
-layout_mode = 2
-text = "100%"
-
-[node name="HSeparator2" type="HSeparator" parent="CenterContainer/CardPanel/Margin/VBox"]
-layout_mode = 2
-
-[node name="OutDevLabel" type="Label" parent="CenterContainer/CardPanel/Margin/VBox"]
-layout_mode = 2
-text = "🎧 Динамики / Наушники (Выход):"
-
-[node name="OutputDeviceOpt" type="OptionButton" parent="CenterContainer/CardPanel/Margin/VBox"]
-unique_name_in_owner = true
-layout_mode = 2
-
-[node name="InDevLabel" type="Label" parent="CenterContainer/CardPanel/Margin/VBox"]
-layout_mode = 2
-text = "🎙️ Микрофон (Вход):"
-
-[node name="InputDeviceOpt" type="OptionButton" parent="CenterContainer/CardPanel/Margin/VBox"]
-unique_name_in_owner = true
-layout_mode = 2
-
-[node name="HSeparator3" type="HSeparator" parent="CenterContainer/CardPanel/Margin/VBox"]
-layout_mode = 2
-
-[node name="MicTestBox" type="HBoxContainer" parent="CenterContainer/CardPanel/Margin/VBox"]
+[node name="VolMasterBox" type="HBoxContainer" parent="CenterContainer/CardPanel/VBox"]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="MicTestButton" type="Button" parent="CenterContainer/CardPanel/Margin/VBox/MicTestBox"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(210, 38)
+[node name="Label" type="Label" parent="CenterContainer/CardPanel/VBox/VolMasterBox"]
+custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
-text = "🎙️ ПРОВЕРИТЬ МИКРОФОН"
+theme_override_fonts/font = ExtResource("4_rubik_bold")
+theme_override_font_sizes/font_size = 14
+text = "🔊 Общая громкость:"
 
-[node name="MicLevelBar" type="ProgressBar" parent="CenterContainer/CardPanel/Margin/VBox/MicTestBox"]
+[node name="MasterSlider" type="HSlider" parent="CenterContainer/CardPanel/VBox/VolMasterBox"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 24)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 4
-show_percentage = false
+value = 100.0
 
-[node name="MicStatusLabel" type="Label" parent="CenterContainer/CardPanel/Margin/VBox"]
+[node name="MasterValLabel" type="Label" parent="CenterContainer/CardPanel/VBox/VolMasterBox"]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(60, 0)
 layout_mode = 2
-text = "🎙️ Нажмите 'Проверить микрофон' для теста уровня"
+theme_override_colors/font_color = Color(0.35, 0.9, 1, 1)
+theme_override_fonts/font = ExtResource("4_rubik_bold")
+theme_override_font_sizes/font_size = 14
+text = "100%"
+horizontal_alignment = 2
 
-[node name="PTTBox" type="HBoxContainer" parent="CenterContainer/CardPanel/Margin/VBox"]
+[node name="VolSFXBox" type="HBoxContainer" parent="CenterContainer/CardPanel/VBox"]
 layout_mode = 2
+theme_override_constants/separation = 12
 
-[node name="Label" type="Label" parent="CenterContainer/CardPanel/Margin/VBox/PTTBox"]
-custom_minimum_size = Vector2(180, 0)
+[node name="Label" type="Label" parent="CenterContainer/CardPanel/VBox/VolSFXBox"]
+custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
-text = "🎙️ Режим активации:"
+theme_override_fonts/font = ExtResource("4_rubik_bold")
+theme_override_font_sizes/font_size = 14
+text = "🎮 Звуковые эффекты:"
 
-[node name="PTTModeOpt" type="OptionButton" parent="CenterContainer/CardPanel/Margin/VBox/PTTBox"]
+[node name="SFXSlider" type="HSlider" parent="CenterContainer/CardPanel/VBox/VolSFXBox"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
+size_flags_vertical = 4
+value = 100.0
 
-[node name="HSeparator4" type="HSeparator" parent="CenterContainer/CardPanel/Margin/VBox"]
-layout_mode = 2
-
-[node name="CloseButton" type="Button" parent="CenterContainer/CardPanel/Margin/VBox"]
+[node name="SFXValLabel" type="Label" parent="CenterContainer/CardPanel/VBox/VolSFXBox"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 42)
+custom_minimum_size = Vector2(60, 0)
 layout_mode = 2
+theme_override_colors/font_color = Color(0.35, 0.9, 1, 1)
+theme_override_fonts/font = ExtResource("4_rubik_bold")
+theme_override_font_sizes/font_size = 14
+text = "100%"
+horizontal_alignment = 2
+
+[node name="VolVoiceBox" type="HBoxContainer" parent="CenterContainer/CardPanel/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Label" type="Label" parent="CenterContainer/CardPanel/VBox/VolVoiceBox"]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("4_rubik_bold")
+theme_override_font_sizes/font_size = 14
+text = "💬 Голосовой чат:"
+
+[node name="VoiceSlider" type="HSlider" parent="CenterContainer/CardPanel/VBox/VolVoiceBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+value = 100.0
+
+[node name="VoiceValLabel" type="Label" parent="CenterContainer/CardPanel/VBox/VolVoiceBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(60, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.35, 0.9, 1, 1)
+theme_override_fonts/font = ExtResource("4_rubik_bold")
+theme_override_font_sizes/font_size = 14
+text = "100%"
+horizontal_alignment = 2
+
+[node name="HSeparator2" type="HSeparator" parent="CenterContainer/CardPanel/VBox"]
+layout_mode = 2
+
+[node name="OutDevLabel" type="Label" parent="CenterContainer/CardPanel/VBox"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("4_rubik_bold")
+theme_override_font_sizes/font_size = 14
+text = "🎧 Динамики / Наушники (Выход):"
+
+[node name="OutputDeviceOpt" type="OptionButton" parent="CenterContainer/CardPanel/VBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 38)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("5_rubik_med")
+theme_override_font_sizes/font_size = 13
+
+[node name="InDevLabel" type="Label" parent="CenterContainer/CardPanel/VBox"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("4_rubik_bold")
+theme_override_font_sizes/font_size = 14
+text = "🎙️ Микрофон (Вход):"
+
+[node name="InputDeviceOpt" type="OptionButton" parent="CenterContainer/CardPanel/VBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 38)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("5_rubik_med")
+theme_override_font_sizes/font_size = 13
+
+[node name="HSeparator3" type="HSeparator" parent="CenterContainer/CardPanel/VBox"]
+layout_mode = 2
+
+[node name="MicTestBox" type="HBoxContainer" parent="CenterContainer/CardPanel/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="MicTestButton" type="Button" parent="CenterContainer/CardPanel/VBox/MicTestBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(230, 42)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("4_rubik_bold")
+theme_override_font_sizes/font_size = 13
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_secondary")
+text = "🎙️ ПРОВЕРИТЬ МИКРОФОН"
+
+[node name="MicLevelBar" type="ProgressBar" parent="CenterContainer/CardPanel/VBox/MicTestBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 26)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+theme_override_styles/fill = SubResource("StyleBoxFlat_mic_bar")
+show_percentage = false
+
+[node name="MicStatusLabel" type="Label" parent="CenterContainer/CardPanel/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.65, 0.80, 0.95, 0.85)
+theme_override_fonts/font = ExtResource("5_rubik_med")
+theme_override_font_sizes/font_size = 13
+text = "🎙️ Нажмите 'Проверить микрофон' для теста уровня"
+
+[node name="PTTBox" type="HBoxContainer" parent="CenterContainer/CardPanel/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Label" type="Label" parent="CenterContainer/CardPanel/VBox/PTTBox"]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("4_rubik_bold")
+theme_override_font_sizes/font_size = 14
+text = "🎙️ Режим активации:"
+
+[node name="PTTModeOpt" type="OptionButton" parent="CenterContainer/CardPanel/VBox/PTTBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 38)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_fonts/font = ExtResource("5_rubik_med")
+theme_override_font_sizes/font_size = 13
+
+[node name="HSeparator4" type="HSeparator" parent="CenterContainer/CardPanel/VBox"]
+layout_mode = 2
+
+[node name="CloseButton" type="Button" parent="CenterContainer/CardPanel/VBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("4_rubik_bold")
+theme_override_font_sizes/font_size = 15
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_danger")
 text = "❌ ЗАКРЫТЬ И СОХРАНИТЬ"

@@ -1,39 +1,58 @@
-[gd_scene format=3 uid="uid://ckj6xtet6gko3"]
+[gd_scene load_steps=10 format=3 uid="uid://ckj6xtet6gko3"]
 
 [ext_resource type="Script" path="res://scripts/ui/loading_screen.gd" id="1_loader"]
+[ext_resource type="Theme" uid="uid://dfthinandfattheme01" path="res://resources/ui_theme.tres" id="2_theme"]
+[ext_resource type="FontFile" uid="uid://cdqb10dd5tuid" path="res://assets/ui/fonts/RussoOne-Regular.ttf" id="3_russo"]
+[ext_resource type="FontFile" uid="uid://w0j61saadnf0" path="res://assets/ui/fonts/Rubik-Bold.ttf" id="4_rubik_bold"]
+[ext_resource type="FontFile" uid="uid://djg0820ypjh8y" path="res://assets/ui/fonts/Rubik-Medium.ttf" id="5_rubik_med"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bg"]
-bg_color = Color(0.04, 0.06, 0.1, 1)
+bg_color = Color(0.04, 0.06, 0.10, 1)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_card"]
-bg_color = Color(0.08, 0.12, 0.18, 0.95)
+content_margin_left = 36.0
+content_margin_top = 32.0
+content_margin_right = 36.0
+content_margin_bottom = 32.0
+bg_color = Color(0.08, 0.12, 0.20, 0.96)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
-border_color = Color(0.2, 0.7, 0.95, 0.5)
-corner_radius_top_left = 16
-corner_radius_top_right = 16
-corner_radius_bottom_right = 16
-corner_radius_bottom_left = 16
-shadow_color = Color(0, 0, 0, 0.6)
-shadow_size = 16
+border_color = Color(0.25, 0.65, 0.95, 0.5)
+corner_radius_top_left = 18
+corner_radius_top_right = 18
+corner_radius_bottom_right = 18
+corner_radius_bottom_left = 18
+shadow_color = Color(0, 0, 0, 0.65)
+shadow_size = 20
+shadow_offset = Vector2(0, 6)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_prog_bg"]
-bg_color = Color(0.12, 0.16, 0.22, 1)
-corner_radius_top_left = 8
-corner_radius_top_right = 8
-corner_radius_bottom_right = 8
-corner_radius_bottom_left = 8
+bg_color = Color(0.06, 0.09, 0.15, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.18, 0.32, 0.50, 0.8)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_prog_fill"]
-bg_color = Color(0.2, 0.85, 0.5, 1)
+bg_color = Color(0.16, 0.75, 0.42, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.40, 0.95, 0.60, 1)
 corner_radius_top_left = 8
 corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
-shadow_color = Color(0.2, 0.85, 0.5, 0.4)
-shadow_size = 6
+shadow_color = Color(0.16, 0.75, 0.42, 0.45)
+shadow_size = 8
 
 [node name="LoadingScreen" type="Control"]
 layout_mode = 3
@@ -42,6 +61,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+theme = ExtResource("2_theme")
 script = ExtResource("1_loader")
 
 [node name="Background" type="Panel" parent="."]
@@ -62,64 +82,62 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="Card" type="PanelContainer" parent="CenterContainer"]
-custom_minimum_size = Vector2(620, 280)
+custom_minimum_size = Vector2(660, 300)
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_card")
 
-[node name="Margin" type="MarginContainer" parent="CenterContainer/Card"]
+[node name="VBox" type="VBoxContainer" parent="CenterContainer/Card"]
 layout_mode = 2
-theme_override_constants/margin_left = 32
-theme_override_constants/margin_top = 28
-theme_override_constants/margin_right = 32
-theme_override_constants/margin_bottom = 28
-
-[node name="VBox" type="VBoxContainer" parent="CenterContainer/Card/Margin"]
-layout_mode = 2
-theme_override_constants/separation = 16
+theme_override_constants/separation = 18
 alignment = 1
 
-[node name="HeaderHBox" type="HBoxContainer" parent="CenterContainer/Card/Margin/VBox"]
+[node name="HeaderHBox" type="HBoxContainer" parent="CenterContainer/Card/VBox"]
 layout_mode = 2
-theme_override_constants/separation = 12
+theme_override_constants/separation = 14
 alignment = 1
 
-[node name="SpinnerIcon" type="Label" parent="CenterContainer/Card/Margin/VBox/HeaderHBox"]
+[node name="SpinnerIcon" type="Label" parent="CenterContainer/Card/VBox/HeaderHBox"]
 unique_name_in_owner = true
 layout_mode = 2
-pivot_offset = Vector2(16, 16)
-theme_override_font_sizes/font_size = 28
+pivot_offset = Vector2(18, 18)
+theme_override_font_sizes/font_size = 32
 text = "⚙️"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="TitleLabel" type="Label" parent="CenterContainer/Card/Margin/VBox/HeaderHBox"]
+[node name="TitleLabel" type="Label" parent="CenterContainer/Card/VBox/HeaderHBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_color = Color(1, 0.85, 0.2, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
+theme_override_constants/shadow_offset_y = 2
+theme_override_fonts/font = ExtResource("3_russo")
 theme_override_font_sizes/font_size = 24
 text = "ЗАГРУЗКА МИРА..."
 horizontal_alignment = 1
 
-[node name="ProgressBar" type="ProgressBar" parent="CenterContainer/Card/Margin/VBox"]
+[node name="ProgressBar" type="ProgressBar" parent="CenterContainer/Card/VBox"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 20)
+custom_minimum_size = Vector2(0, 24)
 layout_mode = 2
 theme_override_styles/background = SubResource("StyleBoxFlat_prog_bg")
 theme_override_styles/fill = SubResource("StyleBoxFlat_prog_fill")
 show_percentage = false
 
-[node name="PercentLabel" type="Label" parent="CenterContainer/Card/Margin/VBox"]
+[node name="PercentLabel" type="Label" parent="CenterContainer/Card/VBox"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0.3, 0.9, 0.6, 1)
-theme_override_font_sizes/font_size = 18
+theme_override_colors/font_color = Color(0.35, 0.95, 0.6, 1)
+theme_override_fonts/font = ExtResource("4_rubik_bold")
+theme_override_font_sizes/font_size = 20
 text = "0%"
 horizontal_alignment = 1
 
-[node name="TipLabel" type="Label" parent="CenterContainer/Card/Margin/VBox"]
+[node name="TipLabel" type="Label" parent="CenterContainer/Card/VBox"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 48)
+custom_minimum_size = Vector2(0, 52)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.75, 0.85, 0.95, 0.9)
+theme_override_colors/font_color = Color(0.75, 0.88, 1.0, 0.95)
+theme_override_fonts/font = ExtResource("5_rubik_med")
 theme_override_font_sizes/font_size = 14
 text = "💡 Совет: Толстяк может поднять валун весом 450 кг..."
 horizontal_alignment = 1

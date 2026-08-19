@@ -1,101 +1,188 @@
-[gd_scene format=3 uid="uid://c8pausemenu01"]
+[gd_scene load_steps=18 format=3 uid="uid://c8pausemenu01"]
 
 [ext_resource type="Script" path="res://scripts/ui/pause_menu.gd" id="1_pause"]
-[ext_resource type="Shader" path="res://shaders/screen_blur.gdshader" id="2_blur"]
-[ext_resource type="PackedScene" path="res://scenes/ui/audio_settings_dialog.tscn" id="3_audio_dialog"]
+[ext_resource type="Theme" uid="uid://dfthinandfattheme01" path="res://resources/ui_theme.tres" id="2_theme"]
+[ext_resource type="Shader" path="res://shaders/screen_blur.gdshader" id="3_blur"]
+[ext_resource type="PackedScene" path="res://scenes/ui/audio_settings_dialog.tscn" id="4_audio_dialog"]
+[ext_resource type="FontFile" uid="uid://cdqb10dd5tuid" path="res://assets/ui/fonts/RussoOne-Regular.ttf" id="5_russo"]
+[ext_resource type="FontFile" uid="uid://w0j61saadnf0" path="res://assets/ui/fonts/Rubik-Bold.ttf" id="6_rubik_bold"]
+[ext_resource type="FontFile" uid="uid://djg0820ypjh8y" path="res://assets/ui/fonts/Rubik-Medium.ttf" id="7_rubik_med"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_blur"]
-shader = ExtResource("2_blur")
-shader_parameter/blur_amount = 3.0
-shader_parameter/tint_color = Color(0.04, 0.07, 0.12, 0.75)
+shader = ExtResource("3_blur")
+shader_parameter/blur_amount = 3.5
+shader_parameter/tint_color = Color(0.04, 0.07, 0.12, 0.80)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_card"]
-bg_color = Color(0.08, 0.12, 0.18, 0.95)
+content_margin_left = 32.0
+content_margin_top = 28.0
+content_margin_right = 32.0
+content_margin_bottom = 28.0
+bg_color = Color(0.08, 0.12, 0.20, 0.96)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
-border_color = Color(0.3, 0.7, 0.95, 0.6)
-corner_radius_top_left = 16
-corner_radius_top_right = 16
-corner_radius_bottom_right = 16
-corner_radius_bottom_left = 16
-shadow_color = Color(0, 0, 0, 0.6)
-shadow_size = 20
+border_color = Color(0.25, 0.60, 0.95, 0.6)
+corner_radius_top_left = 18
+corner_radius_top_right = 18
+corner_radius_bottom_right = 18
+corner_radius_bottom_left = 18
+shadow_color = Color(0, 0, 0, 0.65)
+shadow_size = 22
+shadow_offset = Vector2(0, 6)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_primary"]
-bg_color = Color(0.18, 0.7, 0.38, 1)
+content_margin_left = 18.0
+content_margin_top = 12.0
+content_margin_right = 18.0
+content_margin_bottom = 15.0
+bg_color = Color(0.16, 0.72, 0.38, 1)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.4, 0.95, 0.6, 1)
-corner_radius_top_left = 10
-corner_radius_top_right = 10
-corner_radius_bottom_right = 10
-corner_radius_bottom_left = 10
-shadow_color = Color(0.1, 0.5, 0.25, 0.3)
-shadow_size = 6
+border_width_bottom = 5
+border_color = Color(0.10, 0.52, 0.26, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+shadow_color = Color(0.16, 0.72, 0.38, 0.35)
+shadow_size = 8
+shadow_offset = Vector2(0, 3)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_primary_hover"]
-bg_color = Color(0.24, 0.85, 0.45, 1)
+content_margin_left = 18.0
+content_margin_top = 12.0
+content_margin_right = 18.0
+content_margin_bottom = 15.0
+bg_color = Color(0.22, 0.84, 0.46, 1)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.7, 1, 0.8, 1)
-corner_radius_top_left = 10
-corner_radius_top_right = 10
-corner_radius_bottom_right = 10
-corner_radius_bottom_left = 10
+border_width_bottom = 5
+border_color = Color(0.14, 0.65, 0.34, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+shadow_color = Color(0.22, 0.84, 0.46, 0.5)
+shadow_size = 10
+shadow_offset = Vector2(0, 3)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_secondary"]
-bg_color = Color(0.15, 0.22, 0.32, 0.9)
+content_margin_left = 16.0
+content_margin_top = 10.0
+content_margin_right = 16.0
+content_margin_bottom = 14.0
+bg_color = Color(0.12, 0.48, 0.78, 1)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.3, 0.6, 0.85, 0.5)
-corner_radius_top_left = 10
-corner_radius_top_right = 10
-corner_radius_bottom_right = 10
-corner_radius_bottom_left = 10
+border_width_bottom = 5
+border_color = Color(0.08, 0.32, 0.55, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+shadow_color = Color(0, 0, 0, 0.35)
+shadow_size = 6
+shadow_offset = Vector2(0, 3)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_secondary_hover"]
-bg_color = Color(0.22, 0.32, 0.46, 1)
+content_margin_left = 16.0
+content_margin_top = 10.0
+content_margin_right = 16.0
+content_margin_bottom = 14.0
+bg_color = Color(0.18, 0.60, 0.95, 1)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.45, 0.8, 1, 0.8)
-corner_radius_top_left = 10
-corner_radius_top_right = 10
-corner_radius_bottom_right = 10
-corner_radius_bottom_left = 10
+border_width_bottom = 5
+border_color = Color(0.12, 0.45, 0.75, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+shadow_color = Color(0.18, 0.60, 0.95, 0.45)
+shadow_size = 8
+shadow_offset = Vector2(0, 3)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_accent"]
+content_margin_left = 16.0
+content_margin_top = 10.0
+content_margin_right = 16.0
+content_margin_bottom = 14.0
+bg_color = Color(0.92, 0.62, 0.12, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 5
+border_color = Color(0.70, 0.44, 0.06, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+shadow_color = Color(0.92, 0.62, 0.12, 0.35)
+shadow_size = 8
+shadow_offset = Vector2(0, 3)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_accent_hover"]
+content_margin_left = 16.0
+content_margin_top = 10.0
+content_margin_right = 16.0
+content_margin_bottom = 14.0
+bg_color = Color(1.0, 0.72, 0.20, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 5
+border_color = Color(0.80, 0.52, 0.08, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+shadow_color = Color(1.0, 0.72, 0.20, 0.5)
+shadow_size = 10
+shadow_offset = Vector2(0, 3)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_danger"]
-bg_color = Color(0.7, 0.2, 0.2, 0.85)
+content_margin_left = 16.0
+content_margin_top = 10.0
+content_margin_right = 16.0
+content_margin_bottom = 14.0
+bg_color = Color(0.78, 0.22, 0.22, 1)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.95, 0.4, 0.4, 1)
-corner_radius_top_left = 10
-corner_radius_top_right = 10
-corner_radius_bottom_right = 10
-corner_radius_bottom_left = 10
+border_width_bottom = 5
+border_color = Color(0.55, 0.12, 0.12, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+shadow_color = Color(0.78, 0.22, 0.22, 0.35)
+shadow_size = 6
+shadow_offset = Vector2(0, 3)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_danger_hover"]
-bg_color = Color(0.85, 0.25, 0.25, 1)
+content_margin_left = 16.0
+content_margin_top = 10.0
+content_margin_right = 16.0
+content_margin_bottom = 14.0
+bg_color = Color(0.92, 0.28, 0.28, 1)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
-border_width_bottom = 2
-border_color = Color(1, 0.6, 0.6, 1)
-corner_radius_top_left = 10
-corner_radius_top_right = 10
-corner_radius_bottom_right = 10
-corner_radius_bottom_left = 10
+border_width_bottom = 5
+border_color = Color(0.70, 0.16, 0.16, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+shadow_color = Color(0.92, 0.28, 0.28, 0.45)
+shadow_size = 8
+shadow_offset = Vector2(0, 3)
 
 [node name="PauseMenu" type="Control"]
 process_mode = 3
@@ -105,6 +192,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+theme = ExtResource("2_theme")
 script = ExtResource("1_pause")
 
 [node name="BlurRect" type="ColorRect" parent="."]
@@ -127,94 +215,91 @@ grow_vertical = 2
 
 [node name="MenuCard" type="PanelContainer" parent="CenterContainer"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(440, 480)
+custom_minimum_size = Vector2(460, 500)
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_card")
 
-[node name="Margin" type="MarginContainer" parent="CenterContainer/MenuCard"]
-layout_mode = 2
-theme_override_constants/margin_left = 28
-theme_override_constants/margin_top = 28
-theme_override_constants/margin_right = 28
-theme_override_constants/margin_bottom = 28
-
-[node name="VBox" type="VBoxContainer" parent="CenterContainer/MenuCard/Margin"]
+[node name="VBox" type="VBoxContainer" parent="CenterContainer/MenuCard"]
 layout_mode = 2
 theme_override_constants/separation = 14
 alignment = 1
 
-[node name="TitleLabel" type="Label" parent="CenterContainer/MenuCard/Margin/VBox"]
+[node name="TitleLabel" type="Label" parent="CenterContainer/MenuCard/VBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/font_size = 26
-text = "⏸️ ПАУЗА"
+theme_override_colors/font_color = Color(1, 0.85, 0.2, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
+theme_override_constants/shadow_offset_y = 2
+theme_override_fonts/font = ExtResource("5_russo")
+theme_override_font_sizes/font_size = 28
+text = "⏸️  ПАУЗА"
 horizontal_alignment = 1
 
-[node name="SubtitleLabel" type="Label" parent="CenterContainer/MenuCard/Margin/VBox"]
+[node name="SubtitleLabel" type="Label" parent="CenterContainer/MenuCard/VBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.65, 0.75, 0.85, 0.8)
+theme_override_colors/font_color = Color(0.50, 0.85, 1.0, 0.95)
+theme_override_fonts/font = ExtResource("6_rubik_bold")
 theme_override_font_sizes/font_size = 13
-text = "THIN & FAT CO-OP ENGINE"
+text = "THIN & FAT CO-OP ADVENTURE"
 horizontal_alignment = 1
 
-[node name="HSeparator" type="HSeparator" parent="CenterContainer/MenuCard/Margin/VBox"]
+[node name="HSeparator" type="HSeparator" parent="CenterContainer/MenuCard/VBox"]
 layout_mode = 2
 
-[node name="ResumeButton" type="Button" parent="CenterContainer/MenuCard/Margin/VBox"]
+[node name="ResumeButton" type="Button" parent="CenterContainer/MenuCard/VBox"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 48)
+custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("6_rubik_bold")
 theme_override_font_sizes/font_size = 16
 theme_override_styles/normal = SubResource("StyleBoxFlat_btn_primary")
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_primary_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_primary")
 text = "▶️  ПРОДОЛЖИТЬ"
 
-[node name="SwitchCharButton" type="Button" parent="CenterContainer/MenuCard/Margin/VBox"]
+[node name="SwitchCharButton" type="Button" parent="CenterContainer/MenuCard/VBox"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 44)
+custom_minimum_size = Vector2(0, 46)
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("6_rubik_bold")
 theme_override_font_sizes/font_size = 15
-theme_override_styles/normal = SubResource("StyleBoxFlat_btn_secondary")
-theme_override_styles/hover = SubResource("StyleBoxFlat_btn_secondary_hover")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_secondary")
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_accent")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_accent_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_accent")
 text = "🔄  СМЕНИТЬ ПЕРСОНАЖА"
 
-[node name="AudioSettingsButton" type="Button" parent="CenterContainer/MenuCard/Margin/VBox"]
+[node name="AudioSettingsButton" type="Button" parent="CenterContainer/MenuCard/VBox"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 44)
+custom_minimum_size = Vector2(0, 46)
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("6_rubik_bold")
 theme_override_font_sizes/font_size = 15
 theme_override_styles/normal = SubResource("StyleBoxFlat_btn_secondary")
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_secondary_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_secondary")
-text = "🔊  НАСТРОЙКИ АУДИО / МИКРОФОНА"
+text = "🔊  НАСТРОЙКИ АУДИО"
 
-[node name="MainMenuButton" type="Button" parent="CenterContainer/MenuCard/Margin/VBox"]
+[node name="MainMenuButton" type="Button" parent="CenterContainer/MenuCard/VBox"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 44)
+custom_minimum_size = Vector2(0, 46)
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("6_rubik_bold")
 theme_override_font_sizes/font_size = 15
 theme_override_styles/normal = SubResource("StyleBoxFlat_btn_secondary")
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_secondary_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_secondary")
 text = "🏠  В ГЛАВНОЕ МЕНЮ"
 
-[node name="QuitButton" type="Button" parent="CenterContainer/MenuCard/Margin/VBox"]
+[node name="QuitButton" type="Button" parent="CenterContainer/MenuCard/VBox"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 44)
+custom_minimum_size = Vector2(0, 46)
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("6_rubik_bold")
 theme_override_font_sizes/font_size = 15
 theme_override_styles/normal = SubResource("StyleBoxFlat_btn_danger")
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_danger_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_danger")
 text = "🚪  ВЫЙТИ ИЗ ИГРЫ"
 
-[node name="AudioSettingsDialog" parent="." instance=ExtResource("3_audio_dialog")]
+[node name="AudioSettingsDialog" parent="." instance=ExtResource("4_audio_dialog")]
 unique_name_in_owner = true
 layout_mode = 1
